@@ -56,15 +56,18 @@ int bwsetspeed( int channel, int speed ) {
 		return 0;
 	case 2400:
 		*high = 0x0;
-		*low = 0x90; /////////0xBF
+		*low = 0xBF;
 		return 0;
 	default:
 		return -1;
 	}
 
-
-		//  This will write to the high bytes and make the change apply.
-	////////robsetfifo( channel, OFF);
+	// possibly the bug, from ep93xx user's guide 14.19
+	// In order to internally update the
+	// contents of UART1LinCtrlMid or UART1LinCtrlLow, a UART1LinCtrlHigh write must always
+	// be performed at the end. 
+	// bwsetfifo should do it.
+	bwsetfifo(channel, OFF);
 }
 
 int bwputc( int channel, char c ) {

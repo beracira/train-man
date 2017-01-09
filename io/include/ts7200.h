@@ -13,7 +13,7 @@
 #define	VAL_OFFSET	0x00000004	// 16/32 bits, RO
 #define CRTL_OFFSET	0x00000008	// 3 bits, RW
 	#define	ENABLE_MASK	0x00000080
-	#define	MODE_MASK	0x00000040
+	#define	MODE_MASK	0x00000040 //1 = periodic 0 = free running (18.6)
 	#define	CLKSEL_MASK	0x00000008
 #define CLR_OFFSET	0x0000000c	// no data, WO
 
@@ -41,6 +41,7 @@
 	#define PE_MASK		0x2
 	#define BE_MASK		0x4
 	#define OE_MASK		0x8
+// UART1LinCtrlHigh
 #define UART_LCRH_OFFSET	0x8	// low 7 bits
 	#define BRK_MASK	0x1
 	#define PEN_MASK	0x2	// parity enable
