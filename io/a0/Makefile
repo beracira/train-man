@@ -23,14 +23,20 @@ LDFLAGS = -init main -Map a0.map -N  -T orex.ld -L/u/wbcowan/gnuarm-4.0.2/lib/gc
 
 all:  a0.s a0.elf
 
+a0io.s: a0io.c a0io.h
+		$(XCC) -S $(CFLAGS) a0io.c
+
+a0io.o: a0io.s
+	$(AS) $(ASFLAGS) -o a0io.o a0io.s
+
 a0.s: a0.c a0.h
 	$(XCC) -S $(CFLAGS) a0.c
 
 a0.o: a0.s
 	$(AS) $(ASFLAGS) -o a0.o a0.s
 
-a0.elf: a0.o
-	$(LD) $(LDFLAGS) -o $@ a0.o -lbwio -lgcc
+a0.elf: a0.o a0io.o
+	$(LD) $(LDFLAGS) -o $@ a0.o a0io.o -lbwio -lgcc
 
 clean:
 	-rm -f a0.elf *.s *.o a0.map

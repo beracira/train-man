@@ -1,8 +1,8 @@
-#include <bwio.h>
+#include "a0io.h"
 #include <ts7200.h>
 #define FOREVER for( ; ; )
 
-void printTime(int numTicks) {
+void bufferprinttime(controller * terminal, int numTicks){
 	int ticksPerMin = 600;
 	int ticksPerSec = 10;
 
@@ -10,32 +10,47 @@ void printTime(int numTicks) {
 	int seconds = (numTicks - (minutes * ticksPerMin)) / (ticksPerSec);
 	int tenth = numTicks % ticksPerSec;
 
-	bwprintf(COM2, "System elapsed time: ");
+	bufferprintf(terminal, "System elapsed time: ");
 
 	if (minutes >= 10) {
-		bwprintf(COM2, "%d:", minutes);
+		bufferprintf(terminal, "%d:", minutes);
 	} 
 	else {
-		bwprintf(COM2, "0%d:", minutes);
+		bufferprintf(terminal, "0%d:", minutes);
 	}
 
 	if (seconds >= 10) {
-		bwprintf(COM2, "%d.", seconds);
+		bufferprintf(terminal, "%d.", seconds);
 	} 
 	else {
-		bwprintf(COM2, "0%d.", seconds);
+		bufferprintf(terminal, "0%d.", seconds);
 	}
 
-	bwprintf(COM2, "%d\n\r", tenth);
+	bufferprintf(terminal, "%d\n\r", tenth);
 }
 
-int comChar2Int(char * buffer, int start, int end){
+void bufferprintlooptime(controller * terminal, int ticksBefore, int ticksNow) {
+	int ticks = ticksBefore + 50800 - ticksNow;
+	bufferprintf(terminal, "Ticks in loop: %d\n\r", ticks);
+}
+
+char buffergetcommand( controller * channel ) {
+	if(channel->inbufferfirst == channel->inbufferlast){
+		return 0;
+	}
+	int i = channel->inbufferfirst;
+	char c = channel->inbuffer[i];
+	channel->inbufferfirst = (i + 1) % channel->insize;
+	return c;
+}
+
+int comChar2Int(char * command, int start, int end){
 	int base = end - start;
 	int ret = 0;
 	int i;
 	int j;
 	for (i = start; i <= end; i++) {
-		int c = buffer[i] - '0';
+		int c = command[i] - '0';
 		for (j = 0; j < base; j++) {
 			c = c * 10;
 		}
@@ -45,102 +60,166 @@ int comChar2Int(char * buffer, int start, int end){
 	return ret;
 }
 
-int doCommand(char * buffer, int index) {
+int docommand(controller * train, char * combuffer, int * combufferindex, char * switches){
 
-	// tr <train--number> <train--speed>
-	if (buffer[0] == 't' && buffer[1] == 'r') {
+	if(combuffer[0] == 't' && combuffer[1] == 'r' && combuffer[2] == ' '){
 		int i = 3;
-		while (buffer[i] >= '0' && buffer[i] <= '9') {
+		while (combuffer[i] >= '0' && combuffer[i] <= '9') {
 			i++;
 		}
-		int trainNum = comChar2Int(buffer, 3, i-1);
+		int trainNum = comChar2Int(combuffer, 3, i-1);
 
 		i++;
 		int j = i;
 
-		while (buffer[j] >= '0' && buffer[j] <= '9') {
+		while (combuffer[j] >= '0' && combuffer[j] <= '9') {
 			j++;
 		}
-		int trainSpeed = comChar2Int(buffer, i, j-1);
+		int trainSpeed = comChar2Int(combuffer, i, j-1);
 
-		bwprintf(COM2, "Setting train %d's speed to %d.\n\r", trainNum, trainSpeed);
-
-		bwputc(COM1, trainSpeed);
-		bwputc(COM1, trainNum);
-		return 0;
+		bufferputc(train, trainSpeed);
+		bufferputc(train, trainNum); 
 	}
 
-	// rv <train--number>
-	if (buffer[0] == 'r' && buffer[1] == 'v') {
+	if(combuffer[0] == 'r' && combuffer[1] == 'v' && combuffer[2] == ' '){
 		int i = 3;
-		while (buffer[i] >= '0' && buffer[i] <= '9') {
+		while (combuffer[i] >= '0' && combuffer[i] <= '9') {
 			i++;
 		}
-		int trainNum = comChar2Int(buffer, 3, i);
+		int trainNum = comChar2Int(combuffer, 3, i-1);
 
-		bwprintf(COM2, "Reversing train %d\n\r", trainNum);
-
-		bwputc(COM1, 15);
-		bwputc(COM1, trainNum);
-
-		return 0;
+		bufferputc(train, 0);
+		bufferputc(train, trainNum); 
+		bufferputc(train, 15);
+		bufferputc(train, trainNum); 
+		bufferputc(train, 14);
+		bufferputc(train, trainNum);
 	}
 
-	// sw <switch--number> <switch--direction>
-	if (buffer[0] == 's' && buffer[1] == 'w') {
+	if(combuffer[0] == 's' && combuffer[1] == 'w' && combuffer[2] == ' '){
+		int i = 3;
+		while (combuffer[i] >= '0' && combuffer[i] <= '9') {
+			i++;
+		}
+		int switchNum = comChar2Int(combuffer, 3, i-1);
 
-		return 0;
+		i++;
+		char d = combuffer[i];
+		int dir = 0;
+		if (d == 'S' || d == 's') {
+			dir = SW_STRAIGHT;
+		} 
+		if (d == 'C' || d == 'c') {
+			dir = SW_CURVED;
+		}
+
+		switches[switchNum - 1] = d;
+
+		bufferputc(train, dir); 
+		bufferputc(train, switchNum);
+		bufferputc(train, 32);
 	}
 
-	// q
-	if (buffer[0] == 'q') {
-
+	if(combuffer[0] == 'q'){
 		return 1;
 	}
+
 	return 0;
 }
 
-int getc ( int channel, char * buffer, int size) {
-	int *flags, *data;
-	unsigned char c;
+void initSwitches(char * switches, controller * train) {
+	int i;
+	int s;
+	int t;
 
-	switch( channel ) {
-	case COM1:
-		flags = (int *)( UART1_BASE + UART_FLAG_OFFSET );
-		data = (int *)( UART1_BASE + UART_DATA_OFFSET );
-		break;
-	case COM2:
-		flags = (int *)( UART2_BASE + UART_FLAG_OFFSET );
-		data = (int *)( UART2_BASE + UART_DATA_OFFSET );
-		break;
-	default:
-		return -1;
-		break;
+	switches[0] = 'C';
+	switches[1] = 'C';
+	switches[2] = 'C';
+	switches[3] = 'C';
+	switches[4] = 'C';
+	switches[5] = 'C';
+	switches[6] = 'C';
+	switches[7] = 'C';
+	switches[8] = 'C';
+	switches[9] = 'C';
+	switches[10] = 'C';
+	switches[11] = 'C';
+	switches[12] = 'C';
+	switches[13] = 'C';
+	switches[14] = 'C';
+	switches[15] = 'C';
+	switches[16] = 'C';
+	switches[17] = 'C';
+	switches[18] = 'C';
+	switches[19] = 'C';
+	switches[20] = 'C';
+	switches[21] = 'C';
+
+	for (i = 0; i < 22; i++) {
+		if (switches[i] == 'C') {
+			t = SW_CURVED;
+		}
+		else{
+			t = SW_STRAIGHT;
+		}
+
+		if (i == 18) {
+			s = 0x99;
+		}
+		else if (i == 19) {
+			s = 0x99A;
+		}
+		else if (i == 20) {
+			s = 0x99B;
+		}
+		else if (i == 21) {
+			s = 0x99C;
+		}
+		else {
+			s = i + 1;
+		}
+		bufferputc(train, t);
+		bufferputc(train, s);
+		bufferputc(train, 32);
 	}
-	while (!( *flags & RXFF_MASK ));
-
-	c = *data;
-
-	while ( c != '\r' || c != '\n' ) {
-		buffer[size] = c;
-		size++;	
-		c = *data;
-
-	}
-	buffer[size] = 0;
-//	c = *data;
-	return size;
 }
+
 
 int main( int argc, char* argv[] ) {
 
-	// Initialization
-	// Train controller
-	bwsetfifo( COM1, OFF );
-	bwsetspeed(COM1, 2400);
-	// Monitor
-	bwsetfifo( COM2, OFF );
-	bwsetspeed(COM2, 115200);
+	controller terminal;
+	terminal.com = COM2;
+	terminal.speed = 115200;
+	terminal.outbufferfirst = 0;
+	terminal.outbufferlast = 0;
+	terminal.inbufferfirst = 0;
+	terminal.inbufferlast = 0;
+	terminal.outsize = 1000;
+	terminal.insize = 100;
+
+	controller train;
+	train.com = COM1;
+	train.speed = 2400;
+	train.outbufferfirst = 0;
+	train.outbufferlast = 0;
+	train.outsize = 1000;
+	train.inbufferfirst = 0;
+	train.inbufferlast = 0;
+	train.insize = 100;
+
+	char terminaloutbuffer[1000];
+	char terminalinbuffer[100];
+	char trainoutbuffer[train.outsize];
+	char traininbuffer[train.insize];
+
+	terminal.outbuffer = terminaloutbuffer;
+	terminal.inbuffer = terminalinbuffer;
+
+	train.outbuffer = trainoutbuffer;
+	train.inbuffer = traininbuffer;
+
+	setspeed(&terminal);
+	setspeed(&train);
 
 	// Time
 	// 32-bit timer
@@ -162,41 +241,96 @@ int main( int argc, char* argv[] ) {
 	// Enable timer, periodic mode, 508 kHz clock
 	*timerControl = ENABLE_MASK | MODE_MASK| CLKSEL_MASK ;
 
-	// Command buffer
-	char comBuffer[100];
-	int comBufferIndex = 0;
+	// Commands
+	char combuffer[100];
+	int combufferindex = 0;
+	int i;
+	for (i = 0; i < 100; i++) {
+		combuffer[i] = 0;
+	}
+	
+	// Switches
+	char switches[21];
+	initSwitches(switches, &train);
 
-	FOREVER {
+	int diff = 0;
 
-		// User Input
-		// comBufferIndex = bwgetc(COM2, comBuffer, 0);
-		char c = bwgetc(COM2);
-		if (c) {
-			comBuffer[comBufferIndex] = c;
-			comBufferIndex++;
-			if (c == '\n' || c == '\r') {
-				if (doCommand(comBuffer, comBufferIndex)) {
+	FOREVER{
+		ticksNow = *timerValue;
+	//	controllerputc(&terminal);
+
+		controllerputc(&train);
+		//  Get any data that is available
+		buffergetc(&terminal);
+		buffergetc(&train);
+
+		char com = buffergetcommand(&terminal);
+		if(com){
+			combuffer[combufferindex] = com;
+			combufferindex++;
+			combuffer[combufferindex] = 0;
+
+			if(com == '\n' || com == '\r'){
+				if(docommand(&train, combuffer, &combufferindex, switches)){
+					bufferprintf(&terminal, "diff %d\n\r", diff);
+					bwprintf(terminaloutbuffer);
 					return 0;
 				}
-				comBufferIndex = 0;
+
+				for (i = 0; i < combufferindex; i++) {
+					combuffer[i] = 0;
+				}
+				combufferindex = 0;
 			}
-
 		}
-
-		// Time
-		ticksNow = *timerValue;
 
 		if (ticksNow > ticksBefore) {
 			numTicks++;
-			bwprintf(COM2, "\033[2J");
-			printTime(numTicks);
-			bwprintf(COM2, comBuffer);
+			bufferprintf( &terminal, "\033[2J\033[1;1H");
+		//	bufferprintf( &terminal, "\033[1;1H");
+	//		bufferprintf( &terminal, "\033[2J");
+	//		bufferprintf( &terminal, "\033[1;1H"); //\033[2J\033[1;1H
+			bufferprinttime(&terminal, numTicks); 
+			bufferprintf(&terminal, "\n\r"); 
+		//	bufferprintlooptime(&terminal, ticksNow);
+		//	bufferprintswitches(&terminal, switches);
+
+			bufferprintf(&terminal, "  Switch   Direction\n\r"); 
+			bufferprintf(&terminal, "  ------------------\n\r");
+			bufferprintf(&terminal, "  1        %c       \n\r", switches[0]);
+			bufferprintf(&terminal, "  2        %c       \n\r", switches[1]);
+			bufferprintf(&terminal, "  3        %c       \n\r", switches[2]);
+			bufferprintf(&terminal, "  4        %c       \n\r", switches[3]);
+			bufferprintf(&terminal, "  5        %c       \n\r", switches[4]);
+			bufferprintf(&terminal, "  6        %c       \n\r", switches[5]);
+			bufferprintf(&terminal, "  7        %c       \n\r", switches[6]);
+			bufferprintf(&terminal, "  8        %c       \n\r", switches[7]);
+			bufferprintf(&terminal, "  9        %c       \n\r", switches[8]);
+			bufferprintf(&terminal, "  10       %c       \n\r", switches[9]);
+			bufferprintf(&terminal, "  11       %c       \n\r", switches[10]);
+			bufferprintf(&terminal, "  12       %c       \n\r", switches[11]);
+			bufferprintf(&terminal, "  13       %c       \n\r", switches[12]);
+			bufferprintf(&terminal, "  14       %c       \n\r", switches[13]);
+			bufferprintf(&terminal, "  15       %c       \n\r", switches[14]);
+			bufferprintf(&terminal, "  16       %c       \n\r", switches[15]);
+			bufferprintf(&terminal, "  17       %c       \n\r", switches[16]);
+			bufferprintf(&terminal, "  0x99     %c       \n\r", switches[17]);
+			bufferprintf(&terminal, "  0x9A     %c       \n\r", switches[18]);
+			bufferprintf(&terminal, "  0x9B     %c       \n\r", switches[19]);
+			bufferprintf(&terminal, "  0x9C     %c       \n\r", switches[20]);
+			bufferprintf(&terminal, "\n\r"); 
+			bufferprintf( &terminal, combuffer);
+
+			bwprintf(terminal.outbuffer);
+			
 		}
-
-
-
+		
+		if 	(ticksBefore - ticksNow > ticksBefore){
+			diff = ticksBefore - ticksNow;
+		}
+	
 		ticksBefore = ticksNow;
+
 	}
 	return 0;
 }
-

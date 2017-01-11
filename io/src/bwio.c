@@ -62,11 +62,6 @@ int bwsetspeed( int channel, int speed ) {
 		return -1;
 	}
 
-	// possibly the bug, from ep93xx user's guide 14.19
-	// In order to internally update the
-	// contents of UART1LinCtrlMid or UART1LinCtrlLow, a UART1LinCtrlHigh write must always
-	// be performed at the end. 
-	// bwsetfifo should do it.
 	bwsetfifo(channel, OFF);
 }
 
