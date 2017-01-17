@@ -1,9 +1,6 @@
 #
-# Makefile for busy-wait IO tests
+# Makefile
 #
-#XCC     = gcc
-#AS	= as
-#LD      = ld
 
 XCC = /u/wbcowan/gnuarm-4.0.2/arm-elf/bin/gcc
 AS	= /u/wbcowan/gnuarm-4.0.2/arm-elf/bin/as
@@ -19,15 +16,9 @@ CFLAGS  = -c -fPIC -Wall -I. -I../include -mcpu=arm920t -msoft-float
 ASFLAGS	= -mcpu=arm920t -mapcs-32
 # -mapcs: always generate a complete stack frame
 
-LDFLAGS = -init main -Map kernel.map -N  -T orex.ld -L/u/wbcowan/gnuarm-4.0.2/lib/gcc/arm-elf/4.0.2 -L../lib
+LDFLAGS = -init main -Map kernel.map -N  -T orex.ld -L/u/wbcowan/gnuarm-4.0.2/lib/gcc/arm-elf/4.0.2 -L../io/lib
 
 all:  kernel.s kernel.elf
-
-kernelio.s: kernelio.c kernelio.h
-		$(XCC) -S $(CFLAGS) kernelio.c
-
-kernelio.o: kernelio.s
-	$(AS) $(ASFLAGS) -o kernelio.o kernelio.s
 
 kernel.s: kernel.c kernel.h
 	$(XCC) -S $(CFLAGS) kernel.c
@@ -35,8 +26,8 @@ kernel.s: kernel.c kernel.h
 kernel.o: kernel.s
 	$(AS) $(ASFLAGS) -o kernel.o kernel.s
 
-kernel.elf: kernel.o kernelio.o
-	$(LD) $(LDFLAGS) -o $@ kernel.o kernelio.o -lbwio -lgcc
+kernel.elf: kernel.o
+	$(LD) $(LDFLAGS) -o $@ kernel.o -lbwio -lgcc
 
 clean:
 	-rm -f kernel.elf *.s *.o kernel.map
