@@ -1,19 +1,43 @@
 #include "contextswitch.h"
 #include "functions.h"
 
-void exit_kernel(void){
-
-  asm("msr SPSR, #0xd0;");
-  asm("mov r9, #0x01300000;");  // r9 = KERNEL_STACK_START
-  asm("ldr ip, [r9, #0];");     // load sp
-  asm("ldr r1, [r9, #4];");     // load lr in r1
-  asm("mov lr, r1;");           // move to lr
-  asm("ldr r1, [r9, #8];");     // load ret to r1
-  asm("mov r0, r1;");
-  asm("msr CPSR_c, #0xdf;"); // switch to system mode
-  asm("mov sp, ip;");
-  asm("msr CPSR_c, #0xd3;"); // back to supervisor mode
-  asm("msr SPSR, #0xd0;");
-  asm("movs pc, lr;"); // let it go
+void syscall(int code) {
+  // 
+  asm("mov	ip, sp;");
+	asm("stmfd	sp!, {r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, fp, ip, lr};");
+	asm("swi 0;");
+	asm("ldmfd	sp, {r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, fp, sp, pc};");
 }
 
+void handle(int code) {
+  // do switch(code) later
+  exit_kernel();
+}
+
+void exit_kernel(void){
+  asm("mov r9, #0x01300000;");  // r9 = KERNEL_STACK_START
+  asm("ldr r8, [r9, #12];");    // load spsr
+  asm("msr spsr, r8;");         // change spsr
+  asm("ldr lr, [r9, #4];");     // load lr
+  asm("ldr r0, [r9, #8];");     // load return value to r0
+  asm("msr CPSR_c, #0xdf;");    // switch to system mode
+  asm("ldr sp, [r9, #0];");     // load sp
+  asm("msr CPSR_c, #0xd3;");    // back to supervisor mode
+  asm("movs pc, lr;");          // let it go
+}
+
+
+void swi_handler(void){
+  
+  asm("mov r9, #0x01300000;");  // r9 = KERNEL_STACK_START
+  asm("msr CPSR_c, #31;");    // switch to system mode
+  asm("str sp, [r9, #0];");     // store sp
+  asm("msr CPSR_c, #19;");    // back to svc
+  asm("str lr, [r9, #4];");     // load lr in r1
+  asm("mrs r8, spsr;");         // move spsr to r8
+  asm("str r8, [r9, #12];");    // store spsr
+  asm("mov sp, r9;");           // move sp to kernel stack pointer
+//  asm("ldr r0, [lr,#-4];");     // load swi code 
+ // asm("bic r0, r0, #0xff000000;");  // get number
+  asm("b handle;");
+}

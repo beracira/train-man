@@ -38,8 +38,8 @@ functions.s: functions.c functions.h
 functions.o: functions.s
 	$(AS) $(ASFLAGS) -o functions.o functions.s
 
-kernel.elf: kernel.o swi_handler.o functions.o contextswitch.o
-	$(LD) $(LDFLAGS) -o $@ kernel.o swi_handler.o functions.o contextswitch.o -lbwio -lgcc
+kernel.elf: kernel.o functions.o contextswitch.o
+	$(LD) $(LDFLAGS) -o $@ kernel.o functions.o contextswitch.o -lbwio -lgcc
 
 clean:
 	-rm -f kernel.elf kernel.s *.o kernel.map

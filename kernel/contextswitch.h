@@ -17,6 +17,7 @@ struct task_descriptor {
   int * sp;
   int * lr;
   int return_value;
+  int spsr;
 };
 
 // struct queue {
@@ -36,13 +37,19 @@ struct kernel_stack {
 	int * usr_sp;
 	int * usr_lr;
 	int usr_r0;
+  int usr_spsr;
   int num_tasks;
   int * current_td;
 };
 
+void syscall(int code);
+
+void handle(int code);
 
 void exit_kernel(void);
 
 void initialize(void);
+
+void swi_handler(void);
 
 #endif /* CONTEXTSWITCH_H */
