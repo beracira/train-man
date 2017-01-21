@@ -26,8 +26,20 @@ kernel.s: kernel.c kernel.h
 kernel.o: kernel.s
 	$(AS) $(ASFLAGS) -o kernel.o kernel.s
 
-kernel.elf: kernel.o
-	$(LD) $(LDFLAGS) -o $@ kernel.o -lbwio -lgcc
+contextswitch.s: contextswitch.c contextswitch.h
+	$(XCC) -S $(CFLAGS) contextswitch.c
+
+contextswitch.o: contextswitch.s
+	$(AS) $(ASFLAGS) -o contextswitch.o contextswitch.s
+
+functions.s: functions.c functions.h
+	$(XCC) -S $(CFLAGS) functions.c
+
+functions.o: functions.s
+	$(AS) $(ASFLAGS) -o functions.o functions.s
+
+kernel.elf: kernel.o swi_handler.o functions.o contextswitch.o
+	$(LD) $(LDFLAGS) -o $@ kernel.o swi_handler.o functions.o contextswitch.o -lbwio -lgcc
 
 clean:
-	-rm -f kernel.elf *.s *.o kernel.map
+	-rm -f kernel.elf kernel.s *.o kernel.map
