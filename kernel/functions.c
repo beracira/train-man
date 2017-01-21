@@ -6,7 +6,8 @@
 void firsttask(void) {
  // Create(2, &foo);
   bwprintf(COM2, "first task\n\r");
-  syscall(0); 
+  syscall(0);
+  bwprintf(COM2, "first task end\n\r");
 }
 
 void foo(void){

@@ -22,18 +22,15 @@ void exit_kernel(void){
   asm("movs pc, lr;");          // let it go
 }
 
-
 void swi_handler(void){
-  
-
-  asm("msr CPSR_c, #31;");    // switch to system mode
-  asm("msr CPSR_c, #19;");    // back to svc
   asm("mov r9, #0x01300000;");  // r9 = KERNEL_STACK_START
+  asm("msr CPSR_c, #0xDF;");      // switch to system mode
   asm("str sp, [r9, #0];");     // store sp
-  asm("str lr, [r9, #4];");     // load lr in r1
+  asm("str lr, [r9, #4];");     // save lr to stack
+  asm("msr CPSR_c, #0xD3;");      // back to svc
   asm("mrs r8, spsr;");         // move spsr to r8
   asm("str r8, [r9, #12];");    // store spsr
-  asm("mov sp, r9;");           // move sp to kernel stack pointer
+  //asm("mov sp, r9;");           // move kernel stack pointer to sp
   asm("ldr r0, [lr,#-4];");     // load swi code 
   asm("bic r0, r0, #0xff000000;");  // get number
   asm("b handle;");
