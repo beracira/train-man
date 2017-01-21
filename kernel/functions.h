@@ -5,5 +5,7 @@ void firsttask(void);
 
 void foo(void);
 
+void handle(int code);
+
 #endif /* FUNCTIONS_H */
 

@@ -12,3 +12,9 @@ void firsttask(void) {
 void foo(void){
   bwprintf(COM2, "please work \n\r");
 }
+
+void handle(int code) {
+  // do switch(code) later
+  bwprintf(COM2, "handling \n\r");
+  exit_kernel();
+}
