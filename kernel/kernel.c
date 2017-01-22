@@ -40,7 +40,11 @@ void initialize(void) {
 	ks->usr_r0 = td[0].return_value;
   ks->usr_spsr = td[0].spsr;
   ks->num_tasks = 1;
- // exit_kernel();
+  exit_kernel();
+}
+
+void activate(void) {
+  
 }
 
 int main( int argc, char* argv[] ) {
@@ -49,11 +53,14 @@ int main( int argc, char* argv[] ) {
 
   initialize();
 
-  while(1){
-    //active = schedule( );
-    int request = activate(); //active);
-    handle(request);
-  }
+  activate();
+
+
+  // while(1) {
+  //   //active = schedule( );
+  //   int request = activate(); //active);
+  //   handle(request);
+  // }
 
   return 0;
 }

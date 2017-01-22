@@ -4,7 +4,7 @@
 #define TASK_DESCRIPTOR_START 0x01400000
 #define PRIORITY_QUEUE_START  0x01600000
 #define KERNEL_STACK_START    0x01300000
-#define USER_STACK_START 	  0x01200000
+#define USER_STACK_START 	    0x01200000
 #define USER_STACK_SIZE       0x00010000
 
 #define MAX_TASKS 16
@@ -19,6 +19,8 @@ struct task_descriptor {
   int return_value;
   int spsr;
 };
+
+enum priority{
 
 // struct queue {
 //   int tid[16];

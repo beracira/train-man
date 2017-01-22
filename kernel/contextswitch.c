@@ -1,13 +1,21 @@
 #include "contextswitch.h"
 #include "functions.h"
-
+#include "../io/include/bwio.h"
+#include "../io/include/ts7200.h"
 
 void syscall(int code) {
   // 
   asm("mov	ip, sp;");
 	asm("stmfd	sp!, {r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, fp, ip, lr};");
 	asm("swi 0;");
+  //   int *flags, *data;
+	// 	flags = (int *)( UART2_BASE + UART_FLAG_OFFSET );
+	// 	data = (int *)( UART2_BASE + UART_DATA_OFFSET );
+	// while( ( *flags & TXFF_MASK ) ) ;
+	// *data = 's';
 	asm("ldmfd	sp, {r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, fp, sp, pc};");
+  
+  // bwprintf(COM2, "syscall end \n\r");
 }
 
 void exit_kernel(void){
@@ -33,5 +41,11 @@ void swi_handler(void){
   //asm("mov sp, r9;");           // move kernel stack pointer to sp
   asm("ldr r0, [lr,#-4];");     // load swi code 
   asm("bic r0, r0, #0xff000000;");  // get number
-  asm("b handle;");
+  asm("bl handle;");
+
+  int *flags, *data;
+		flags = (int *)( UART2_BASE + UART_FLAG_OFFSET );
+		data = (int *)( UART2_BASE + UART_DATA_OFFSET );
+	while( ( *flags & TXFF_MASK ) ) ;
+	*data = 'c';
 }

@@ -23,5 +23,5 @@ void foo(void){
 void handle(int code) {
   // do switch(code) later
   bwprintf(COM2, "handling \n\r");
-  exit_kernel();
+  //exit_kernel();
 }
