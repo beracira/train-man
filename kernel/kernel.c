@@ -3,6 +3,7 @@
 #include "kernel.h"
 #include "contextswitch.h"
 #include "functions.h"
+#include "priorityqueue.h"
 
 int activate(void);
 
@@ -42,6 +43,9 @@ void initialize(void) {
   ks->usr_spsr = td[0].spsr;
   ks->num_tasks = 1;
   ks->started = 0;
+
+  init_queue();
+
   activate();
 }
 
@@ -91,11 +95,8 @@ int main( int argc, char* argv[] ) {
   // main starts in svc mode, where bwprintf doesn't work
   initialize();
 
- // activate();
-
-
   // while(1) {
-  //   //active = schedule( );
+  //   int active = schedule( );
   //   int request = activate(); //active);
   //   handle(request);
   // }

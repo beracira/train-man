@@ -38,8 +38,14 @@ functions.s: functions.c functions.h
 functions.o: functions.s
 	$(AS) $(ASFLAGS) -o functions.o functions.s
 
-kernel.elf: kernel.o functions.o contextswitch.o
-	$(LD) $(LDFLAGS) -o $@ kernel.o functions.o contextswitch.o -lbwio -lgcc
+priorityqueue.s: priorityqueue.c priorityqueue.h
+	$(XCC) -S $(CFLAGS) priorityqueue.c
+
+priorityqueue.o: priorityqueue.s
+	$(AS) $(ASFLAGS) -o priorityqueue.o priorityqueue.s
+
+kernel.elf: kernel.o functions.o contextswitch.o priorityqueue.o
+	$(LD) $(LDFLAGS) -o $@ kernel.o functions.o contextswitch.o priorityqueue.o -lbwio -lgcc
 
 clean:
 	-rm -f kernel.elf *.s *.o kernel.map
