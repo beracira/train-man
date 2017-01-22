@@ -6,19 +6,16 @@
 void syscall(int code) {
   // 
   asm("mov	ip, sp;");
-	asm("stmfd	sp!, {r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, fp, ip, lr};");
+	asm("stmfd	sp!, {r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, fp, ip};"); // save usr state
 	asm("swi 0;");
-  //   int *flags, *data;
-	// 	flags = (int *)( UART2_BASE + UART_FLAG_OFFSET );
-	// 	data = (int *)( UART2_BASE + UART_DATA_OFFSET );
-	// while( ( *flags & TXFF_MASK ) ) ;
-	// *data = 's';
-	asm("ldmfd	sp, {r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, fp, sp, pc};");
+	//asm("ldmfd	sp, {r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, fp, sp, pc};"); // loads usr state
   
   // bwprintf(COM2, "syscall end \n\r");
 }
 
 void exit_kernel(void){
+  asm("mov	ip, sp;");
+	asm("stmfd	sp!, {r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, fp, ip, lr};"); // save svc state
   asm("mov r9, #0x01300000;");  // r9 = KERNEL_STACK_START
   asm("ldr r8, [r9, #12];");    // load spsr
   asm("msr spsr, r8;");         // change spsr
@@ -28,9 +25,12 @@ void exit_kernel(void){
   asm("ldr sp, [r9, #0];");     // load sp
   asm("msr CPSR_c, #0xd3;");    // back to supervisor mode
   asm("movs pc, lr;");          // let it go
+  asm("back_to_exit_kernel:;");  //label
+  asm("ldmfd	sp, {r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, fp, sp, pc};"); // loads svc state
 }
 
 void swi_handler(void){
+
   asm("mov r9, #0x01300000;");  // r9 = KERNEL_STACK_START
   asm("msr CPSR_c, #0xDF;");      // switch to system mode
   asm("str sp, [r9, #0];");     // store sp

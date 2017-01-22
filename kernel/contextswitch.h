@@ -18,21 +18,9 @@ struct task_descriptor {
   int * lr;
   int return_value;
   int spsr;
+  int started;
 };
 
-enum priority{
-
-// struct queue {
-//   int tid[16];
-//   int first;
-//   int last;
-// };
-
-// struct priority_queue {
-//   struct queue high;
-//   struct queue mid;
-//   struct queue low;
-// }
 
 // Order matters
 struct kernel_stack {
@@ -41,6 +29,8 @@ struct kernel_stack {
 	int usr_r0;
   int usr_spsr;
   int num_tasks;
+  int started;
+
   int * current_td;
 };
 
