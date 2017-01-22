@@ -42,4 +42,4 @@ kernel.elf: kernel.o functions.o contextswitch.o
 	$(LD) $(LDFLAGS) -o $@ kernel.o functions.o contextswitch.o -lbwio -lgcc
 
 clean:
-	-rm -f kernel.elf kernel.s *.o kernel.map
+	-rm -f kernel.elf *.s *.o kernel.map
