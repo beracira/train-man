@@ -8,6 +8,12 @@ void firsttask(void) {
   bwprintf(COM2, "first task\n\r");
   syscall(0);
   bwprintf(COM2, "first task end\n\r");
+  syscall(0);
+  bwprintf(COM2, "first task end2\n\r");
+  syscall(0);
+  bwprintf(COM2, "first task end3\n\r");
+  syscall(0);
+  bwprintf(COM2, "first task end4\n\r");
 }
 
 void foo(void){
