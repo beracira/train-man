@@ -25,7 +25,7 @@ void syscall(int code) {
 // tid
 // -1 if the priority is invalid.
 // -2 if the kernel is out of task descriptors.
-int Create(priority_t priority, void (*code) ( ) ) {
+int kernel_Create(priority_t priority, void (*code) ( ) ) {
 
   int tid;
 
@@ -38,7 +38,7 @@ int Create(priority_t priority, void (*code) ( ) ) {
 }
 
 // Returns tid, the positive integer task id of the task that calls it.
-int MyTid(void){
+int kernel_MyTid(void){
   int tid = 0;
   return tid;
 }
@@ -46,14 +46,14 @@ int MyTid(void){
 // MyParentTid returns the task id of the task that created the calling task. This will be
 // problematic only if the task has exited or been destroyed, in which case the return
 // value is implementation-dependent.
-int MyParentTid(void){
+int kernel_MyParentTid(void){
   int tid = 0;
   return tid;
 }
 
 // Pass causes a task to stop executing. The task is moved to the end of its priority queue,
 // and will resume executing when next scheduled.
-void Pass(void){
+void kernel_Pass(void){
   int tid;
   priority_t priority;
   
@@ -65,7 +65,7 @@ void Pass(void){
 // Exit causes a task to cease execution permanently. It is removed from all priority
 // queues, send queues, receive queues and awaitEvent queues. Resources owned by the
 // task, primarily its memory and task descriptor are not reclaimed.
-void Exit(void){
+void kernel_Exit(void){
   int tid;
   priority_t priority;
 

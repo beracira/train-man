@@ -30,6 +30,7 @@ struct kernel_stack {
   int usr_spsr;
   int num_tasks;
   int started;
+  int args[5];
 };
 
 int td_add(void * task, priority_t priority, int parent_tid);
