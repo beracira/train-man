@@ -28,22 +28,9 @@ void initialize(void) {
 
   //struct priority_queue * pq = *((struct priority_queue **) PRIORITY_QUEUE_START);
   struct kernel_stack * ks = (struct kernel_stack *) KERNEL_STACK_START;
-  td[0].tid = 1;
-  td[0].state = 5;
-  td[0].priority = 1;
-  td[0].parent_tid = 2;
-  td[0].sp = (int *) USER_STACK_START;
-  td[0].lr = (int *) &firsttask;
-  td[0].return_value = 0;
-  td[0].spsr = 0xD0;
-  td[0].started = 0;
-  ks->current_td = (int *) td;
-  ks->usr_sp = td[0].sp;
-	ks->usr_lr  = td[0].lr;
-	ks->usr_r0 = td[0].return_value;
-  ks->usr_spsr = td[0].spsr;
-  ks->num_tasks = 1;
-  ks->started = 0;
+
+  int first_tid = td_add(firsttask, MEDIUM, 0);
+  set_active(first_tid);
 
   init_queue();
 

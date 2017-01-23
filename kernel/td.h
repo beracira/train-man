@@ -1,6 +1,9 @@
 #ifndef TD_H
 #define TD_H
 
+#include "priorityqueue.h"
+#include "contextswitch.h"
+
 #define ACTIVE 0
 #define READY 1
 #define ZOMBIE 2
@@ -31,5 +34,7 @@ struct kernel_stack {
   int * current_td;
 };
 
+int td_add(void * task, priority_t priority, int parent_tid);
+int set_active(int tid); 
 
 #endif // TD_H
