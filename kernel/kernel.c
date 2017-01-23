@@ -4,6 +4,7 @@
 #include "contextswitch.h"
 #include "functions.h"
 #include "priorityqueue.h"
+#include "td.h"
 
 int activate(void);
 
