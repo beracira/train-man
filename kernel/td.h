@@ -30,11 +30,10 @@ struct kernel_stack {
   int usr_spsr;
   int num_tasks;
   int started;
-
-  int * current_td;
 };
 
 int td_add(void * task, priority_t priority, int parent_tid);
-int set_active(int tid); 
+int set_active(int tid);
+int sync_td(int tid);
 
 #endif // TD_H

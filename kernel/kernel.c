@@ -20,21 +20,18 @@ void initialize(void) {
 	//  Put the address of the fcn here
 //*swi_vector = (int)&swi_handler;
 
+  // bwsetfifo(COM2, OFF);
+
   asm("ldr r0, =activate_enter_kernel;"); 
   asm("mov r1, #0x28;"); 
   asm("str r0, [r1, #0];");
 
-  struct task_descriptor * td = (struct task_descriptor *) TASK_DESCRIPTOR_START;
-
   //struct priority_queue * pq = *((struct priority_queue **) PRIORITY_QUEUE_START);
-  struct kernel_stack * ks = (struct kernel_stack *) KERNEL_STACK_START;
 
   int first_tid = td_add(firsttask, MEDIUM, 0);
   set_active(first_tid);
 
   init_queue();
-
-  //activate();
 }
 
 int activate(void) {
@@ -83,11 +80,19 @@ int main( int argc, char* argv[] ) {
   // main starts in svc mode, where bwprintf doesn't work
   initialize();
 
-  // while(1) {
-  //   int active = schedule( );
-  //   int request = activate(); //active);
-  //   handle(request);
-  // }
+  volatile struct kernel_stack * ks = (struct kernel_stack *) KERNEL_STACK_START;
+
+ int i = 0;
+  while(i++ < 5) {
+    int active = schedule();
+    set_active(active);
+    // bwprintf( COM2, "second:%d %d\n\r", i, active);
+    int request = activate(); //active);
+    // bwprintf( COM2, "third:%d %d\n\r", i, active);
+    sync_td(active);
+    (void) request;
+    // handle(request);
+  }
 
   return 0;
 }
