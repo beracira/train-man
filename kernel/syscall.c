@@ -25,33 +25,51 @@ void syscall(int code) {
 // tid
 // -1 if the priority is invalid.
 // -2 if the kernel is out of task descriptors.
-int Create( int priority, void (*code) ( ) ) {
-  // create td with given priority and code
-  // add to queue after a tid has been assigned to the new task
+int Create(priority_t priority, void (*code) ( ) ) {
+
+  int tid;
+
+  // create td with given priority and code 
+  //
+
+  // add to priority queue
+  return add_task_to_queue(tid, priority); // returns -1 if invalid priority, tid if okay
 
 }
 
 // Returns tid, the positive integer task id of the task that calls it.
 int MyTid(void){
-
+  int tid = 0;
+  return tid;
 }
 
 // MyParentTid returns the task id of the task that created the calling task. This will be
 // problematic only if the task has exited or been destroyed, in which case the return
 // value is implementation-dependent.
 int MyParentTid(void){
-
+  int tid = 0;
+  return tid;
 }
 
 // Pass causes a task to stop executing. The task is moved to the end of its priority queue,
 // and will resume executing when next scheduled.
 void Pass(void){
+  int tid;
+  priority_t priority;
+  
+  // need to get tid and priority of the task that called
 
+  reschedule(tid, priority);
 }
 
 // Exit causes a task to cease execution permanently. It is removed from all priority
 // queues, send queues, receive queues and awaitEvent queues. Resources owned by the
 // task, primarily its memory and task descriptor are not reclaimed.
 void Exit(void){
+  int tid;
+  priority_t priority;
 
+  // need to get tid and priority of the task that called
+
+  remove_active_task_from_queue(tid, priority);
 }

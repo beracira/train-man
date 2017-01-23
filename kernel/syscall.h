@@ -1,6 +1,8 @@
 #ifndef SYSCALL_H
 #define SYSCALL_H
 
+#include "priorityqueue.h"
+
 #define TASK_DESCRIPTOR_START 0x01400000
 
 #define KERNEL_STACK_START    0x01300000
@@ -11,7 +13,7 @@
 
 void syscall(int code);
 
-int Create( int priority, void (*code)( ));
+int Create(priority_t priority, void (*code) ( ) );
 
 int MyTid(void);
 

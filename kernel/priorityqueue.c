@@ -32,7 +32,7 @@ int add_task_to_queue(int tid, priority_t p) {
     if (t == -1) {
       q->high.tid[q->high.last] = tid;
       q->high.last = (q->high.last + 1) % QUEUE_SIZE;
-      return 1;
+      return tid;
     }
   }
   if (p == MEDIUM) {
@@ -40,7 +40,7 @@ int add_task_to_queue(int tid, priority_t p) {
     if (t == -1) {
       q->mid.tid[q->mid.last] = tid;
       q->mid.last = (q->mid.last + 1) % QUEUE_SIZE;
-      return 1;
+      return tid;
     }
   }
   if (p == LOW) {
@@ -48,11 +48,11 @@ int add_task_to_queue(int tid, priority_t p) {
     if (t == -1) {
       q->low.tid[q->low.last] = tid;
       q->low.last = (q->low.last + 1) % QUEUE_SIZE;
-      return 1;
+      return tid;
     }
   }
-  
-  return 0;
+  // invalid priority
+  return -1;
 }
 
 // removes first task in queue
