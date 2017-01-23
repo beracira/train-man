@@ -2,7 +2,7 @@
 #define TD_H
 
 #include "priorityqueue.h"
-#include "contextswitch.h"
+#include "syscall.h"
 
 #define ACTIVE 0
 #define READY 1

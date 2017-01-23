@@ -1,4 +1,4 @@
-#include "contextswitch.h"
+#include "syscall.h"
 #include "functions.h"
 #include "../io/include/bwio.h"
 #include "../io/include/ts7200.h"
