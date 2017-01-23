@@ -24,7 +24,8 @@ struct priority_queue {
 
 void init_queue(void);
 int add_task_to_queue(int tid, priority_t p);
-int remove_active_task_from_queue(priority_t p);
+int remove_active_task_from_queue(int tid, priority_t p);
 int schedule(void);
+void reschedule(int tid, priority_t p);
 
 #endif /* PRIORITYQUEUE_H */

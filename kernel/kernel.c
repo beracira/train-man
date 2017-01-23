@@ -46,7 +46,7 @@ void initialize(void) {
 
   init_queue();
 
-  activate();
+  //activate();
 }
 
 int activate(void) {
