@@ -13,7 +13,7 @@ void init_queue(void) {
   }
 
   // first task has tid 0 and medium priority
-  q->mid.tid[0] = 0;
+  q->mid.tid[0] = 1;
   q->mid.first = 0;
   q->mid.last = 1;
 

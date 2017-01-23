@@ -1,5 +1,5 @@
-#ifndef CONTEXTSWITCH_H
-#define CONTEXTSWITCH_H
+#ifndef SYSCALL_H
+#define SYSCALL_H
 
 #define TASK_DESCRIPTOR_START 0x01400000
 
@@ -11,12 +11,14 @@
 
 void syscall(int code);
 
-void handle(int code);
+int Create( int priority, void (*code)( ));
 
-void exit_kernel(void);
+int MyTid(void);
 
-void initialize(void);
+int MyParentTid(void);
 
-void swi_handler(void);
+void Pass(void);
 
-#endif /* CONTEXTSWITCH_H */
+void Exit(void);
+
+#endif /* SYSCALL_H */
