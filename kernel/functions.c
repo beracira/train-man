@@ -1,5 +1,5 @@
 #include "functions.h"
-#include "contextswitch.h"
+#include "syscall.h"
 #include "../io/include/bwio.h"
 #include "../io/include/ts7200.h"
 

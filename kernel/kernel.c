@@ -1,7 +1,7 @@
 #include "../io/include/bwio.h"
 #include "../io/include/ts7200.h"
 #include "kernel.h"
-#include "contextswitch.h"
+#include "syscall.h"
 #include "functions.h"
 #include "priorityqueue.h"
 #include "td.h"

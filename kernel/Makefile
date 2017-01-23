@@ -26,11 +26,11 @@ kernel.s: kernel.c kernel.h
 kernel.o: kernel.s
 	$(AS) $(ASFLAGS) -o kernel.o kernel.s
 
-contextswitch.s: contextswitch.c contextswitch.h
-	$(XCC) -S $(CFLAGS) contextswitch.c
+syscall.s: syscall.c syscall.h
+	$(XCC) -S $(CFLAGS) syscall.c
 
-contextswitch.o: contextswitch.s
-	$(AS) $(ASFLAGS) -o contextswitch.o contextswitch.s
+syscall.o: syscall.s
+	$(AS) $(ASFLAGS) -o syscall.o syscall.s
 
 functions.s: functions.c functions.h
 	$(XCC) -S $(CFLAGS) functions.c
@@ -44,8 +44,8 @@ priorityqueue.s: priorityqueue.c priorityqueue.h
 priorityqueue.o: priorityqueue.s
 	$(AS) $(ASFLAGS) -o priorityqueue.o priorityqueue.s
 
-kernel.elf: kernel.o functions.o contextswitch.o priorityqueue.o
-	$(LD) $(LDFLAGS) -o $@ kernel.o functions.o contextswitch.o priorityqueue.o -lbwio -lgcc
+kernel.elf: kernel.o functions.o syscall.o priorityqueue.o
+	$(LD) $(LDFLAGS) -o $@ kernel.o functions.o syscall.o priorityqueue.o -lbwio -lgcc
 
 clean:
 	-rm -f kernel.elf *.s *.o kernel.map
