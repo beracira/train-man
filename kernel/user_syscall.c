@@ -20,7 +20,7 @@ int MyTid(void) {
   ks->syscall_code = 2;
 
   asm("mov  ip, sp;");
-  asm("stmfd  sp!, {r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, fp, ip};"); // save usr state
+  asm("stmfd  sp!, {r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, fp, ip};"); // save usr state
   asm("swi 2;");
   
   return ks->usr_r0;
@@ -31,7 +31,7 @@ int MyParentTid(void) {
   ks->syscall_code = 3;
 
   asm("mov  ip, sp;");
-  asm("stmfd  sp!, {r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, fp, ip};"); // save usr state
+  asm("stmfd  sp!, {r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, fp, ip};"); // save usr state
   asm("swi 3;");
 }
 
@@ -40,7 +40,7 @@ void Pass(void) {
   ks->syscall_code = 4;
   
   asm("mov  ip, sp;");
-  asm("stmfd  sp!, {r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, fp, ip};"); // save usr state
+  asm("stmfd  sp!, {r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, fp, ip};"); // save usr state
   asm("swi 4;");
 }
 
@@ -50,6 +50,6 @@ void Exit(void) {
   ks->syscall_code = 5;
   
   asm("mov  ip, sp;");
-  asm("stmfd  sp!, {r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, fp, ip};"); // save usr state
+  asm("stmfd  sp!, {r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, fp, ip};"); // save usr state
   asm("swi 5;");
 }

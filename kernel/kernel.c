@@ -20,7 +20,8 @@ void initialize(void) {
 	//  Put the address of the fcn here
 //*swi_vector = (int)&swi_handler;
 
-  // bwsetfifo(COM2, OFF);
+  bwsetfifo(COM2, OFF);
+  bwprintf(COM2, "\n\r");
 
   asm("ldr r0, =activate_enter_kernel;"); 
   asm("mov r1, #0x28;"); 
