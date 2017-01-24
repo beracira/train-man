@@ -4,105 +4,76 @@ struct priority_queue * q = (struct priority_queue *) PRIORITY_QUEUE_START;
 
 void init_queue(void) {
   int i;
+  int j;
 
   // initiate everything to -1
-  for (i = 0; i < QUEUE_SIZE; i++) {
-    q->high.tid[i] = -1;
-    q->mid.tid[i] = -1;
-    q->low.tid[i] = -1;
+  for (j = 0; j < NUM_QUEUES; j++) {
+    q[j].first = 0;
+    q[j].last = 0;
+    q[j].priority = j;
+    for (i = 0; i < QUEUE_SIZE; i++) {
+      q[j].tid[i] = -1;
+    }
   }
 
   // first task has tid 0 and medium priority
-  q->mid.tid[0] = 1;
-  q->mid.first = 0;
-  q->mid.last = 1;
-
-  // other priorities
-  q->high.first = 0;
-  q->high.last = 0;
-  q->low.first = 0;
-  q->low.last = 0;
+  q[P_MEDIUM].tid[0] = 1;
+  q[P_MEDIUM].first = 0;
+  q[P_MEDIUM].last = 1;
 }
 
 // adds a task to the end of a queue
 int add_task_to_queue(int tid, int p) {
+  if (p >= NUM_QUEUES) {
+    // invalid priority
+    return -1;
+  }
+
   int t;
-  if (p == P_HIGH) {
-    t = q->high.tid[q->high.last];
-    if (t == -1) {
-      q->high.tid[q->high.last] = tid;
-      q->high.last = (q->high.last + 1) % QUEUE_SIZE;
-      return tid;
-    }
+  t = q[p].tid[q[p].last];
+  if (t == -1) {
+    q[p].tid[q[p].last] = tid;
+    q[p].last = (q[p].last + 1) % QUEUE_SIZE;
+    return tid;
   }
-  if (p == P_MEDIUM) {
-    t = q->mid.tid[q->mid.last];
-    if (t == -1) {
-      q->mid.tid[q->mid.last] = tid;
-      q->mid.last = (q->mid.last + 1) % QUEUE_SIZE;
-      return tid;
-    }
-  }
-  if (p == P_LOW) {
-    t = q->low.tid[q->low.last];
-    if (t == -1) {
-      q->low.tid[q->low.last] = tid;
-      q->low.last = (q->low.last + 1) % QUEUE_SIZE;
-      return tid;
-    }
-  }
-  // invalid priority
-  return -1;
+
+  // overflow
+  return 0;
 }
 
 // removes first task in queue
 // return tid of the task removed
 int remove_active_task_from_queue(int tid, int p) {
-  int t = -1;
-  if (p == P_HIGH) {
-    t = q->high.tid[q->high.first];
-    if (t == tid) {
-      q->high.tid[q->high.first] = -1;
-      q->high.first = (q->high.first + 1) % QUEUE_SIZE;
-      return t;
-    }
+
+  if (p >= NUM_QUEUES) {
+    // invalid priority
+    return -1;
   }
-  else if (p == P_MEDIUM) {
-    t = q->mid.tid[q->mid.first];
-    if (t == tid) {
-      q->mid.tid[q->mid.first] = -1;
-      q->mid.first = (q->mid.first + 1) % QUEUE_SIZE;
-      return t;
-    }
+
+  int t;
+  t = q[p].tid[q[p].first];
+  if (t == tid) {
+    q[p].tid[q[p].first] = -1;
+    q[p].first = (q[p].first + 1) % QUEUE_SIZE;
+    return t;
   }
-  else if (p == P_LOW) {
-    t = q->low.tid[q->low.first];
-    if (t == tid) {
-      q->low.tid[q->low.first] = -1;
-      q->low.first = (q->low.first + 1) % QUEUE_SIZE;
-      return t;
-    }
-  }
-  else {
-    return 0;
-  }
-  return t;
+
+  // nothing to remove
+  return 0;
+
 }
 
 // returns tid of task to be run
 int schedule(void) {
-  if (q->high.tid[q->high.first] != -1) {
-    return q->high.tid[q->high.first];
+  int j;
+  for (j = 0; j < NUM_QUEUES; j++) {
+    if (q[j].tid[q[j].first] != -1) {
+      return q[j].tid[q[j].first];
+    }
   }
-  else if (q->mid.tid[q->mid.first] != -1) {
-    return q->mid.tid[q->mid.first];
-  }
-  else if (q->low.tid[q->low.first] != -1) {
-    return q->low.tid[q->low.first];
-  }
-  else {
-    return -1;
-  }
+
+  // nothing to schedule
+  return -1;
 }
 
 // wrapper for remove and add
