@@ -5,14 +5,11 @@
 #include "../io/include/bwio.h"
 #include "../io/include/ts7200.h"
 
-void syscall(int code) {
-  // 
+int syscall(int code, int arg1, int arg2) {
   asm("mov	ip, sp;");
-	asm("stmfd	sp!, {r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, fp, ip};"); // save usr state
+	asm("stmfd	sp!, {r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, fp, ip};"); // save usr state
 	asm("swi 0;");
-	//asm("ldmfd	sp, {r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, fp, sp, pc};"); // loads usr state
-  
-  // bwprintf(COM2, "syscall end \n\r");
+  bwprintf(COM2, "asfaewufawjioef\n\r");
 }
 
 // Create allocates and initializes a task descriptor, using the given priority, and the given

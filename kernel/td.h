@@ -30,6 +30,7 @@ struct kernel_stack {
   int usr_spsr;
   int num_tasks;
   int started;
+  int syscall_code;
   int args[5];
 };
 

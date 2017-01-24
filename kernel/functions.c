@@ -6,14 +6,14 @@
 void firsttask(void) {
  // Create(2, &foo);
   bwprintf(COM2, "first task\n\r");
-  syscall(0);
-  bwprintf(COM2, "first task end\n\r");
-  syscall(0);
-  bwprintf(COM2, "first task end2\n\r");
-  syscall(0);
-  bwprintf(COM2, "first task end3\n\r");
-  syscall(0);
-  bwprintf(COM2, "first task end4\n\r");
+  int i = syscall(0,1,2);
+  bwprintf(COM2, "first1 task end: %d\n\r", i);
+  i = syscall(123,456,789);
+  bwprintf(COM2, "first2 task end: %d\n\r", i);
+  i = syscall(987,654,321);
+  bwprintf(COM2, "first3 task end: %d\n\r", i);
+  i = syscall(111,111,111);
+  bwprintf(COM2, "first4 task end: %d\n\r", i);
 }
 
 void foo(void){

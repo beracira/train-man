@@ -11,7 +11,7 @@
 
 #define MAX_TASKS 16
 
-void syscall(int code);
+int syscall(int code, int arg1, int arg2);
 
 int kernel_Create(priority_t priority, void (*code) ( ) );
 

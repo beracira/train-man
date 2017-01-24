@@ -46,9 +46,9 @@ int activate(void) {
   asm("ldr r0, [r9, #8];");     // load return value to r0
   asm("msr CPSR_c, #0xdf;");    // switch to system mode
   asm("ldr sp, [r9, #0];");     // load sp
-  struct kernel_stack * ks = (struct kernel_stack *) KERNEL_STACK_START;
+  volatile struct kernel_stack * ks = (struct kernel_stack *) KERNEL_STACK_START;
   if (ks->started == 1) {
-    asm("ldmfd	sp, {r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, fp, sp};");
+    asm("ldmfd	sp, {r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, fp, sp};");
   }
   else {
     ks->started = 1;
@@ -69,6 +69,7 @@ int activate(void) {
   asm("ldmfd	sp, {r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, fp, sp, lr};"); // loads svc state
   asm("ldr r0, [lr,#-4];");     // load swi code 
   asm("bic r0, r0, #0xff000000;");  // get number
+
   //asm("bl handle;");
   //get r0 into an int
 

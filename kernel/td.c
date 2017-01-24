@@ -1,3 +1,5 @@
+#include "../io/include/bwio.h"
+
 #include "td.h"
 
 int td_counter = 1;
