@@ -114,19 +114,23 @@ int main( int argc, char* argv[] ) {
   // main starts in svc mode, where bwprintf doesn't work
   initialize();
 
-  volatile struct kernel_stack * ks = (struct kernel_stack *) KERNEL_STACK_START;
+//  volatile struct kernel_stack * ks = (struct kernel_stack *) KERNEL_STACK_START;
 
  int i = 0;
-  //while(i++ < 3) {
+  while(i++ < 3) {
     int active = schedule();
     set_active(active);
-    // bwprintf( COM2, "second:%d %d\n\r", i, active);
+    
+    //bwprintf( COM2, "second:%d %d\n\r", i, active);
     int request = activate(); //active);
-    // bwprintf( COM2, "third:%d %d\n\r", i, active);
+    
+    //bwprintf( COM2, "third\n\r");
     sync_td(active);
+    //bwprintf( COM2, "fourth\n\r");
     (void) request;
-   // handle(0);
-  //}
+    handle(0);
+    //bwprintf( COM2, "fifth\n\r");
+  }
 
   return 0;
 }

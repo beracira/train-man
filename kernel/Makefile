@@ -50,8 +50,14 @@ td.s: td.c td.h
 td.o: td.s
 	$(AS) $(ASFLAGS) -o td.o td.s
 
-kernel.elf: kernel.o functions.o syscall.o priorityqueue.o td.o
-	$(LD) $(LDFLAGS) -o $@ kernel.o functions.o syscall.o priorityqueue.o td.o -lbwio -lgcc
+user_syscall.s: user_syscall.c user_syscall.h
+	$(XCC) -S $(CFLAGS) user_syscall.c
+
+user_syscall.o: user_syscall.s
+	$(AS) $(ASFLAGS) -o user_syscall.o user_syscall.s
+
+kernel.elf: kernel.o functions.o syscall.o priorityqueue.o td.o user_syscall.o
+	$(LD) $(LDFLAGS) -o $@ kernel.o functions.o syscall.o priorityqueue.o td.o user_syscall.o -lbwio -lgcc
 
 clean:
 	-rm -f kernel.elf *.s *.o kernel.map

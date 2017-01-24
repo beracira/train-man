@@ -7,7 +7,7 @@
 #define PASS        3
 #define EXIT        4
 
-int Create(priority_t priority, void (*code) ( ) );
+int Create(int priority, void (*code) ( ) );
 
 int MyTid(void);
 
