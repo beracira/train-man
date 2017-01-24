@@ -28,13 +28,16 @@ struct kernel_stack {
   int * usr_lr;
   int usr_r0;
   int usr_spsr;
+  int tid;
+  int parent_tid;
+  int priority;
   int num_tasks;
   int started;
   int syscall_code;
   int args[5];
 };
 
-int td_add(void * task, priority_t priority, int parent_tid);
+int td_add(void * task, int priority, int parent_tid);
 int set_active(int tid);
 int sync_td(int tid);
 

@@ -4,7 +4,7 @@
 
 int td_counter = 1;
 
-int td_add(void * task, priority_t priority, int parent_tid) {
+int td_add(void * task, int priority, int parent_tid) {
   struct task_descriptor * td = (struct task_descriptor *) TASK_DESCRIPTOR_START;
   td[td_counter].tid = td_counter;
   td[td_counter].state = READY;
@@ -26,6 +26,9 @@ int set_active(int tid) {
   ks->usr_lr  = td[tid].lr;
   ks->usr_r0 = td[tid].return_value;
   ks->usr_spsr = td[tid].spsr;
+  ks->tid = td[tid].tid;
+  ks->parent_tid = td[tid].parent_tid;
+  ks->priority = td[tid].priority;
   ks->num_tasks = 1;
   ks->started = td[tid].started;
   return 0;

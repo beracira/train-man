@@ -4,11 +4,10 @@
 #define PRIORITY_QUEUE_START  0x01600000
 #define QUEUE_SIZE  50
 
-typedef enum {
-  HIGH,
-  MEDIUM,
-  LOW
-} priority_t;
+//priorities
+#define P_HIGH 0
+#define P_MEDIUM 1
+#define P_LOW 2
 
 struct queue {
   int tid[QUEUE_SIZE];
@@ -23,9 +22,9 @@ struct priority_queue {
 };
 
 void init_queue(void);
-int add_task_to_queue(int tid, priority_t p);
-int remove_active_task_from_queue(int tid, priority_t p);
+int add_task_to_queue(int tid, int p);
+int remove_active_task_from_queue(int tid, int p);
 int schedule(void);
-void reschedule(int tid, priority_t p);
+int reschedule(int tid, int p);
 
 #endif /* PRIORITYQUEUE_H */

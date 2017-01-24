@@ -13,14 +13,14 @@
 
 int syscall(int code, int arg1, int arg2);
 
-int kernel_Create(priority_t priority, void (*code) ( ) );
+int kernel_Create(int priority, void (*code) ( ) );
 
 int kernel_MyTid(void);
 
 int kernel_MyParentTid(void);
 
-void kernel_Pass(void);
+int kernel_Pass(void);
 
-void kernel_Exit(void);
+int kernel_Exit(void);
 
 #endif /* SYSCALL_H */

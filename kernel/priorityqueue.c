@@ -25,9 +25,9 @@ void init_queue(void) {
 }
 
 // adds a task to the end of a queue
-int add_task_to_queue(int tid, priority_t p) {
+int add_task_to_queue(int tid, int p) {
   int t;
-  if (p == HIGH) {
+  if (p == P_HIGH) {
     t = q->high.tid[q->high.last];
     if (t == -1) {
       q->high.tid[q->high.last] = tid;
@@ -35,7 +35,7 @@ int add_task_to_queue(int tid, priority_t p) {
       return tid;
     }
   }
-  if (p == MEDIUM) {
+  if (p == P_MEDIUM) {
     t = q->mid.tid[q->mid.last];
     if (t == -1) {
       q->mid.tid[q->mid.last] = tid;
@@ -43,7 +43,7 @@ int add_task_to_queue(int tid, priority_t p) {
       return tid;
     }
   }
-  if (p == LOW) {
+  if (p == P_LOW) {
     t = q->low.tid[q->low.last];
     if (t == -1) {
       q->low.tid[q->low.last] = tid;
@@ -57,9 +57,9 @@ int add_task_to_queue(int tid, priority_t p) {
 
 // removes first task in queue
 // return tid of the task removed
-int remove_active_task_from_queue(int tid, priority_t p) {
+int remove_active_task_from_queue(int tid, int p) {
   int t = -1;
-  if (p == HIGH) {
+  if (p == P_HIGH) {
     t = q->high.tid[q->high.first];
     if (t == tid) {
       q->high.tid[q->high.first] = -1;
@@ -67,7 +67,7 @@ int remove_active_task_from_queue(int tid, priority_t p) {
       return t;
     }
   }
-  else if (p == MEDIUM) {
+  else if (p == P_MEDIUM) {
     t = q->mid.tid[q->mid.first];
     if (t == tid) {
       q->mid.tid[q->mid.first] = -1;
@@ -75,7 +75,7 @@ int remove_active_task_from_queue(int tid, priority_t p) {
       return t;
     }
   }
-  else if (p == LOW) {
+  else if (p == P_LOW) {
     t = q->low.tid[q->low.first];
     if (t == tid) {
       q->low.tid[q->low.first] = -1;
@@ -106,8 +106,8 @@ int schedule(void) {
 }
 
 // wrapper for remove and add
-void reschedule(int tid, priority_t p) {
+int reschedule(int tid, int p) {
   remove_active_task_from_queue(tid, p);
-  add_task_to_queue(tid, p);
+  return add_task_to_queue(tid, p);
 }
 

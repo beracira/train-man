@@ -28,10 +28,11 @@ void initialize(void) {
 
   //struct priority_queue * pq = *((struct priority_queue **) PRIORITY_QUEUE_START);
 
-  int first_tid = td_add(firsttask, MEDIUM, 0);
+  int first_tid = td_add(firsttask, P_MEDIUM, 0);
   set_active(first_tid);
 
   init_queue();
+  
 }
 
 int activate(void) {
@@ -76,6 +77,38 @@ int activate(void) {
   return 0;
 }
 
+int handle(int num) {
+  volatile struct kernel_stack * ks = (struct kernel_stack *) KERNEL_STACK_START;
+  num = ks->syscall_code;
+  // note: can't declare variables in switch statement
+  int priority;
+  int code; 
+
+  switch(num){
+    case 1 :
+      priority = ks->args[0];
+      code = ks->args[1];
+      return kernel_Create(priority, (void *) code );
+      break;
+    case 2 :
+      return kernel_MyTid();
+      break;
+    case 3 :
+      return kernel_MyParentTid();
+      break;
+    case 4 :
+      return kernel_Pass();
+      break;
+    case 5 :
+      return kernel_Exit();
+      break;
+    default :
+      return -1;
+
+  }
+  return -1;
+}
+
 int main( int argc, char* argv[] ) {
 
   // main starts in svc mode, where bwprintf doesn't work
@@ -84,7 +117,7 @@ int main( int argc, char* argv[] ) {
   volatile struct kernel_stack * ks = (struct kernel_stack *) KERNEL_STACK_START;
 
  int i = 0;
-  while(i++ < 5) {
+  //while(i++ < 3) {
     int active = schedule();
     set_active(active);
     // bwprintf( COM2, "second:%d %d\n\r", i, active);
@@ -92,8 +125,8 @@ int main( int argc, char* argv[] ) {
     // bwprintf( COM2, "third:%d %d\n\r", i, active);
     sync_td(active);
     (void) request;
-    // handle(request);
-  }
+   // handle(0);
+  //}
 
   return 0;
 }
