@@ -18,7 +18,7 @@ int td_add(void * task, int priority, int parent_tid) {
   td[td_counter].return_value = 0;
   td[td_counter].spsr = 0xd0;
   td[td_counter].started = 0;
-  td[td_counter].lr_svc = (int *) task;
+  td[td_counter].lr_svc = (int) task;
 
   return td_counter++;
 }

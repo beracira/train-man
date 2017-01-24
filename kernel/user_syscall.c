@@ -45,8 +45,6 @@ void Pass(void) {
   asm("mov  ip, sp;");
   asm("stmfd  sp!, {r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, fp, ip};"); // save usr state
   asm("swi 4;");
-
-  return ks->usr_r0;
 }
 
 
@@ -57,6 +55,4 @@ void Exit(void) {
   asm("mov  ip, sp;");
   asm("stmfd  sp!, {r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, fp, ip};"); // save usr state
   asm("swi 5;");
-
-  return ks->usr_r0;
 }
