@@ -13,7 +13,7 @@ int Create(int priority, void (*code) ( ) ) {
   asm("stmfd  sp!, {r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, fp, ip};"); // save usr state
   asm("swi 1;");
 
-  return -1;
+  return ks->usr_r0;
 }
 
 int MyTid(void) {

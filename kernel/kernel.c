@@ -95,7 +95,7 @@ int handle(int num) {
     case 1 :
       priority = ks->args[0];
       code = ks->args[1];
-      return kernel_Create(priority, (void *) code );
+      ks->usr_r0 = kernel_Create(priority, (void *) code );
       break;
     case MYTID :
       ks->usr_r0 = kernel_MyTid();
@@ -112,7 +112,7 @@ int handle(int num) {
     default :
       return -1;
   }
-  return -1;
+  return 100;
 }
 
 int main( int argc, char* argv[] ) {

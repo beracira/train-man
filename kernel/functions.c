@@ -6,24 +6,23 @@
 
 void firsttask(void) {
 
-  bwprintf(COM2, "first1 task's tid is: %d\n\r", MyTid());
-  bwprintf(COM2, "first2 task's parent's tid is: %d\n\r", MyParentTid());
-  Create(P_HIGH, foo);
-  bwprintf(COM2, "first3 task's tid is: %d\n\r", MyTid());
-  bwprintf(COM2, "first4 task's parent's is: %d\n\r", MyParentTid());
+  int tid = 0;
+
+  tid = Create(P_LOW, the_other_task);
+  bwprintf( COM2, "Created: %d\n\r", tid);
+  tid = Create(P_LOW, the_other_task);
+  bwprintf( COM2, "Created: %d\n\r", tid);
+  tid = Create(P_HIGH, the_other_task);
+  bwprintf( COM2, "Created: %d\n\r", tid);
+  tid = Create(P_HIGH, the_other_task);
+  bwprintf( COM2, "Created: %d\n\r", tid);
+  bwprintf( COM2, "First user task: exiting.\n\r");
   Exit();
-  // bwprintf(COM2, "first1 task end\n\r");
-  // Pass();
-  // bwprintf(COM2, "first2 task end\n\r");
-  // Pass();
-  // bwprintf(COM2, "first3 task end:\n\r");
-  // Pass();
-  // bwprintf(COM2, "first4 task end:\n\r");
 }
 
-void foo(void){
-  bwprintf(COM2, "please work \n\r");
-  bwprintf(COM2, "foo's tid is: %d\n\r", MyTid());
-  bwprintf(COM2, "foo's parent's tid is: %d\n\r", MyParentTid());
+void the_other_task(void){
+  bwprintf(COM2, "My tid is: %d. My parent's tid is: %d\n\r", MyTid(), MyParentTid());
+  Pass();
+  bwprintf(COM2, "My tid is: %d. My parent's tid is: %d\n\r", MyTid(), MyParentTid());
   Exit();
 }
