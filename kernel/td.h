@@ -19,6 +19,7 @@ struct task_descriptor {
   int return_value;
   int spsr;
   int started;
+  int lr_svc;
 };
 
 
@@ -28,6 +29,7 @@ struct kernel_stack {
   int * usr_lr;
   int usr_r0;
   int usr_spsr;
+  int lr_svc;
   int tid;
   int parent_tid;
   int priority;
