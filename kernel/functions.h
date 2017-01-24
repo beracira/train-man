@@ -3,7 +3,7 @@
 
 void firsttask(void);
 
-void foo(void);
+void the_other_task(void);
 
 #endif /* FUNCTIONS_H */
 

@@ -1,11 +1,11 @@
 #ifndef USER_SYSCALL_H
 #define USER_SYSCALL_H
 
-#define CREATE      0
-#define MYTID       1
-#define MYPARENTPID 2
-#define PASS        3
-#define EXIT        4
+#define CREATE      1
+#define MYTID       2
+#define MYPARENTPID 3
+#define PASS        4
+#define EXIT        5
 
 int Create(int priority, void (*code) ( ) );
 

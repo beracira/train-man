@@ -5,6 +5,7 @@
 #include "functions.h"
 #include "priorityqueue.h"
 #include "td.h"
+#include "user_syscall.h"
 
 int activate(void);
 
@@ -44,23 +45,27 @@ int activate(void) {
   asm("mov r9, #0x01300000;");  // r9 = KERNEL_STACK_START
   asm("ldr r8, [r9, #12];");    // load spsr
   asm("msr spsr, r8;");         // change spsr
-  asm("ldr lr, [r9, #4];");     // load lr
+
   asm("ldr r0, [r9, #8];");     // load return value to r0
+  asm("ldr lr, [r9, #16];");     // load lr_svc
   asm("msr CPSR_c, #0xdf;");    // switch to system mode
   asm("ldr sp, [r9, #0];");     // load sp
+  
   volatile struct kernel_stack * ks = (struct kernel_stack *) KERNEL_STACK_START;
   if (ks->started == 1) {
-    asm("ldmfd	sp, {r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, fp, sp};");
-  }
-  else {
+    asm("ldmfd  sp, {r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, fp, sp};");
+  } else {
     ks->started = 1;
   }
+
   asm("msr CPSR_c, #0xd3;");    // back to supervisor mode
   asm("movs pc, lr;");          // let it go  
+
 
   // entering kernel
   asm("activate_enter_kernel:");
   asm("mov r9, #0x01300000;");  // r9 = KERNEL_STACK_START
+  asm("str lr, [r9, #16];");     // save lr_svc to stack
   asm("msr CPSR_c, #0xDF;");      // switch to system mode
   asm("str sp, [r9, #0];");     // store sp
   asm("str lr, [r9, #4];");     // save lr to stack
@@ -84,30 +89,30 @@ int handle(int num) {
   // note: can't declare variables in switch statement
   int priority;
   int code; 
+  int retval;
 
   switch(num){
     case 1 :
       priority = ks->args[0];
       code = ks->args[1];
-      return kernel_Create(priority, (void *) code );
+      ks->usr_r0 = kernel_Create(priority, (void *) code );
       break;
-    case 2 :
-      return kernel_MyTid();
+    case MYTID :
+      ks->usr_r0 = kernel_MyTid();
       break;
     case 3 :
-      return kernel_MyParentTid();
+      ks->usr_r0 =  kernel_MyParentTid();
       break;
     case 4 :
-      return kernel_Pass();
+      ks->usr_r0 = kernel_Pass();
       break;
     case 5 :
-      return kernel_Exit();
+      ks->usr_r0 = kernel_Exit();
       break;
     default :
       return -1;
-
   }
-  return -1;
+  return 100;
 }
 
 int main( int argc, char* argv[] ) {
@@ -118,19 +123,16 @@ int main( int argc, char* argv[] ) {
 //  volatile struct kernel_stack * ks = (struct kernel_stack *) KERNEL_STACK_START;
 
  int i = 0;
-  while(i++ < 3) {
+  while(1 + 1 == 2) {
     int active = schedule();
+    if (active == -1) return 0;
     set_active(active);
     
-    //bwprintf( COM2, "second:%d %d\n\r", i, active);
     int request = activate(); //active);
-    
-    //bwprintf( COM2, "third\n\r");
-    sync_td(active);
-    //bwprintf( COM2, "fourth\n\r");
+
     (void) request;
     handle(0);
-    //bwprintf( COM2, "fifth\n\r");
+    sync_td(active);
   }
 
   return 0;

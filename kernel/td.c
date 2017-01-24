@@ -5,6 +5,9 @@
 int td_counter = 1;
 
 int td_add(void * task, int priority, int parent_tid) {
+  if (td_counter == MAX_TASKS) return -2;
+  if (priority >= 3) return -1;
+
   struct task_descriptor * td = (struct task_descriptor *) TASK_DESCRIPTOR_START;
   td[td_counter].tid = td_counter;
   td[td_counter].state = READY;
@@ -15,6 +18,7 @@ int td_add(void * task, int priority, int parent_tid) {
   td[td_counter].return_value = 0;
   td[td_counter].spsr = 0xd0;
   td[td_counter].started = 0;
+  td[td_counter].lr_svc = (int *) task;
 
   return td_counter++;
 }
@@ -31,6 +35,7 @@ int set_active(int tid) {
   ks->priority = td[tid].priority;
   ks->num_tasks = 1;
   ks->started = td[tid].started;
+  ks->lr_svc = td[tid].lr_svc;
   return 0;
 }
 
@@ -42,5 +47,6 @@ int sync_td(int tid) {
   td[tid].return_value = ks->usr_r0;
   td[tid].spsr = ks->usr_spsr;
   td[tid].started = ks->started;
+  td[tid].lr_svc = ks->lr_svc;
   return 0;
 }

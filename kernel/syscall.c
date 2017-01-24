@@ -34,8 +34,8 @@ int kernel_Create(int priority, void (*code) ( ) ) {
   tid = td_add(code, priority, parent_tid);
 
   // add to priority queue
-  return add_task_to_queue(tid, priority); // returns -1 if invalid priority, tid if okay
-
+  add_task_to_queue(tid, priority); // returns -1 if invalid priority, tid if okay
+  return tid;
 }
 
 // Returns tid, the positive integer task id of the task that calls it.
