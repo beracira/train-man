@@ -28,7 +28,7 @@ void initialize(void) {
   asm("mov r1, #0x28;"); 
   asm("str r0, [r1, #0];");
 
-  //struct priority_queue * pq = *((struct priority_queue **) PRIORITY_QUEUE_START);
+  //struct priority_queue * pq = *((struct prio2rity_queue **) PRIORITY_QUEUE_START);
 
   int first_tid = td_add(firsttask, P_MEDIUM, 0);
   set_active(first_tid);
