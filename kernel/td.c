@@ -1,12 +1,13 @@
 #include "../io/include/bwio.h"
 
 #include "td.h"
+#include "priorityqueue.h"
 
 int td_counter = 1;
 
 int td_add(void * task, int priority, int parent_tid) {
   if (td_counter == MAX_TASKS) return -2;
-  if (priority >= 3) return -1;
+  if (priority >= NUM_QUEUES) return -1;
 
   struct task_descriptor * td = (struct task_descriptor *) TASK_DESCRIPTOR_START;
   td[td_counter].tid = td_counter;

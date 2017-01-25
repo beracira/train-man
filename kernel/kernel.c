@@ -11,24 +11,13 @@ int activate(void);
 
 void initialize(void) {
 
- // int * swi_vector = (int *)(0x8);
-//	int * handler = (int *)(0x20);
-//	void (*swi_entry)() = swi_handler;
-//	*handler = (int)swi_entry;
-
-//	*swi_vector = 0xE51FF004; // 0xe590f018;
-	//swi_vector++;
-	//  Put the address of the fcn here
-//*swi_vector = (int)&swi_handler;
-
   bwsetfifo(COM2, OFF);
   bwprintf(COM2, "\n\r");
 
+  // Load label for swi entry
   asm("ldr r0, =activate_enter_kernel;"); 
   asm("mov r1, #0x28;"); 
   asm("str r0, [r1, #0];");
-
-  //struct priority_queue * pq = *((struct prio2rity_queue **) PRIORITY_QUEUE_START);
 
   int first_tid = td_add(firsttask, P_MEDIUM, 0);
   set_active(first_tid);
@@ -89,27 +78,26 @@ int handle(int num) {
   // note: can't declare variables in switch statement
   int priority;
   int code; 
-  int retval;
 
   switch(num){
-    case 1 :
+    case CREATE:
       priority = ks->args[0];
       code = ks->args[1];
       ks->usr_r0 = kernel_Create(priority, (void *) code );
       break;
-    case MYTID :
+    case MYTID:
       ks->usr_r0 = kernel_MyTid();
       break;
-    case 3 :
+    case MYPARENTPID:
       ks->usr_r0 =  kernel_MyParentTid();
       break;
-    case 4 :
+    case PASS:
       ks->usr_r0 = kernel_Pass();
       break;
-    case 5 :
+    case EXIT:
       ks->usr_r0 = kernel_Exit();
       break;
-    default :
+    default:
       return -1;
   }
   return 100;
@@ -117,12 +105,8 @@ int handle(int num) {
 
 int main( int argc, char* argv[] ) {
 
-  // main starts in svc mode, where bwprintf doesn't work
   initialize();
 
-//  volatile struct kernel_stack * ks = (struct kernel_stack *) KERNEL_STACK_START;
-
- int i = 0;
   while(1 + 1 == 2) {
     int active = schedule();
     if (active == -1) return 0;
