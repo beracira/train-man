@@ -35,6 +35,9 @@ int kernel_Create(int priority, void (*code) ( ) ) {
 
   // add to priority queue
   add_task_to_queue(tid, priority); // returns -1 if invalid priority, tid if okay
+
+  reschedule(ks->tid, ks->priority);
+
   return tid;
 }
 
@@ -42,6 +45,9 @@ int kernel_Create(int priority, void (*code) ( ) ) {
 int kernel_MyTid(void){
   volatile struct kernel_stack * ks = (struct kernel_stack *) KERNEL_STACK_START;
   int tid = ks->tid;
+
+  reschedule(ks->tid, ks->priority);
+
   return tid;
 }
 
@@ -51,6 +57,9 @@ int kernel_MyTid(void){
 int kernel_MyParentTid(void){
   volatile struct kernel_stack * ks = (struct kernel_stack *) KERNEL_STACK_START;
   int tid = ks->parent_tid;
+
+  reschedule(ks->tid, ks->priority);
+
   return tid;
 }
 
