@@ -7,6 +7,9 @@
 #define ACTIVE 0
 #define READY 1
 #define ZOMBIE 2
+#define SEND_BLOCKED 3
+#define RECEIVE_BLOCKED 4
+#define REPLY_BLOCKED 5
 
 
 struct task_descriptor {

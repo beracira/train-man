@@ -1,11 +1,10 @@
 #ifndef MESSAGES_H
 #define MESSAGES_H
 
+int Send( int tid, void *msg, int msglen, void *reply, int rplen);
 
-int Send(int tid, char *msg, int msglen, char *reply, int rplen);
+int Receive( int *tid, void *msg, int msglen );
 
-int Receive( int *tid, char *msg, int msglen );
-
-int Reply( int tid, char *reply, int rplen );
+int Reply( int tid, void *reply, int replylen );
 
 #endif /* MESSAGES_H */

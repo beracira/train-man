@@ -24,7 +24,11 @@ or equal to the size of the buffer provided for it. Longer responses are truncat
 -2 The task id supplied is not the task id of an existing task.
 -3 The send-receive-reply transaction could not be completed.
 */
-int Send(int tid, char *msg, int msglen, char *reply, int rplen) {
+int Sendint Send( int tid, void *msg, int msglen, void *reply, int rplen) {
+    // sender state = RECEIVE_BLOCKED;
+
+    // if receiver state != active then add sender to receiver's queue and reschedule
+
 
 
 }
@@ -44,8 +48,15 @@ Returns
 message buffer supplied. Longer messages are truncated.
 -1 The message is truncated.
 */
-int Receive( int *tid, char *msg, int msglen ) {
+int Receive( int *tid, void *msg, int msglen ) {
+    // check send q for senders
 
+    // if there is a sender, reply to the sender and set the sender's state to reply_blocked
+    // remove sender from sender q
+    // put msg and tid in receiver
+    // receiver state = ready
+
+    // if there is no senders, set receiver state to send blocked
 
 }
 
@@ -61,4 +72,8 @@ Returns
 -2 The task id is not the task id of an existing task.
 -3 The task id is not the task id of a reply blocked task.
 */
-int Reply( int tid, char *reply, int rplen );
+int Reply( int tid, void *reply, int replylen ) {
+    // receiver has become active
+    // copy reply to *reply
+
+}
