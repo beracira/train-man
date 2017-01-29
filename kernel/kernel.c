@@ -19,7 +19,7 @@ void initialize(void) {
   asm("mov r1, #0x28;"); 
   asm("str r0, [r1, #0];");
 
-  int first_tid = td_add(firsttask, P_MEDIUM, 0);
+  int first_tid = td_add(firsttask, P_HIGH, 0);
   set_active(first_tid);
 
   init_queue();
@@ -114,6 +114,7 @@ int main( int argc, char* argv[] ) {
 
   while(1 + 1 == 2) {
     int active = schedule();
+    bwprintf( COM2, "%d\n\r", active);
     if (active == -1) return 0;
     set_active(active);
     
