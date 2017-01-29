@@ -19,7 +19,7 @@ ASFLAGS	= -mcpu=arm920t -mapcs-32
 LDFLAGS = -init main -Map kernel.map -N  -T orex.ld -L/u/wbcowan/gnuarm-4.0.2/lib/gcc/arm-elf/4.0.2 -L../io/lib
 
 EXEC = kernel.elf
-OBJECTS = kernel.o functions.o syscall.o priorityqueue.o td.o user_syscall.o
+OBJECTS = kernel.o functions.o syscall.o priorityqueue.o td.o user_syscall.o nameserver.o
 
 %.o: %.c
 	$(XCC) -S $(CFLAGS) $<

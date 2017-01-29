@@ -11,16 +11,6 @@ int activate(void);
 
 void initialize(void) {
 
-  // asm("MRC p15, 0, r0, c1, c0, 0");//        @ read c1
-  // asm("AND r0, r0, #0xffffefff");//       @ clear bits to be cleared
-  // asm("ORR r0, r0, #0x00001000");//        @ set bits to be set
-  // asm("MCR p15, 0, r0, c1, c0, 0");//        @ write c1
-
-  // asm("MRC p15, 0, r0, c1, c0, 0");//        @ read c1
-  // asm("AND r0, r0, #0xfffffffb");//       @ clear bits to be cleared
-  // asm("ORR r0, r0, #0x00000004");//        @ set bits to be set
-  // asm("MCR p15, 0, r0, c1, c0, 0");//        @ write c1
-
   bwsetfifo(COM2, OFF);
   bwprintf(COM2, "\n\r");
 
@@ -124,7 +114,7 @@ int main( int argc, char* argv[] ) {
 
   while(1 + 1 == 2) {
     int active = schedule();
-    // bwprintf( COM2, "%d\n\r", active);
+    //  bwprintf( COM2, "%d\n\r", active);
     if (active == -1) return 0;
     set_active(active);
     volatile struct task_descriptor * td = (struct task_descriptor *) TASK_DESCRIPTOR_START;
