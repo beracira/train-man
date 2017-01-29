@@ -4,28 +4,50 @@
 #include "../io/include/bwio.h"
 #include "../io/include/ts7200.h"
 
-void dummy_sender(void) {
-  char * str = "this is a lot of work";
-  char reply[30];
-  bwprintf( COM2, "before send\n\r");
-  int result = Send(3, str, 22, reply, 30);
-  bwprintf( COM2, "after send\n\r");
-  bwprintf( COM2, "Result of send: %d\n\r", result);
-  bwprintf( COM2, "%s\n\r", reply);
+
+#define SEC 508000
+#define TIMER3_BASE 0x80810080
+#define TIMER3_CONTROL 0x80810088
+#define LDR_OFFSET  0x00000000  // 16/32 bits, RW
+#define VAL_OFFSET  0x00000004  // 16/32 bits, RO
+#define CRTL_OFFSET 0x00000008  // 3 bits, RW
+#define TIME_PTR 0x80810084
+
+int timer_init() {
+  *((int *) (TIMER3_BASE + LDR_OFFSET)) = (SEC);
+  *((int *) (TIMER3_CONTROL)) =  0x000000c8;
+  return 0;
+}
+
+void dummy_sender_with_timer(void) {
+  timer_init();
+  char tid[64];
+  char reply[64];
+  int i;
+  // bwprintf( COM2, "in sender %d\n\r", tid);
+  for (i = 0; i < 100; ++i) {
+    Send(3, &tid, 64, &reply, 64);
+    // bwprintf( COM2, "send i: %d\n\r", i);
+  }
+
+  unsigned int cur = *((int *)(TIME_PTR));
+  cur = 508000 - cur;
+  cur *= 1000;
+  cur /= 508000;
+  bwprintf( COM2, "Time: %dms\n\r", cur);
   Exit();
 }
 
-void dummy_receiver(void) {
+void dummy_receiver_with_timer(void) {
+
   int sender_tid = -1;
-  char msg[30];
-  bwprintf( COM2, "before receive\n\r");
-  int result = Receive(&sender_tid, msg, 30);
-  bwprintf( COM2, "after receive\n\r");
-  bwprintf( COM2, "Result of receive %d\n\r", result);
-  bwprintf( COM2, "%s\n\r", msg);
-  char * msg_ = "leave me alone plz";
-  result = Reply(sender_tid, msg_, 30);
-  bwprintf( COM2, "Result of reply: %d\n\r", result);
+  char msg[64];
+  int i;
+  for (i = 0; i < 100; ++i) {
+    Receive(&sender_tid, &msg, 64);
+    Reply(sender_tid, &msg, 64);
+    // bwprintf( COM2, "receive i: %d\n\r", i);
+  }
   Exit();
 }
 
@@ -33,14 +55,9 @@ void firsttask(void) {
 
   bwprintf( COM2, "First user task created\n\r");
   
-  int tid = 0;
+  Create(P_MEDIUM, dummy_sender_with_timer);
+  Create(P_LOW, dummy_receiver_with_timer);
 
-  tid = Create(P_LOW, dummy_sender);
-  bwprintf( COM2, "Creating task: tid # %d\n\r", tid);
-  tid = Create(P_MEDIUM, dummy_receiver);
-  bwprintf( COM2, "Creating task: tid # %d\n\r", tid);
-
-  bwprintf( COM2, "Exiting first user task.\n\r");
   Exit();
 }
 

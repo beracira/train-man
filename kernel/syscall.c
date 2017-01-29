@@ -136,6 +136,7 @@ int kernel_Send( int tid, void *msg, int msglen, void *reply, int rplen) {
   td[tid].sendq_last = (td[tid].sendq_last + 1) % MAX_TASKS; // assume no overflow
   td[s_tid].state = RECEIVE_BLOCKED;
 
+  reschedule(ks->tid, ks->priority);
   return 0;
 }
 
@@ -196,7 +197,7 @@ int kernel_Receive( int *tid, void *msg, int msglen ) {
     // not very possible 
   }
 
-
+  reschedule(ks->tid, ks->priority);
   return retval;
 }
 
