@@ -18,9 +18,11 @@ void init_queue(void) {
   }
 
   // first task has tid 0 and medium priority
-  q[P_MEDIUM].tid[0] = 1;
-  q[P_MEDIUM].first = 0;
-  q[P_MEDIUM].last = 1;
+  volatile struct task_descriptor * td = (struct task_descriptor *) TASK_DESCRIPTOR_START;
+  int priority = td[1].priority;
+  q[priority].tid[0] = 1;
+  q[priority].first = 0;
+  q[priority].last = 1;
 }
 
 // adds a task to the end of a queue
