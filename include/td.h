@@ -11,6 +11,13 @@
 #define RECEIVE_BLOCKED 4
 #define REPLY_BLOCKED 5
 
+struct Sender {
+  int sender_tid;
+  void *msg; 
+  int msglen;
+  void *reply;
+  int rplen;
+};
 
 struct task_descriptor {
   int tid;
@@ -23,6 +30,9 @@ struct task_descriptor {
   int spsr;
   int started;
   int lr_svc;
+  struct Sender sendq[MAX_TASKS];
+  int sendq_first;
+  int sendq_last; // update ks?
 };
 
 

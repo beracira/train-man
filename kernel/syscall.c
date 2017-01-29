@@ -221,7 +221,7 @@ int kernel_Reply( int tid, void *reply, int replylen ) {
   int my_tid = ks->tid;
 
   int first = td[my_tid].sendq_first;
-  const struct Sender * sender = &(td[my_tid].sendq[first]);
+  struct Sender * sender = &(td[my_tid].sendq[first]);
 
   char * origin = (char *) reply;
   char * dest = (char *) sender->reply;

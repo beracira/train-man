@@ -1,8 +1,6 @@
 #ifndef SYSCALL_H
 #define SYSCALL_H
 
-#include "priorityqueue.h"
-
 #define TASK_DESCRIPTOR_START 0x01400000
 
 #define KERNEL_STACK_START    0x01300000
@@ -22,5 +20,11 @@ int kernel_MyParentTid(void);
 int kernel_Pass(void);
 
 int kernel_Exit(void);
+
+int kernel_Send( int tid, void *msg, int msglen, void *reply, int rplen);
+
+int kernel_Receive( int *tid, void *msg, int msglen );
+
+int kernel_Reply( int tid, void *reply, int replylen );
 
 #endif /* SYSCALL_H */
