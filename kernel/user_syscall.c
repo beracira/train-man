@@ -56,3 +56,53 @@ void Exit(void) {
   asm("stmfd  sp!, {r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, fp, ip};"); // save usr state
   asm("swi 5;");
 }
+
+int Send( int tid, void *msg, int msglen, void *reply, int rplen) {
+
+  volatile struct kernel_stack * ks = (struct kernel_stack *) KERNEL_STACK_START;
+  ks->syscall_code = 6;
+  ks->args[0] = tid;
+  ks->args[1] = (int) msg;
+  ks->args[2] = msglen;
+  ks->args[3] = (int) reply;
+  ks->args[4] = rplen;
+
+  asm("mov  ip, sp;");
+  asm("stmfd  sp!, {r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, fp, ip};"); // save usr state
+  asm("swi 6;");
+
+  return ks->usr_r0;
+
+}
+
+int Receive( int *tid, void *msg, int msglen ) {
+
+  volatile struct kernel_stack * ks = (struct kernel_stack *) KERNEL_STACK_START;
+  ks->syscall_code = 7;
+  ks->args[0] = (int) tid;
+  ks->args[1] = (int) msg;
+  ks->args[2] = msglen;
+
+  asm("mov  ip, sp;");
+  asm("stmfd  sp!, {r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, fp, ip};"); // save usr state
+  asm("swi 7;");
+
+  return ks->usr_r0;
+
+}
+
+int Reply( int tid, void *reply, int replylen ) {
+
+  volatile struct kernel_stack * ks = (struct kernel_stack *) KERNEL_STACK_START;
+  ks->syscall_code = 8;
+  ks->args[0] = tid;
+  ks->args[1] = (int) reply;
+  ks->args[2] = replylen;
+
+  asm("mov  ip, sp;");
+  asm("stmfd  sp!, {r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, fp, ip};"); // save usr state
+  asm("swi 8;");
+
+  return ks->usr_r0;
+
+}

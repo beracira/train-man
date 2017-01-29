@@ -76,14 +76,10 @@ int handle(int num) {
   volatile struct kernel_stack * ks = (struct kernel_stack *) KERNEL_STACK_START;
   num = ks->syscall_code;
   // note: can't declare variables in switch statement
-  int priority;
-  int code; 
 
   switch(num){
     case CREATE:
-      priority = ks->args[0];
-      code = ks->args[1];
-      ks->usr_r0 = kernel_Create(priority, (void *) code );
+      ks->usr_r0 = kernel_Create(ks->args[0], (void *) ks->args[1] );
       break;
     case MYTID:
       ks->usr_r0 = kernel_MyTid();
@@ -96,6 +92,15 @@ int handle(int num) {
       break;
     case EXIT:
       ks->usr_r0 = kernel_Exit();
+      break;
+    case SEND:
+      ks->usr_r0 = kernel_Send((int) ks->args[0], (void *) ks->args[1], (int) ks->args[2], (void *) ks->args[3], (int) ks->args[4]);
+      break;
+    case REPLY:
+      ks->usr_r0 = kernel_Reply((int) ks->args[0], (void *) ks->args[1], (int) ks->args[2]);
+      break;
+    case RECEIVE:
+      ks->usr_r0 = kernel_Receive((int *) ks->args[0], (void *) ks->args[1], (int) ks->args[2]);
       break;
     default:
       return -1;

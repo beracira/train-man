@@ -1,4 +1,5 @@
 #include "priorityqueue.h"
+#include "td.h"
 
 struct priority_queue * q = (struct priority_queue *) PRIORITY_QUEUE_START;
 
@@ -65,10 +66,20 @@ int remove_active_task_from_queue(int tid, int p) {
 
 // returns tid of task to be run
 int schedule(void) {
+  volatile struct task_descriptor * td = (struct task_descriptor *) TASK_DESCRIPTOR_START;
   int j;
+  int i = q[j].tid[q[j].first];
+  int a = q[j].first;
+  int b = q[j].last;
   for (j = 0; j < NUM_QUEUES; j++) {
-    if (q[j].tid[q[j].first] != -1) {
-      return q[j].tid[q[j].first];
+    for (i = a; i < b; i++) {
+      int tid = q[j].tid[i];
+      if (td[tid].state != READY) {
+        reschedule(tid, j);
+      }
+      else {
+        return q[j].tid[i];
+      }
     }
   }
 

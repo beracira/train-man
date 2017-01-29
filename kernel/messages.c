@@ -24,7 +24,7 @@ or equal to the size of the buffer provided for it. Longer responses are truncat
 -2 The task id supplied is not the task id of an existing task.
 -3 The send-receive-reply transaction could not be completed.
 */
-int Sendint Send( int tid, void *msg, int msglen, void *reply, int rplen) {
+int Send( int tid, void *msg, int msglen, void *reply, int rplen) {
     // sender state = RECEIVE_BLOCKED;
 
     // if receiver state != active then add sender to receiver's queue and reschedule
