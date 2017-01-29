@@ -73,41 +73,20 @@ int schedule(void) {
   int i;
 
   for (j = 0; j < NUM_QUEUES; j++) {
-    int a = q[j].first;
-    int b = q[j].last;
+    int first = q[j].first;
+    int last = q[j].last;
 
-    if (a <= b) {
-      for (i = a; i < b; i++) {
-        int tid = q[j].tid[i];
-        if (td[tid].state != READY) {
-          reschedule(tid, j);
-        }
-        else {
-          return q[j].tid[i];
-        }
+    while (first != last) {
+      int tid = q[j].tid[first];
+      if (td[tid].state != READY) {
+        reschedule(tid, j);
       }
+      else {
+        return q[j].tid[first];
+      }
+      first += 1;
+      first %= QUEUE_SIZE;
     }
-    else {
-      for (i = a; i < MAX_TASKS; i++) {
-        int tid = q[j].tid[i];
-        if (td[tid].state != READY) {
-          reschedule(tid, j);
-        }
-        else {
-          return q[j].tid[i];
-        }
-      }
-      for (i = 0; i < b; i++) {
-        int tid = q[j].tid[i];
-        if (td[tid].state != READY) {
-          reschedule(tid, j);
-        }
-        else {
-          return q[j].tid[i];
-        }
-      }
-    }
-
   }
 
   // nothing to schedule
