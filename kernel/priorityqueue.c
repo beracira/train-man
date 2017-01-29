@@ -71,18 +71,43 @@ int schedule(void) {
   volatile struct task_descriptor * td = (struct task_descriptor *) TASK_DESCRIPTOR_START;
   int j;
   int i;
+
   for (j = 0; j < NUM_QUEUES; j++) {
     int a = q[j].first;
     int b = q[j].last;
-    for (i = a; i < b; i++) {
-      int tid = q[j].tid[i];
-      if (td[tid].state != READY) {
-        reschedule(tid, j);
-      }
-      else {
-        return q[j].tid[i];
+
+    if (a <= b) {
+      for (i = a; i < b; i++) {
+        int tid = q[j].tid[i];
+        if (td[tid].state != READY) {
+          reschedule(tid, j);
+        }
+        else {
+          return q[j].tid[i];
+        }
       }
     }
+    else {
+      for (i = a; i < MAX_TASKS; i++) {
+        int tid = q[j].tid[i];
+        if (td[tid].state != READY) {
+          reschedule(tid, j);
+        }
+        else {
+          return q[j].tid[i];
+        }
+      }
+      for (i = 0; i < b; i++) {
+        int tid = q[j].tid[i];
+        if (td[tid].state != READY) {
+          reschedule(tid, j);
+        }
+        else {
+          return q[j].tid[i];
+        }
+      }
+    }
+
   }
 
   // nothing to schedule
