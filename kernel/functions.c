@@ -7,7 +7,9 @@
 void dummy_sender(void) {
   char * str = "this is a lot of work";
   char reply[30];
+  bwprintf( COM2, "before send\n\r");
   int result = Send(3, str, 22, reply, 30);
+  bwprintf( COM2, "after send\n\r");
   bwprintf( COM2, "Result of send: %d\n\r", result);
   bwprintf( COM2, "%s\n\r", reply);
   Exit();
@@ -16,7 +18,9 @@ void dummy_sender(void) {
 void dummy_receiver(void) {
   int sender_tid = -1;
   char msg[30];
+  bwprintf( COM2, "before receive\n\r");
   int result = Receive(&sender_tid, msg, 30);
+  bwprintf( COM2, "after receive\n\r");
   bwprintf( COM2, "Result of receive %d\n\r", result);
   bwprintf( COM2, "%s\n\r", msg);
   char * msg_ = "leave me alone plz";
@@ -31,9 +35,9 @@ void firsttask(void) {
   
   int tid = 0;
 
-  tid = Create(P_MEDIUM, dummy_sender);
+  tid = Create(P_LOW, dummy_sender);
   bwprintf( COM2, "Creating task: tid # %d\n\r", tid);
-  tid = Create(P_LOW, dummy_receiver);
+  tid = Create(P_MEDIUM, dummy_receiver);
   bwprintf( COM2, "Creating task: tid # %d\n\r", tid);
 
   bwprintf( COM2, "Exiting first user task.\n\r");

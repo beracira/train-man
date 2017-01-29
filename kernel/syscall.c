@@ -80,6 +80,7 @@ int kernel_Pass(void){
 // task, primarily its memory and task descriptor are not reclaimed.
 int kernel_Exit(void){
   volatile struct kernel_stack * ks = (struct kernel_stack *) KERNEL_STACK_START;
+  volatile struct task_descriptor * td = (struct task_descriptor *) TASK_DESCRIPTOR_START;
   int tid = ks->tid;
   int priority = ks->priority;
 
@@ -123,18 +124,17 @@ int kernel_Send( int tid, void *msg, int msglen, void *reply, int rplen) {
   int s_tid = ks->tid;
 
   if (td[tid].state == SEND_BLOCKED) {
-    
+    td[tid].state = READY; 
   }
-  else {
-    int tail = td[tid].sendq_last;
-    td[tid].sendq[tail].sender_tid = s_tid;
-    td[tid].sendq[tail].msg = msg;
-    td[tid].sendq[tail].msglen = msglen;
-    td[tid].sendq[tail].reply = reply;
-    td[tid].sendq[tail].rplen = rplen;
-    td[tid].sendq_last = (td[tid].sendq_last + 1) % MAX_TASKS; // assume no overflow
-    td[s_tid].state = RECEIVE_BLOCKED;
-  }
+
+  int tail = td[tid].sendq_last;
+  td[tid].sendq[tail].sender_tid = s_tid;
+  td[tid].sendq[tail].msg = msg;
+  td[tid].sendq[tail].msglen = msglen;
+  td[tid].sendq[tail].reply = reply;
+  td[tid].sendq[tail].rplen = rplen;
+  td[tid].sendq_last = (td[tid].sendq_last + 1) % MAX_TASKS; // assume no overflow
+  td[s_tid].state = RECEIVE_BLOCKED;
 
   return 0;
 }
@@ -192,8 +192,8 @@ int kernel_Receive( int *tid, void *msg, int msglen ) {
     td[td[my_tid].sendq[first].sender_tid].state = REPLY_BLOCKED;
   }
 
-  else { // empty
-
+  else { 
+    // not very possible 
   }
 
 
@@ -225,10 +225,10 @@ int kernel_Reply( int tid, void *reply, int replylen ) {
 
   char * origin = (char *) reply;
   char * dest = (char *) sender->reply;
-  if (sender->rplen <= replylen) {
+  if (sender->rplen < replylen) {
     int i;
     for (i = 0; i < sender->rplen; ++i) {
-      origin[i] = dest[i];
+      dest[i] = origin[i];
     }
     retval = -1;
     td[tid].return_value = -1;
@@ -236,7 +236,7 @@ int kernel_Reply( int tid, void *reply, int replylen ) {
   } else {
     int i;
     for (i = 0; i < replylen; ++i) {
-      origin[i] = dest[i];
+      dest[i] = origin[i];
     }
     retval = 0;
     td[tid].return_value = replylen;
@@ -246,6 +246,7 @@ int kernel_Reply( int tid, void *reply, int replylen ) {
   td[tid].state = READY;
   // error: tid not first sendq tid
 
+  td[my_tid].sendq_first = (td[my_tid].sendq_first + 1) % MAX_TASKS;
   reschedule(ks->tid, ks->priority);
   return retval;
 }

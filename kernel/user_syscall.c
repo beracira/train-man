@@ -77,7 +77,16 @@ int Send( int tid, void *msg, int msglen, void *reply, int rplen) {
 
 int Receive( int *tid, void *msg, int msglen ) {
 
+  volatile struct task_descriptor * td = (struct task_descriptor *) TASK_DESCRIPTOR_START;
   volatile struct kernel_stack * ks = (struct kernel_stack *) KERNEL_STACK_START;
+
+  int my_tid = ks->tid;
+
+  if (td[my_tid].sendq_first == td[my_tid].sendq_last) {
+    td[my_tid].state = SEND_BLOCKED;
+    Pass();
+  }
+
   ks->syscall_code = 7;
   ks->args[0] = (int) tid;
   ks->args[1] = (int) msg;
