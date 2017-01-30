@@ -8,8 +8,8 @@
 #define RPS_GET_RESULTS 4
 
 #define PLAYER_QUIT 2
-#define PLAYER_1_WIN 3
-#define PLAYER_2_WIN 4
+#define PLAYER_WIN 3
+#define PLAYER_LOSE 4
 #define PLAYER_TIE 5
 
 #define RPS_ROCK 1
