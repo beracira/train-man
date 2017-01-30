@@ -4,6 +4,13 @@
 #define RPS_SIGN_UP 0
 #define RPS_PLAY 1
 #define RPS_QUIT 2
+#define RPS_PLAY_RECEIVED 3
+#define RPS_GET_RESULTS 4
+
+#define PLAYER_QUIT 2
+#define PLAYER_1_WIN 3
+#define PLAYER_2_WIN 4
+#define PLAYER_TIE 5
 
 #define RPS_ROCK 1
 #define RPS_PAPER 2

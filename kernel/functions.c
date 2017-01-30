@@ -10,6 +10,8 @@
 void ns_test(void);
 void rps_client1(void);
 void rps_client2(void);
+void rps_client3(void);
+void rps_client4(void);
 
 void dummy_sender(void) {
   char * str = "this is a lot of work";
@@ -48,6 +50,8 @@ void firsttask(void) {
   tid = Create(P_HIGH, rps_server);
   tid = Create(P_LOW, rps_client1);
   tid = Create(P_LOW, rps_client2);
+  tid = Create(P_LOW, rps_client3);
+  tid = Create(P_LOW, rps_client4);
 
   Exit();
 }
@@ -85,18 +89,35 @@ void ns_test(void) {
 
 void rps_client1(void){
   rps_sign_up();
-
-  bwprintf(COM2, "after client1 sign up --------\n\r");
-  
-  rps_quit();
-  //rps_play(2);
+  int i = rps_play(1);
+  bwprintf(COM2, "client1 result: %d\n\r", i);
 
   Exit();
 }
 
 void rps_client2(void){
   rps_sign_up();
-  bwprintf(COM2, "--------after client2 sign up \n\r");
-  rps_play(2);
+  int i = rps_play(2);
+  bwprintf(COM2, "client2 result: %d\n\r", i);
+  rps_sign_up();
+  i = rps_play(1);
+  bwprintf(COM2, "client2 result: %d\n\r", i);
+  Exit();
+}
+
+void rps_client3(void){
+  rps_sign_up();
+  int i = rps_play(3);
+  bwprintf(COM2, "client3 result: %d\n\r", i);
+  Exit();
+}
+
+void rps_client4(void){
+  rps_sign_up();
+  int i = rps_play(1);
+  bwprintf(COM2, "client4 result: %d\n\r", i);
+  rps_sign_up();
+  i = rps_play(3);
+  bwprintf(COM2, "client4 result: %d\n\r", i);
   Exit();
 }
