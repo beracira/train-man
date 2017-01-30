@@ -109,6 +109,8 @@ int handle(int num) {
 }
 
 int main( int argc, char* argv[] ) {
+  (void) argc;
+  (void) argv;
 
   initialize();
   volatile struct task_descriptor * td = (struct task_descriptor *) TASK_DESCRIPTOR_START;

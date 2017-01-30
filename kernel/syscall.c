@@ -6,6 +6,9 @@
 #include "../io/include/ts7200.h"
 
 int syscall(int code, int arg1, int arg2) {
+  (void) code;
+  (void) arg1;
+  (void) arg2;
   asm("mov	ip, sp;");
 	asm("stmfd	sp!, {r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, fp, ip};"); // save usr state
 	asm("swi 0;");

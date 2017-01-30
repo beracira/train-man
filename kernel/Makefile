@@ -6,7 +6,7 @@ XCC = /u/wbcowan/gnuarm-4.0.2/arm-elf/bin/gcc
 AS	= /u/wbcowan/gnuarm-4.0.2/arm-elf/bin/as
 LD  = /u/wbcowan/gnuarm-4.0.2/arm-elf/bin/ld
 
-CFLAGS  = -c -fPIC -Wall -O2 -fno-builtin -I. -I../include -mcpu=arm920t -msoft-float
+CFLAGS  = -c -fPIC -Wall -Wextra -fno-builtin -I. -I../include -mcpu=arm920t -msoft-float
 # -g: include hooks for gdb
 # -c: only compile
 # -mcpu=arm920t: generate code for the 920t architecture
