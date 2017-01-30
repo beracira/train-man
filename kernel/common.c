@@ -1,5 +1,20 @@
 #include "common.h"
 
+int timer_init() {
+  *((int *) (TIMER3_BASE + LDR_OFFSET)) = (SEC);
+  *((int *) (TIMER3_CONTROL)) =  0x000000c8;
+  return 0;
+}
+
+void srand() {
+  timer_init();
+}
+
+unsigned int rand() {
+  unsigned int cur = *((int *)(TIME_PTR));
+  return cur;
+}
+
 int strlen( char * str ) {
   int i = 0;
   while (str[i++]);
