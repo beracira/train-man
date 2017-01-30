@@ -64,10 +64,12 @@ int play_game(int p1_tid, int p1_move, int p2_tid, int p2_move) {
   bwprintf(COM2, "\n\r");
 
   if (p1_move == 0) {
+    bwprintf(COM2, "TID %d plays TID %d\n\r", p1_tid, p2_tid);
     bwprintf(COM2, "TID %d has quit.\n\r", p1_tid);
     return PLAYER_QUIT;
   }
   if (p2_move == 0) {
+    bwprintf(COM2, "TID %d plays TID %d\n\r", p1_tid, p2_tid);
     bwprintf(COM2, "TID %d has quit.\n\r", p2_tid);
     return PLAYER_QUIT;
   }
@@ -100,7 +102,6 @@ int play_game(int p1_tid, int p1_move, int p2_tid, int p2_move) {
   }
 
   bwprintf(COM2, "TID %d plays %s and TID %d plays %s\n\r", p1_tid, m1, p2_tid, m2);
-  bwprintf(COM2, "TID %d plays %d and TID %d plays %d\n\r", p1_tid, p1_move, p2_tid, p2_move);
 
   if (p1_move == p2_move) {
     bwprintf(COM2, "Result: Tied \n\r");
@@ -128,14 +129,12 @@ void rps_server(void) {
 
     struct rps_server play_queue[50];
     int players[50];
-    int game_result[100];
 
     int i;
     for (i = 0; i < 50; ++i) {
       play_queue[i].tid = -1;
       play_queue[i].move = -1;
       players[i] = -1;
-      game_result[i] = -1;
     }
 
     int first_play_queue = 0;
@@ -144,9 +143,6 @@ void rps_server(void) {
 
     int first_temp = 0;
     int last_temp = 0;
-
-    int first_game_result = 0;
-    int last_game_result = 0;
 
     while (1 + 1 == 2) {
 
@@ -158,9 +154,12 @@ void rps_server(void) {
 
       switch(req.type) {
         case RPS_SIGN_UP:
+          // if (players[req.tid] == 0) {
+          //   break;
+          // }
           players[req.tid] = 0;
           play_queue[last_play_queue].tid = req.tid;
-          play_queue[last_play_queue].move = req.move;
+          play_queue[last_play_queue].move = (rand() % 3) + 1;
           last_play_queue = (last_play_queue + 1) % 50;
           break;
 
@@ -179,8 +178,6 @@ void rps_server(void) {
                   play_queue[first_temp].move = req.move;
                   num_play_queue++;
                   result.type = RPS_PLAY_RECEIVED;
-                  result.move = last_game_result;
-                  last_game_result++;
                   break;
                 }
                 first_temp = (first_temp + 1) % 50;
@@ -213,34 +210,34 @@ void rps_server(void) {
           break;
         
         case RPS_GET_RESULTS:
-
-          if (players[result.tid] == 0) {
-            result.type = RPS_PLAY_RECEIVED;
-          }
-          else {
             result.move = players[req.tid];
             players[result.tid] = -1;
-          }
           break;
 
         default:
           break;
       }
 
-      Reply(sender_tid, &result, sizeof(struct ns_request));
+      Reply(req.tid, &result, sizeof(struct ns_request));
 
       if (num_play_queue >= 2) {
 
-        bwprintf(COM2, "first_play_queue: %d \n\r", first_play_queue);
-        bwprintf(COM2, "first_play_queue next: %d \n\r", (first_play_queue+1)%50);
         int p1_tid = play_queue[first_play_queue].tid;
         int p1_move = play_queue[first_play_queue].move;
         int p2_tid = play_queue[(first_play_queue+1)%50].tid;
         int p2_move = play_queue[(first_play_queue+1)%50].move;
 
-        bwprintf(COM2, "first_play_queue2: %d \n\r", first_play_queue);
-        bwprintf(COM2, "first_play_queue next2: %d \n\r", (first_play_queue+1)%50);
+        if (p1_tid == p2_tid) {
+          num_play_queue -= 2;
 
+          play_queue[first_play_queue].tid = -1;
+          play_queue[first_play_queue].move = -1;
+          play_queue[(first_play_queue+1)%50].tid = -1;
+          play_queue[(first_play_queue+1)%50].move = -1;
+
+          first_play_queue = (first_play_queue + 2) % 50;
+          continue;
+        }
 
         int p1_result = play_game(p1_tid, p1_move, p2_tid, p2_move);
 
@@ -275,7 +272,7 @@ void rps_server(void) {
         // players[p2_tid] = 0;
 
         bwprintf(COM2, "\r\nPress any key to continue. \r\n");
-       // bwgetc(COM2);
+        bwgetc(COM2);
 
       }
     }
