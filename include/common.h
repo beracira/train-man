@@ -10,6 +10,8 @@
 #define TIME_PTR 0x80810084
 
 int timer_init();
+void srand();
+unsigned int rand();
 
 int strlen( char * str );
 
