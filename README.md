@@ -1,6 +1,6 @@
 <snippet>
 
-## Kernel 1
+## Kernel 2
 
 Full pathname to executable: /u/cs452/tftp/ARM/z283chen/kernel.elf 
 
