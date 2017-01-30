@@ -8,6 +8,7 @@
 #include "../io/include/ts7200.h"
 
 void ns_test(void);
+void rps_client(void);
 void rps_client1(void);
 void rps_client2(void);
 void rps_client3(void);
@@ -40,7 +41,7 @@ void dummy_receiver_with_timer(void) {
 void firsttask(void) {
 
   //bwprintf( COM2, "First user task created\n\r");
-  
+    srand();
 
   int tid = 0;
 
@@ -48,10 +49,15 @@ void firsttask(void) {
   tid = Create(P_MEDIUM, nameserver);
   //bwprintf( COM2, "after nameserver create\n\r");
   tid = Create(P_HIGH, rps_server);
-  tid = Create(P_LOW, rps_client1);
-  tid = Create(P_LOW, rps_client2);
-  tid = Create(P_LOW, rps_client3);
-  tid = Create(P_LOW, rps_client4);
+
+  int i;
+  for (i = 0; i < 4; i++) {
+    Create(P_LOW, rps_client);
+  }
+  // tid = Create(P_LOW, rps_client1);
+  // tid = Create(P_LOW, rps_client2);
+  // tid = Create(P_LOW, rps_client3);
+  // tid = Create(P_LOW, rps_client4);
 
   Exit();
 }
@@ -87,7 +93,25 @@ void ns_test(void) {
   Exit();
 }
 
+void rps_client(void) {
+  int i = -1; 
+  int move = 0;
+
+  while (1) {
+    move = (rand() % 3) + 1;
+    bwprintf(COM2, "move: %d \n\r", move);
+    rps_sign_up();
+    i = rps_play(move);
+    if (i == PLAYER_LOSE) {
+      break;
+    }
+  }
+  Exit();
+}
+
 void rps_client1(void){
+  srand();
+  int move = (rand() % 3) + 1;
   rps_sign_up();
   int i = rps_play(1);
   bwprintf(COM2, "client1 result: %d\n\r", i);
