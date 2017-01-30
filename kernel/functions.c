@@ -38,6 +38,8 @@ void dummy_receiver_with_timer(void) {
   Exit();
 }
 
+int numtasks = 8;
+
 void firsttask(void) {
 
   //bwprintf( COM2, "First user task created\n\r");
@@ -50,11 +52,13 @@ void firsttask(void) {
   //bwprintf( COM2, "after nameserver create\n\r");
   tid = Create(P_HIGH, rps_server);
 
+
+  tid = Create(P_LOW, rps_client2);
   int i;
-  for (i = 0; i < 4; i++) {
+  for (i = 0; i < numtasks; i++) {
     Create(P_LOW, rps_client);
   }
-  // tid = Create(P_LOW, rps_client1);
+ // tid = Create(P_LOW, rps_client1);
   // tid = Create(P_LOW, rps_client2);
   // tid = Create(P_LOW, rps_client3);
   // tid = Create(P_LOW, rps_client4);
@@ -98,11 +102,17 @@ void rps_client(void) {
   int move = 0;
 
   while (1) {
+    if (numtasks == 1) {
+      break;    
+    }
     move = (rand() % 3) + 1;
-    bwprintf(COM2, "move: %d \n\r", move);
     rps_sign_up();
+
     i = rps_play(move);
+
+   // bwprintf(COM2, "client i: %d \n\r", i);
     if (i == PLAYER_LOSE) {
+      numtasks--;
       break;
     }
   }
@@ -110,10 +120,18 @@ void rps_client(void) {
 }
 
 void rps_client1(void){
-  srand();
-  int move = (rand() % 3) + 1;
   rps_sign_up();
   int i = rps_play(1);
+  bwprintf(COM2, "client1 result: %d\n\r", i);
+
+  rps_sign_up();
+  i = rps_play(1);
+  bwprintf(COM2, "client1 result: %d\n\r", i);
+  rps_sign_up();
+  i = rps_play(1);
+  bwprintf(COM2, "client1 result: %d\n\r", i);
+  rps_sign_up();
+  i = rps_play(1);
   bwprintf(COM2, "client1 result: %d\n\r", i);
 
   Exit();
@@ -121,11 +139,7 @@ void rps_client1(void){
 
 void rps_client2(void){
   rps_sign_up();
-  int i = rps_play(2);
-  bwprintf(COM2, "client2 result: %d\n\r", i);
-  rps_sign_up();
-  i = rps_play(1);
-  bwprintf(COM2, "client2 result: %d\n\r", i);
+  rps_quit();
   Exit();
 }
 

@@ -6,6 +6,7 @@
 #define RPS_QUIT 2
 #define RPS_PLAY_RECEIVED 3
 #define RPS_GET_RESULTS 4
+#define RPS_ERROR = 5
 
 #define PLAYER_QUIT 2
 #define PLAYER_WIN 3
