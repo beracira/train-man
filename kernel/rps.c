@@ -54,6 +54,61 @@ int rps_quit(void) {
   return 0;
 }
 
+void play_game(int p1_tid, int p1_move, int p2_tid, int p2_move) {
+
+  if (p1_move == 0) {
+    bwprintf(COM2, "TID %d has quit.\n\r", p1_tid);
+    return;
+  }
+  if (p2_move == 0) {
+    bwprintf(COM2, "TID %d has quit.\n\r", p2_tid);
+    return;
+  }
+
+  char * m1;
+  char * m2;
+  
+  switch (p1_move){
+    case RPS_ROCK:
+      m1 = "Rock";
+      break;
+    case RPS_PAPER:
+      m1 = "Paper";
+      break;
+    case RPS_SCISSORS:
+      m1 = "Scissors";
+      break;
+  }
+
+  switch (p2_move){
+    case RPS_ROCK:
+      m2 = "Rock";
+      break;
+    case RPS_PAPER:
+      m2 = "Paper";
+      break;
+    case RPS_SCISSORS:
+      m2 = "Scissors";
+      break;
+  }
+
+  bwprintf(COM2, "TID %d plays %s and TID %d plays %s\n\r", p1_tid, m1, p2_tid, m2);
+
+  if (p1_move == p2_move) {
+    bwprintf(COM2, "Result: Tied \n\r");
+  }
+
+  else if ( (p1_move == RPS_ROCK && p2_move == RPS_SCISSORS) ||
+            (p1_move == RPS_PAPER && p2_move == RPS_ROCK) ||
+            (p1_move == RPS_SCISSORS && p2_move == RPS_PAPER) ) {
+    bwprintf(COM2, "Result: TID %d wins!\n\r", p1_tid);
+  }
+
+  else {
+    bwprintf(COM2, "Result: TID %d wins!\n\r", p2_tid);
+  }
+}
+
 void rps_server(void) {
     RegisterAs("RPS");
     bwprintf(COM2, "in rps\n\r");
@@ -87,48 +142,14 @@ void rps_server(void) {
         int p2_tid = play_queue[(first_play_queue+1)%50].tid;
         int p2_move = play_queue[(first_play_queue+1)%50].move;
 
-        char * m1;
-        char * m2;
-        
-        switch (p1_move){
-          case RPS_ROCK:
-            m1 = "Rock";
-            break;
-          case RPS_PAPER:
-            m1 = "Paper";
-            break;
-          case RPS_SCISSORS:
-            m1 = "Scissors";
-            break;
-        }
+        play_game(p1_tid, p1_move, p2_tid, p2_move);
 
-        switch (p2_move){
-          case RPS_ROCK:
-            m2 = "Rock";
-            break;
-          case RPS_PAPER:
-            m2 = "Paper";
-            break;
-          case RPS_SCISSORS:
-            m2 = "Scissors";
-            break;
-        }
+        num_play_queue -= 2;
 
-        bwprintf(COM2, "TID %d plays %s and TID %d plays %s\n\r", p1_tid, m1, p2_tid, m2);
-
-        if (p1_move == p2_move) {
-          bwprintf(COM2, "Result: Tied \n\r");
-        }
-
-        else if ( (p1_move == RPS_ROCK && p2_move == RPS_SCISSORS) ||
-                  (p1_move == RPS_PAPER && p2_move == RPS_ROCK) ||
-                  (p1_move == RPS_SCISSORS && p2_move == RPS_PAPER) ) {
-          bwprintf(COM2, "Result: TID %d wins!\n\r", p1_tid);
-        }
-
-        else {
-          bwprintf(COM2, "Result: TID %d wins!\n\r", p2_tid);
-        }
+        play_queue[last_play_queue].tid = play_queue[first_play_queue].tid;
+        play_queue[last_play_queue].move = play_queue[first_play_queue].move;
+        play_queue[(last_play_queue+1)%50].tid = play_queue[(first_play_queue+1)%50].tid;
+        play_queue[(last_play_queue+1)%50].move = play_queue[(first_play_queue+1)%50].move;
 
         play_queue[first_play_queue].tid = -1;
         play_queue[first_play_queue].move = -1;
@@ -142,77 +163,60 @@ void rps_server(void) {
       }
 
       Receive( &sender_tid, &req, sizeof(struct rps_request));
-      bwprintf(COM2, "after rps receive\n\r");
 
       switch(req.type) {
         case RPS_SIGN_UP:
-          bwprintf(COM2, "rps sign up1\n\r");
           players[req.tid] = 0;
-          bwprintf(COM2, "rps sign up2\n\r");
+          play_queue[last_play_queue].tid = req.tid;
+          play_queue[last_play_queue].move = req.move;
+          last_play_queue = (last_play_queue + 1) % 50;
           break;
 
         case RPS_PLAY:
 
           switch(players[req.tid]) {
+
             case -1: // not signed up
               break;
             
             case 0: // hasn't played yet
-              play_queue[last_play_queue].tid = req.tid;
-              play_queue[last_play_queue].move = req.move;
-              players[req.tid] = 1;
-              last_play_queue = (last_play_queue + 1) % 50;
-              num_play_queue++;
-              break;
-            
-            case 1: // already played
               first_temp = first_play_queue;
               last_temp = last_play_queue;
               while (first_temp != last_temp) {
                 if (play_queue[first_temp].tid == req.tid) {
                   play_queue[first_temp].move = req.move;
+                  num_play_queue++;
                   break;
                 }
                 first_temp = (first_temp + 1) % 50;
               }
               break;
-            default:
+
+            default: // already played
               break;
           }
           
           break; // player hasn't signed up
 
         case RPS_QUIT:
-          switch(players[req.tid]) {
-            case -1: // not signed up
-              break;
-
-            case 0: // hasn't played yet
-              players[req.tid] = -1;
-              break;
-            
-            case 1: // already played
-              first_temp = first_play_queue;
-              last_temp = last_play_queue;
-              while (first_temp != last_temp) {
-                if (play_queue[first_temp].tid == req.tid) {
-                  while (first_temp != last_temp) {
-                    play_queue[i].tid = play_queue[i+1].tid;
-                    play_queue[i].move = play_queue[i+1].move;
-                    first_temp = (first_temp + 1) % 50;
-                  }
-                  break;
-                }
-                first_temp = (first_temp + 1) % 50;
-              }
-              last_play_queue = (last_play_queue - 1) % 50;
-              players[req.tid] = -1;
-              break;
-            
-            default:
-              players[req.tid] = -1;
-              break;
+          if (players[req.tid] == -1) {
+            break;
           }
+          else {
+            first_temp = first_play_queue;
+            last_temp = last_play_queue;
+            while (first_temp != last_temp) {
+              if (play_queue[first_temp].tid == req.tid) {
+                play_queue[first_temp].move = 0;
+                num_play_queue++;
+                break;
+              }
+              first_temp = (first_temp + 1) % 50;
+            }
+          }
+
+          break;
+        
         default:
           break;
       }

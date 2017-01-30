@@ -87,7 +87,9 @@ void rps_client1(void){
   rps_sign_up();
 
   bwprintf(COM2, "after client1 sign up --------\n\r");
-  rps_play(2);
+  
+  rps_quit();
+  //rps_play(2);
 
   Exit();
 }
