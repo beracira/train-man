@@ -81,6 +81,7 @@ int kernel_Pass(void){
 int kernel_Exit(void){
   volatile struct kernel_stack * ks = (struct kernel_stack *) KERNEL_STACK_START;
   volatile struct task_descriptor * td = (struct task_descriptor *) TASK_DESCRIPTOR_START;
+  (void) td;
   int tid = ks->tid;
   int priority = ks->priority;
 
@@ -164,7 +165,7 @@ int kernel_Receive( int *tid, void *msg, int msglen ) {
 
   int first = td[my_tid].sendq_first;
 
-  int retval;
+  int retval = -2;
 
   if (first != td[my_tid].sendq_last) { // not empty
     int i;
@@ -195,6 +196,7 @@ int kernel_Receive( int *tid, void *msg, int msglen ) {
 
   else { 
     // not very possible 
+    retval = -2;
   }
 
   reschedule(ks->tid, ks->priority);
@@ -221,8 +223,8 @@ int kernel_Reply( int tid, void *reply, int replylen ) {
   int retval = 0; // TODO: error checking
   int my_tid = ks->tid;
 
-  int first = td[my_tid].sendq_first;
-  struct Sender * sender = &(td[my_tid].sendq[first]);
+  int first = (int)td[my_tid].sendq_first;
+  struct Sender * sender = (struct Sender *) &(td[my_tid].sendq[first]);
 
   char * origin = (char *) reply;
   char * dest = (char *) sender->reply;

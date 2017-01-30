@@ -111,14 +111,16 @@ int handle(int num) {
 int main( int argc, char* argv[] ) {
 
   initialize();
+  volatile struct task_descriptor * td = (struct task_descriptor *) TASK_DESCRIPTOR_START;
+  volatile struct kernel_stack * ks = (struct kernel_stack *) KERNEL_STACK_START;
+  (void) td;
+  (void) ks;
 
   while(1 + 1 == 2) {
     int active = schedule();
     //  bwprintf( COM2, "%d\n\r", active);
     if (active == -1) return 0;
     set_active(active);
-    volatile struct task_descriptor * td = (struct task_descriptor *) TASK_DESCRIPTOR_START;
-    volatile struct kernel_stack * ks = (struct kernel_stack *) KERNEL_STACK_START;
     // bwprintf( COM2, "%x %x %x\n\r", td[active].sp, &dummy_sender, ks->usr_sp);
     
     int request = activate(); //active);
