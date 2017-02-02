@@ -1,6 +1,5 @@
 #include "user_syscall.h"
 #include "td.h"
-#include "priorityqueue.h"
 #include "../io/include/bwio.h"
 
 int Create(int priority, void (*code) ( ) ) {

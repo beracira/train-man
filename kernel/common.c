@@ -23,7 +23,7 @@ int strlen( char * str ) {
 
 void strcpy( char * origin, char * dest) {
   int i = 0;
-  while (dest[i] = origin[i++]);
+  while ( (dest[i] = origin[i++]) );
   return; 
 }
 

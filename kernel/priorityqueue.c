@@ -70,7 +70,6 @@ int remove_active_task_from_queue(int tid, int p) {
 int schedule(void) {
   volatile struct task_descriptor * td = (struct task_descriptor *) TASK_DESCRIPTOR_START;
   int j;
-  int i;
 
   for (j = 0; j < NUM_QUEUES; j++) {
     int first = q[j].first;

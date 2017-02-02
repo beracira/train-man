@@ -50,10 +50,10 @@ int WhoIs( char *name ) {
 
 void nameserver(void) {
  // bwprintf(COM2, "My tid is: %d. My parent's tid is: %d.\n\r", MyTid(), MyParentTid());
-  volatile struct nameserver * ns = (struct namerserver *) NAME_SERVER_START;
+  volatile struct nameserver * ns = (struct nameserver *) NAME_SERVER_START;
 
   int i;
-  int j;
+
   for (i = 0; i < MAX_NS_SIZE; ++i) {
     ns[i].tid = -1;
     ns[i].name[0] = 0;

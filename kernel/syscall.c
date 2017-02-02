@@ -14,12 +14,6 @@ int syscall(int code, int arg1, int arg2) {
   return 0;
 }
 
-// Create allocates and initializes a task descriptor, using the given priority, and the given
-// function pointer as a pointer to the entry point of executable code, essentially a function
-// with no arguments and no return value. 
-// When Create returns the task descriptor has all the state needed to run the task, the 
-// task’s stack has been suitably initialized, and the task has been entered into its ready 
-// queue so that it will run the next time it is scheduled.
 // Returns:
 // tid
 // -1 if the priority is invalid.
@@ -80,7 +74,6 @@ int kernel_Pass(void){
 // task, primarily its memory and task descriptor are not reclaimed.
 int kernel_Exit(void){
   volatile struct kernel_stack * ks = (struct kernel_stack *) KERNEL_STACK_START;
-  volatile struct task_descriptor * td = (struct task_descriptor *) TASK_DESCRIPTOR_START;
   int tid = ks->tid;
   int priority = ks->priority;
 
