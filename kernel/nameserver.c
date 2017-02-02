@@ -75,13 +75,13 @@ void nameserver(void) {
       for (i = 0; i < MAX_NS_SIZE; ++i) {
         // if (strcmp(ns[i].name, ))
         
-        if (strcmp(ns[i].name, req.name)) {  // register previous used name
+        if (strcmp((char *) ns[i].name, (char *) req.name)) {  // register previous used name
           ns[i].tid = req.tid;
           result.tid = req.tid;
           break;
         }
         if (ns[i].tid == -1) {  // never been used
-          strcpy(req.name, ns[i].name);
+          strcpy(req.name, (char *)ns[i].name);
           ns[i].tid = req.tid;
           result.tid = req.tid;
           break;
@@ -93,7 +93,7 @@ void nameserver(void) {
     if (req.type == NS_TYPE_WHOIS) {
       //bwprintf(COM2, "ns: whois \n\r");
       for (i = 0; i < MAX_NS_SIZE; ++i) {
-        if (strcmp(req.name, ns[i].name)) {
+        if (strcmp(req.name, (char *)ns[i].name)) {
           result.tid = ns[i].tid;
           whois_exists = 1;
           break;

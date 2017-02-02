@@ -159,4 +159,3 @@ void rps_client4(void){
   bwprintf(COM2, "client4 result: %d\n\r", i);
   Exit();
 }
-

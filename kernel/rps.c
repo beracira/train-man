@@ -74,8 +74,8 @@ int play_game(int p1_tid, int p1_move, int p2_tid, int p2_move) {
     return PLAYER_QUIT;
   }
 
-  char * m1;
-  char * m2;
+  char * m1 = 0;
+  char * m2 = 0;
   
   switch (p1_move){
     case RPS_ROCK:

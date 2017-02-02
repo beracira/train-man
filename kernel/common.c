@@ -15,19 +15,19 @@ unsigned int rand() {
   return cur;
 }
 
-int strlen( char * str ) {
+int strlen( const char * const str) {
   int i = 0;
   while (str[i++]);
   return i;
 }
 
-void strcpy( char * origin, char * dest) {
+void strcpy( char * const origin, char * const dest) {
   int i = 0;
   while ( (dest[i] = origin[i++]) );
   return; 
 }
 
-int strcmp( char * str1, char * str2) {
+int strcmp( const char * const str1, const char * const str2) {
   int i = 0;
   int len_1 = strlen(str1);
   int len_2 = strlen(str2);

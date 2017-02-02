@@ -13,10 +13,10 @@ int timer_init();
 void srand();
 unsigned int rand();
 
-int strlen( char * str );
+int strlen( const char * const str);
 
-void strcpy( char * origin, char * dest);
+void strcpy( char * const origin, char * const dest);
 
-int strcmp( char * str1, char * str2);
+int strcmp( const char * const str1, const char * const str2);
 
 #endif /* COMMON_H */
