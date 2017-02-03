@@ -26,6 +26,8 @@ void initialize(void) {
 
   int first_tid = td_add(firsttask, P_HIGH, 0);
   set_active(first_tid);
+  volatile struct kernel_stack * ks = (struct kernel_stack *) KERNEL_STACK_START;
+  ks->num_tasks = 1;
 
   init_queue();
   

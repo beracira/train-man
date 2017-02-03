@@ -12,7 +12,10 @@
 
 void idle_task(void) {
   volatile int i;
-  while (1 + 1 == 2) i++;
+  volatile struct kernel_stack * ks = (struct kernel_stack *) KERNEL_STACK_START;
+  volatile int * temp = &(ks->num_tasks);
+  while (*temp != 3); 
+  Exit();
 }
 
 void dummy_sender(void) {
@@ -56,6 +59,8 @@ void firsttask(void) {
 
 
   bwprintf(COM2, "after timer_init\n\r");
+  volatile struct kernel_stack * ks = (struct kernel_stack *) KERNEL_STACK_START;
+  bwprintf(COM2, "%d\n\r", ks->num_tasks);
   Exit();
 }
 

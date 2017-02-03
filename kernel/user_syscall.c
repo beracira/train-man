@@ -5,6 +5,7 @@
 
 int Create(int priority, void (*code) ( ) ) {
   volatile struct kernel_stack * ks = (struct kernel_stack *) KERNEL_STACK_START;
+  ks->num_tasks += 1;
   ks->syscall_code = 1;
   ks->args[0] = (int) priority;
   ks->args[1] = (int) code;
@@ -50,6 +51,7 @@ void Pass(void) {
 
 void Exit(void) {
   volatile struct kernel_stack * ks = (struct kernel_stack *) KERNEL_STACK_START;
+  ks->num_tasks -= 1;
   ks->syscall_code = 5;
   
   asm("mov  ip, sp;");

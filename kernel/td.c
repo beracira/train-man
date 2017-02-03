@@ -38,7 +38,6 @@ int set_active(int tid) {
   ks->tid = td[tid].tid;
   ks->parent_tid = td[tid].parent_tid;
   ks->priority = td[tid].priority;
-  ks->num_tasks = 1;
   ks->started = td[tid].started;
   ks->lr_svc = td[tid].lr_svc;
   ks->irq = td[tid].irq;
