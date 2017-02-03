@@ -13,7 +13,6 @@
 void idle_task(void) {
   volatile int i;
   while (1 + 1 == 2) i++;
-
 }
 
 void dummy_sender(void) {
@@ -57,7 +56,6 @@ void firsttask(void) {
 
 
   bwprintf(COM2, "after timer_init\n\r");
-
   Exit();
 }
 
@@ -80,6 +78,12 @@ void the_other_task(void){
   bwprintf(COM2, "Time is: %d \n\r", Time());
 
   DelayUntil(1000);
+  bwprintf(COM2, "Time is: %d \n\r", Time());
+  Delay(100);
+  bwprintf(COM2, "Time is: %d \n\r", Time());
+  Delay(200);
+  bwprintf(COM2, "Time is: %d \n\r", Time());
+  Delay(300);
   bwprintf(COM2, "Time is: %d \n\r", Time());
 
   Exit();

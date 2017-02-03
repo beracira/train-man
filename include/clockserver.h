@@ -29,6 +29,8 @@ unsigned int Time(void);
 
 int DelayUntil(unsigned int ticks);
 
+int Delay(unsigned int ticks);
+
 void remove_delay_list();
 
 void clockserver(void);

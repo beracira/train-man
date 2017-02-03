@@ -144,6 +144,32 @@ int kernel_Send( int tid, void *msg, int msglen, void *reply, int rplen) {
   return 0;
 }
 
+int kernel_kernel_Send( int tid, void *msg, int msglen, void *reply, int rplen) {
+
+  volatile struct task_descriptor * td = (struct task_descriptor *) TASK_DESCRIPTOR_START;
+  volatile struct kernel_stack * ks = (struct kernel_stack *) KERNEL_STACK_START;
+
+  // TODO: check if td exists
+
+  int s_tid = 0;
+
+  if (td[tid].state == SEND_BLOCKED) {
+    td[tid].state = READY; 
+  }
+
+  int tail = td[tid].sendq_last;
+  td[tid].sendq[tail].sender_tid = s_tid;
+  td[tid].sendq[tail].msg = msg;
+  td[tid].sendq[tail].msglen = msglen;
+  td[tid].sendq[tail].reply = reply;
+  td[tid].sendq[tail].rplen = rplen;
+  td[tid].sendq_last = (td[tid].sendq_last + 1) % MAX_TASKS; // assume no overflow
+  td[s_tid].state = RECEIVE_BLOCKED;
+
+  return 0;
+}
+
+
 /*
 Receive blocks until a message is sent to the caller, then returns with the message in its message buffer and tid set to the task id of the task that sent the message. 
 Messages sent before Receive is called are retained in a send queue, from which they are received in first-come, first-served order.

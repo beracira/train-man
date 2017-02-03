@@ -123,14 +123,10 @@ int handle(int num) {
       //*temp = 1;
 
       irq_bit = (*int_enable >> (51 - 32)) & 1;
-      bwprintf(COM2, "before irq if \n\r");
 
       if (irq_bit) {
-        bwprintf(COM2, "in irq if, before clear timer\n\r");
         irq_clear_timer();
         ++time_ticks;
-
-        bwprintf(COM2, "in irq if, before remove delay\n\r");
         remove_delay_list();
       }
 

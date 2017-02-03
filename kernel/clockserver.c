@@ -31,13 +31,16 @@ int DelayUntil(unsigned int ticks) {
 
   // double check tid
   Send(CLK_TID, &input, sizeof(struct clk_request), &output, sizeof(struct clk_request));
-  int sender_tid = 0;
+  int sender_tid = 0, dummy1 = 1, dummy2 = 2;
 
-  bwprintf(COM2, "Before receive\n\r");
-  Receive( &sender_tid, &output, sizeof(struct clk_request));
- bwprintf(COM2, "after receive\n\r");
+  Receive( &sender_tid, &dummy1, sizeof(int));
+  Reply(sender_tid, &dummy2, sizeof(int));
 
   return output.ticks;
+}
+
+int Delay(unsigned int ticks) {
+  DelayUntil(time_ticks + ticks);
 }
 
 void insert_delay_list(int tid, unsigned int ticks) {
@@ -57,12 +60,10 @@ void insert_delay_list(int tid, unsigned int ticks) {
 }
 
 void remove_delay_list() {
-  bwprintf(COM2, "remove_delay_list: %d\n\r", clk_delay_list_ptr->last);
-  bwprintf(COM2, "time tick %u wake up time %u \n\r", time_ticks, clk_delay_list_ptr->wakeup_time[0]);
   while (clk_delay_list_ptr->last != 0 && clk_delay_list_ptr->wakeup_time[0] < time_ticks) {
-    bwprintf(COM2, "in while \n\r");
     int tid = clk_delay_list_ptr->tid[0];
-    Send(tid, 0, 0, 0, 0);
+    int dummy1 = 1, dummy2 = 2;
+    kernel_kernel_Send(tid, &dummy1, sizeof(int), &dummy2, sizeof(int));
     int i;
     for (i = 0; i < clk_delay_list_ptr->last; ++i) { // last one should be -1
       clk_delay_list_ptr->tid[i] = clk_delay_list_ptr->tid[i + 1];
