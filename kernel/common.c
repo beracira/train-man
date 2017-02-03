@@ -1,10 +1,29 @@
 #include "common.h"
+#include "../io/include/ts7200.h"
 
 int timer_init() {
-  *((int *) (TIMER3_CONTROL)) =  0x00000048;
-  *((int *) (TIMER3_CONTROL + CLR_OFFSET)) = 1;
-  *((int *) (TIMER3_BASE + LDR_OFFSET)) = (SEC);
-  *((int *) (TIMER3_CONTROL)) =  0x000000c8;
+  // *((int *) (TIMER3_CONTROL)) =  0x00000048;
+  // *((int *) (TIMER3_CONTROL + CLR_OFFSET)) = 1;
+  // *((int *) (TIMER3_BASE + LDR_OFFSET)) = (SEC);
+  // *((int *) (TIMER3_CONTROL)) =  0x000000c8;
+
+
+  int * timerLoad = (int *)(TIMER3_BASE + LDR_OFFSET);
+  int * timerValue = (int *)(TIMER3_BASE + VAL_OFFSET);
+  int * timerControl = (int *)(TIMER3_BASE + CRTL_OFFSET);
+
+  // 508000 cycles/s = 50800 cycles/0.1s
+  int cyclesPerTick = 50800;
+
+  // Load the timer
+  // Disable first
+  *timerControl = (*timerControl) ^ ENABLE_MASK;
+  // Load initial value
+  *timerLoad = cyclesPerTick;
+  // Enable timer, periodic mode, 508 kHz clock
+  *timerControl = ENABLE_MASK | MODE_MASK| CLKSEL_MASK ;
+
+
   return 0;
 }
 
@@ -25,7 +44,7 @@ int strlen( const char * const str) {
 
 void strcpy( char * const origin, char * const dest) {
   int i = 0;
-  while ( (dest[i] = origin[i++]) );
+  while ((dest[i] = origin[i++]));
   return; 
 }
 

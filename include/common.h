@@ -1,7 +1,7 @@
 #ifndef COMMON_H
 #define COMMON_H
 
-#define SEC 508
+#define SEC 50800
 #define TIMER3_BASE 0x80810080
 #define TIMER3_CONTROL 0x80810088
 #define LDR_OFFSET  0x00000000  // 16/32 bits, RW

@@ -46,9 +46,18 @@ int activate(void) {
   asm("ldr sp, [r9, #0];");     // load sp
   
   volatile struct kernel_stack * ks = (struct kernel_stack *) KERNEL_STACK_START;
+  // bwprintf( COM2, "ks->irq: %d\n\r", ks->irq);
+  // bwprintf( COM2, "ks->started: %d\n\r", ks->started);
+  // bwprintf( COM2, "ks->lr: %d\n\r", (int)ks->usr_lr);
+  // bwprintf( COM2, "ks->svc_lr: %d\n\r", ks->lr_svc);
+  // bwprintf( COM2, "the_other_task: %d\n\r", the_other_task);
   if (ks->irq == 1) {
     ks->irq = 0;
     asm("ldmfd  sp, {r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, fp, sp, lr};");
+    asm("ldmfd  sp!, {ip}");
+    asm("msr CPSR_c, #0xd3;");    // back to supervisor mode
+    asm("sub lr, lr, #4");
+    asm("msr CPSR_c, #0xdf;");    // switch to system mode
   } else if (ks->started == 1) {
     asm("ldmfd  sp, {r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, fp, sp};");
   } else {
@@ -61,6 +70,7 @@ int activate(void) {
   asm("activate_enter_kernel_irq:");
 
   asm("msr CPSR_c, #0xDF;");    // go into system mode
+  asm("stmfd  sp!, {ip};");
   asm("mov  ip, sp;");
   asm("stmfd  sp!, {r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, fp, ip, lr};"); // save usr state
   // handle should happen examine the irq code, handle it accordingly
@@ -73,7 +83,7 @@ int activate(void) {
   asm("mov lr, r8");          // transfer lr from IRQ to SVC
   asm("msr spsr, r7;");      // transfer spsr from IRQ to SVC
   asm("mov r8, #1;");
-  asm("str r8, [r9, #20];");     // save lr_svc to stack
+  asm("str r8, [r9, #20];");     // set ks->irq = 1
 
   // entering kernel
   asm("activate_enter_kernel:");
@@ -91,7 +101,6 @@ int activate(void) {
   asm("bic r0, r0, #0xff000000;");  // get number
 
   if (ks->irq) ks->syscall_code = 0;
-  bwprintf(COM2, "qwerty\n\r");
   //asm("bl handle;");
   //get r0 into an int
 
@@ -103,7 +112,12 @@ int handle(int num) {
   num = ks->syscall_code;
   // note: can't declare variables in switch statement
 
+  int * temp = 0x800B001c;
   switch(num){
+    case IRQ:
+      *temp = 1;
+      bwprintf(COM2, "IRQ!\n\r");
+      break;
     case CREATE:
       ks->usr_r0 = kernel_Create(ks->args[0], (void *) ks->args[1] );
       break;
@@ -128,11 +142,7 @@ int handle(int num) {
     case RECEIVE:
       ks->usr_r0 = kernel_Receive((int *) ks->args[0], (void *) ks->args[1], (int) ks->args[2]);
       break;
-    default:
-      break;
   }
-  int * temp = 0x800B001c;
-  *temp = 1;
   return 100;
 }
 
@@ -148,21 +158,16 @@ int main( int argc, char* argv[] ) {
 
   while(1 + 1 == 2) {
     int active = schedule();
-    //  bwprintf( COM2, "%d\n\r", active);
+    // bwprintf( COM2, "%d\n\r", active);
     if (active == -1) return 0;
-
-    // volatile struct task_descriptor * td = (struct task_descriptor *) TASK_DESCRIPTOR_START;
-    // volatile struct kernel_stack * ks = (struct kernel_stack *) KERNEL_STACK_START;
-
     set_active(active);
-
-    // bwprintf( COM2, "%x %x %x\n\r", td[active].sp, &dummy_sender, ks->usr_sp);
     
     int request = activate(); //active);
+    // bwprintf( COM2, "activate: %d\n\r", active);
 
     (void) request;
     handle(0);
-    // bwprintf( COM2, "%d %d %d\n\r", td[3].sendq[0].sender_tid, td[3].sendq[0].msglen, td[3].sendq[0].rplen);
+    // bwprintf( COM2, "handle: %d\n\r", active);
     sync_td(active);
   }
 

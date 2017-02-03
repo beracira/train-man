@@ -1,6 +1,7 @@
 #ifndef USER_SYSCALL_H
 #define USER_SYSCALL_H
 
+#define IRQ         0
 #define CREATE      1
 #define MYTID       2
 #define MYPARENTPID 3
