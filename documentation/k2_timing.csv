@@ -1,0 +1,18 @@
+Group,Message,Caches,Send before Reply,Optimization,Time
+
+A group,4 bytes,off,yes,off,83ms
+A group,64 bytes,off,yes,off,147ms
+A group,4 bytes,on,yes,off,5ms
+A group,64 bytes,on,yes,off,10ms
+A group,4 bytes,off,no,off,92ms
+A group,64 bytes,off,no,off,157ms
+A group,4 bytes,on,no,off,6ms
+A group,64 bytes,on,no,off,10ms
+A group,4 bytes,off,yes,on,broken
+A group,64 bytes,off,yes,on,broken
+A group,4 bytes,on,yes,on,broken
+A group,64 bytes,on,yes,on,broken
+A group,4 bytes,off,no,on,broken
+A group,64 bytes,off,no,on,broken
+A group,4 bytes,on,no,on,broken
+A group,64 bytes,on,no,on,broken
