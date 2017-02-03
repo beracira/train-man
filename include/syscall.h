@@ -7,7 +7,7 @@
 #define USER_STACK_START 	    0x01200000
 #define USER_STACK_SIZE       0x00015000
 
-#define MAX_TASKS 16
+#define MAX_TASKS 50
 
 int syscall(int code, int arg1, int arg2);
 

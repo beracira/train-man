@@ -3,10 +3,18 @@
 #include "user_syscall.h"
 #include "priorityqueue.h"
 #include "nameserver.h"
-#include "rps.h"
+#include "clockserver.h"
 #include "common.h"
+
 #include "../io/include/bwio.h"
 #include "../io/include/ts7200.h"
+
+
+void idle_task(void) {
+  volatile int i;
+  while (1 + 1 == 2) i++;
+
+}
 
 void dummy_sender(void) {
   char * str = "this is a lot of work";
@@ -36,47 +44,45 @@ int numtasks = 8;
 
 void firsttask(void) {
 
-  // volatile int * temp = 0x800B0010;
-  // *temp = 1;
-  // temp = 0x800B0018;
-  // *temp = 1;
 
   bwprintf( COM2 ,"first_task: %d\n\r", (int) the_other_task );
   Create(P_HIGH, nameserver);
-  Create(P_LOW, &the_other_task);
-  timer_init();
-  // temp = 0x800B0018;
-  // *temp = 1;
+  Create(P_HIGH, clockserver);
+  Create(P_MEDIUM, &the_other_task);
+  Create(P_LOW, &idle_task);
 
-  // temp = 0x800B0014;
-  // *temp = 1;
-  // volatile struct kernel_stack * ks = (struct kernel_stack *) KERNEL_STACK_START;
+  bwprintf(COM2, "Time is: %d \n\r", Time());
+  DelayUntil(200);
+  bwprintf(COM2, "Time is: %d \n\r", Time());
 
-  bwprintf( COM2 ,"%d\n\r", rand() );
-  volatile int i = 0;
-  while (i < 800000) i++;
-  bwprintf( COM2 ,"%d\n\r", rand() );
-  // bwprintf( COM2 ,"%d\n\r", ks->usr_r0 );
-  // bwprintf( COM2 ,"%d\n\r", ks->usr_spsr );
-  // bwprintf( COM2 ,"%d\n\r", ks->lr_svc );
-  // bwprintf( COM2 ,"%d\n\r", ks->irq );
 
-  // volatile int i = 0;
   bwprintf(COM2, "after timer_init\n\r");
 
   Exit();
 }
 
 void the_other_task(void){
+  bwprintf(COM2, "Time is: %d \n\r", Time());
+
+  DelayUntil(200);
+  bwprintf(COM2, "Time is: %d \n\r", Time());
+
   bwprintf(COM2, "My tid is: %d. My parent's tid is: %d.\n\r", MyTid(), MyParentTid());
   Pass();
   bwprintf(COM2, "My tid is: %d. My parent's tid is: %d.\n\r", MyTid(), MyParentTid());
 
-  // volatile int * temp = 0x800B0010;
-  // *temp = 1;
-  // temp = 0x800B0018;
-  // *temp = 1;
+  bwprintf(COM2, "Time is: %d \n\r", Time());
+
+  DelayUntil(500);
+  bwprintf(COM2, "Time is: %d \n\r", Time());
 
   bwprintf(COM2, "Exiting task (tid %d)\n\r", MyTid());
+  bwprintf(COM2, "Time is: %d \n\r", Time());
+
+  DelayUntil(1000);
+  bwprintf(COM2, "Time is: %d \n\r", Time());
+
   Exit();
 }
+
+

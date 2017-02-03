@@ -7,6 +7,7 @@
 #include "td.h"
 #include "user_syscall.h"
 #include "irq.h"
+#include "clockserver.h"
 
 int activate(void);
 
@@ -114,20 +115,23 @@ int handle(int num) {
 
   // NOTE: can't declare variables in switch statement; do it up here
 
-  int * int_enable = (int *) (VIC2_BASE + VICxIntEnable);
+  int * int_enable = (int *) (VIC2_BASE + VICxIRQStatus);
   int irq_bit = 0;
-  int * temp = (int *) 0x800B001c;
+  //int * temp = (int *) 0x800B001c;
   switch(num){
     case IRQ:
-      *temp = 1;
-      bwprintf(COM2, "IRQ!\n\r");
+      //*temp = 1;
 
       irq_bit = (*int_enable >> (51 - 32)) & 1;
+      bwprintf(COM2, "before irq if \n\r");
 
       if (irq_bit) {
+        bwprintf(COM2, "in irq if, before clear timer\n\r");
         irq_clear_timer();
-        // irq_disable_timer();
-        // irq_enable_timer();
+        ++time_ticks;
+
+        bwprintf(COM2, "in irq if, before remove delay\n\r");
+        remove_delay_list();
       }
 
       break;
@@ -171,7 +175,7 @@ int main( int argc, char* argv[] ) {
 
   while(1 + 1 == 2) {
     int active = schedule();
-    // bwprintf( COM2, "%d\n\r", active);
+    //bwprintf( COM2, "%d\n\r", active);
     if (active == -1) return 0;
     set_active(active);
     
