@@ -11,7 +11,7 @@ int timer_init() {
   // pg 166 in ep93xx user guide
   // TC3UI = 51
   // VIC 0 to 31 in VIC1 , 32 and late rin VIC2
-irq_enable_timer();
+  irq_enable_timer();
 
   int * timerLoad = (int *)(TIMER3_BASE + LDR_OFFSET);
 //  int * timerValue = (int *)(TIMER3_BASE + VAL_OFFSET);

@@ -111,14 +111,25 @@ int activate(void) {
 int handle(int num) {
   volatile struct kernel_stack * ks = (struct kernel_stack *) KERNEL_STACK_START;
   num = ks->syscall_code;
-  // note: can't declare variables in switch statement
 
+  // NOTE: can't declare variables in switch statement; do it up here
+
+  int * int_enable = (int *) (VIC2_BASE + VICxIntEnable);
+  int irq_bit = 0;
   int * temp = (int *) 0x800B001c;
   switch(num){
     case IRQ:
       *temp = 1;
       bwprintf(COM2, "IRQ!\n\r");
-      irq_disable_timer();
+
+      irq_bit = (*int_enable >> (51 - 32)) & 1;
+
+      if (irq_bit) {
+        irq_clear_timer();
+        // irq_disable_timer();
+        // irq_enable_timer();
+      }
+
       break;
     case CREATE:
       ks->usr_r0 = kernel_Create(ks->args[0], (void *) ks->args[1] );

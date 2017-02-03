@@ -2,11 +2,19 @@
 #include "../io/include/ts7200.h"
 
 void irq_enable_timer(void) {
-  int * enable_timer = (int *) (VIC2_BASE + VICxIntEnable);
-  *enable_timer = *enable_timer  | (1 << (51 - 32));
+  int * int_enable = (int *) (VIC2_BASE + VICxIntEnable);
+  *int_enable = *int_enable | (1 << (51 - 32));
+}
+
+void irq_clear_timer(void) {
+  int * clear = (int *) (TIMER3_BASE + CLR_OFFSET);
+  *clear = 1;
 }
 
 void irq_disable_timer(void) {
-  int * clear = (int *) (TIMER3_BASE + CLR_OFFSET);
-  *clear = 1;
+  // int * int_enable = (int *) (VIC2_BASE + VICxIntEnable);
+  // *int_enable = *int_enable  & ~(1 << (51 - 32));
+
+  int * int_en_clean = (int *) (VIC2_BASE + VICxIntEnClear);
+  *int_en_clean = *int_en_clean | (1 << (51 - 32));
 }
