@@ -1,6 +1,8 @@
 #include "common.h"
 
 int timer_init() {
+  *((int *) (TIMER3_CONTROL)) =  0x00000048;
+  *((int *) (TIMER3_CONTROL + CLR_OFFSET)) = 1;
   *((int *) (TIMER3_BASE + LDR_OFFSET)) = (SEC);
   *((int *) (TIMER3_CONTROL)) =  0x000000c8;
   return 0;

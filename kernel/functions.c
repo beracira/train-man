@@ -43,25 +43,34 @@ int numtasks = 8;
 void firsttask(void) {
 
   //bwprintf( COM2, "First user task created\n\r");
-    srand();
+  // int tid = 0;
 
-  int tid = 0;
+  // bwprintf(COM2, "before before create\n\r");
+  // //bwprintf( COM2, "before nameserver create\n\r\n\r");
+  // tid = Create(P_MEDIUM, nameserver);
+  // //bwprintf( COM2, "after nameserver create\n\r\n\r");
 
-  //bwprintf( COM2, "before nameserver create\n\r");
-  tid = Create(P_MEDIUM, nameserver);
-  //bwprintf( COM2, "after nameserver create\n\r");
-  tid = Create(P_HIGH, rps_server);
+  // bwprintf(COM2, "before timer_init\n\r");
+
+  volatile int * temp = 0x800B0010;
+  *temp = 1;
+  temp = 0x800B0018;
+  *temp = 1;
+
+  // timer_init();
+
+  bwprintf( COM2 ,"%d\n\r", rand() );
+  bwprintf( COM2 ,"%d\n\r", rand() );
+  bwprintf( COM2 ,"%d\n\r", rand() );
+
+  // bwprintf(COM2, "before timer_init\n\r");
+  // timer_init();
 
 
-  tid = Create(P_LOW, rps_client2);
-  int i;
-  for (i = 0; i < numtasks; i++) {
-    Create(P_LOW, rps_client);
-  }
- // tid = Create(P_LOW, rps_client1);
-  // tid = Create(P_LOW, rps_client2);
-  // tid = Create(P_LOW, rps_client3);
-  // tid = Create(P_LOW, rps_client4);
+  // volatile int i = 0;
+  // while (i < 2000000) i++;
+  bwprintf(COM2, "after timer_init\n\r");
+  bwprintf( COM2 ,"%d\n\r", rand() );
 
   Exit();
 }

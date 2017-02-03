@@ -20,6 +20,7 @@ int td_add(void * task, int priority, int parent_tid) {
   td[td_counter].spsr = 0xd0;
   td[td_counter].started = 0;
   td[td_counter].lr_svc = (int) task;
+  td[td_counter].irq = 0;
 
   td[td_counter].sendq_first = 0;
   td[td_counter].sendq_last = 0;
@@ -40,6 +41,7 @@ int set_active(int tid) {
   ks->num_tasks = 1;
   ks->started = td[tid].started;
   ks->lr_svc = td[tid].lr_svc;
+  ks->irq = td[tid].irq;
   return 0;
 }
 
@@ -52,5 +54,6 @@ int sync_td(int tid) {
   td[tid].spsr = ks->usr_spsr;
   td[tid].started = ks->started;
   td[tid].lr_svc = ks->lr_svc;
+  td[tid].irq = ks->irq;
   return 0;
 }

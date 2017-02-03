@@ -30,6 +30,7 @@ struct task_descriptor {
   int spsr;
   int started;
   int lr_svc;
+  int irq;
   struct Sender sendq[MAX_TASKS];
   int sendq_first;
   int sendq_last; // update ks?
@@ -43,6 +44,7 @@ struct kernel_stack {
   int usr_r0;
   int usr_spsr;
   int lr_svc;
+  int irq;
   int tid;
   int parent_tid;
   int priority;

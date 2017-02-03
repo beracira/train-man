@@ -18,6 +18,9 @@ void initialize(void) {
   asm("ldr r0, =activate_enter_kernel;"); 
   asm("mov r1, #0x28;"); 
   asm("str r0, [r1, #0];");
+  asm("ldr r0, =activate_enter_kernel_irq;"); 
+  asm("mov r1, #0x38;"); 
+  asm("str r0, [r1, #0];");
 
   int first_tid = td_add(firsttask, P_HIGH, 0);
   set_active(first_tid);
@@ -33,6 +36,8 @@ int activate(void) {
 	asm("stmfd	sp!, {r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, fp, ip, lr};"); // save svc state
   asm("mov r9, #0x01300000;");  // r9 = KERNEL_STACK_START
   asm("ldr r8, [r9, #12];");    // load spsr
+  asm("and r8, r8, #0xffffff7f");   // clear interrupt 
+  // asm("orr r8, r8, #0x00000080");   // set interrupt
   asm("msr spsr, r8;");         // change spsr
 
   asm("ldr r0, [r9, #8];");     // load return value to r0
@@ -41,7 +46,10 @@ int activate(void) {
   asm("ldr sp, [r9, #0];");     // load sp
   
   volatile struct kernel_stack * ks = (struct kernel_stack *) KERNEL_STACK_START;
-  if (ks->started == 1) {
+  if (ks->irq == 1) {
+    ks->irq = 0;
+    asm("ldmfd  sp, {r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, fp, sp, lr};");
+  } else if (ks->started == 1) {
     asm("ldmfd  sp, {r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, fp, sp};");
   } else {
     ks->started = 1;
@@ -50,6 +58,22 @@ int activate(void) {
   asm("msr CPSR_c, #0xd3;");    // back to supervisor mode
   asm("movs pc, lr;");          // let it go  
 
+  asm("activate_enter_kernel_irq:");
+
+  asm("msr CPSR_c, #0xDF;");    // go into system mode
+  asm("mov  ip, sp;");
+  asm("stmfd  sp!, {r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, fp, ip, lr};"); // save usr state
+  // handle should happen examine the irq code, handle it accordingly
+
+  asm("mov r9, #0x01300000;");  // r9 = KERNEL_STACK_START
+  asm("msr CPSR_c, #0xd2;");      // switch to IRQ mode
+  asm("mrs r7, spsr;");      //  save spsr to be transfered to svc mode
+  asm("mov r8, lr");            // move irq_lr to r8
+  asm("msr CPSR_c, #0xd3;");      // switch to svc mode
+  asm("mov lr, r8");          // transfer lr from IRQ to SVC
+  asm("msr spsr, r7;");      // transfer spsr from IRQ to SVC
+  asm("mov r8, #1;");
+  asm("str r8, [r9, #20];");     // save lr_svc to stack
 
   // entering kernel
   asm("activate_enter_kernel:");
@@ -66,6 +90,8 @@ int activate(void) {
   asm("ldr r0, [lr,#-4];");     // load swi code 
   asm("bic r0, r0, #0xff000000;");  // get number
 
+  if (ks->irq) ks->syscall_code = 0;
+  bwprintf(COM2, "qwerty\n\r");
   //asm("bl handle;");
   //get r0 into an int
 
@@ -103,8 +129,10 @@ int handle(int num) {
       ks->usr_r0 = kernel_Receive((int *) ks->args[0], (void *) ks->args[1], (int) ks->args[2]);
       break;
     default:
-      return -1;
+      break;
   }
+  int * temp = 0x800B001c;
+  *temp = 1;
   return 100;
 }
 
