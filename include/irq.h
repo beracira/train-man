@@ -16,5 +16,8 @@
 #define VICxProtection	  0x20	//R/W	Bit 0 enables protection from user mode access
 #define VICxVectAddr	    0x30	//R/W	Enables priority hardware
 
+void irq_enable_timer(void);
+
+void irq_disable_timer(void);
 
 #endif /* IRQ_H */

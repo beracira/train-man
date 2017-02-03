@@ -1,5 +1,6 @@
 #include "common.h"
 #include "../io/include/ts7200.h"
+#include "irq.h"
 
 int timer_init() {
   // *((int *) (TIMER3_CONTROL)) =  0x00000048;
@@ -7,9 +8,13 @@ int timer_init() {
   // *((int *) (TIMER3_BASE + LDR_OFFSET)) = (SEC);
   // *((int *) (TIMER3_CONTROL)) =  0x000000c8;
 
+  // pg 166 in ep93xx user guide
+  // TC3UI = 51
+  // VIC 0 to 31 in VIC1 , 32 and late rin VIC2
+irq_enable_timer();
 
   int * timerLoad = (int *)(TIMER3_BASE + LDR_OFFSET);
-  int * timerValue = (int *)(TIMER3_BASE + VAL_OFFSET);
+//  int * timerValue = (int *)(TIMER3_BASE + VAL_OFFSET);
   int * timerControl = (int *)(TIMER3_BASE + CRTL_OFFSET);
 
   // 508000 cycles/s = 50800 cycles/0.1s

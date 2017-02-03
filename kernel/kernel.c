@@ -6,6 +6,7 @@
 #include "priorityqueue.h"
 #include "td.h"
 #include "user_syscall.h"
+#include "irq.h"
 
 int activate(void);
 
@@ -112,11 +113,12 @@ int handle(int num) {
   num = ks->syscall_code;
   // note: can't declare variables in switch statement
 
-  int * temp = 0x800B001c;
+  int * temp = (int *) 0x800B001c;
   switch(num){
     case IRQ:
       *temp = 1;
       bwprintf(COM2, "IRQ!\n\r");
+      irq_disable_timer();
       break;
     case CREATE:
       ks->usr_r0 = kernel_Create(ks->args[0], (void *) ks->args[1] );
