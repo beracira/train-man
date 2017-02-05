@@ -18,7 +18,7 @@ int timer_init() {
   int * timerControl = (int *)(TIMER3_BASE + CRTL_OFFSET);
 
   // 508000 cycles/s = 50800 cycles/0.1s
-  int cyclesPerTick = 5080;
+  int cyclesPerTick = ONE_TICK;
 
   // Load the timer
   // Disable first

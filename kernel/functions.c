@@ -53,8 +53,8 @@ void the_other_task_1(void){
   bwprintf(COM2, "Task %d created at: %d\n\r", my_tid, Time());
   int i;
   for(i = 0; i < 20; ++i) {
-    Delay(10);
-    bwprintf(COM2, "Tid %d: delay time is %d number of delays is %d\n\r", my_tid, 10, i + 1);
+    Delay(100);
+    // bwprintf(COM2, "Tid %d: delay time is %d number of delays is %d\n\r", my_tid, 10, i + 1);
   }
   bwprintf(COM2, "Task %d exiting at: %d\n\r", my_tid, Time());
   Exit();
@@ -64,8 +64,8 @@ void the_other_task_2(void){
   bwprintf(COM2, "Task %d created at: %d\n\r", my_tid, Time());
   int i;
   for(i = 0; i < 9; ++i) {
-    Delay(23);
-    bwprintf(COM2, "Tid %d: delay time is %d number of delays is %d\n\r", my_tid, 23, i + 1);
+    Delay(230);
+    // bwprintf(COM2, "Tid %d: delay time is %d number of delays is %d\n\r", my_tid, 23, i + 1);
   }
   bwprintf(COM2, "Task %d exiting at: %d\n\r", my_tid, Time());
   Exit();
@@ -75,8 +75,8 @@ void the_other_task_3(void){
   bwprintf(COM2, "Task %d created at: %d\n\r", my_tid, Time());
   int i;
   for(i = 0; i < 6; ++i) {
-    Delay(33);
-    bwprintf(COM2, "Tid %d: delay time is %d number of delays is %d\n\r", my_tid, 33, i + 1);
+    Delay(330);
+    // bwprintf(COM2, "Tid %d: delay time is %d number of delays is %d\n\r", my_tid, 33, i + 1);
   }
   bwprintf(COM2, "Task %d exiting at: %d\n\r", my_tid, Time());
   Exit();
@@ -86,8 +86,8 @@ void the_other_task_4(void){
   bwprintf(COM2, "Task %d created at: %d\n\r", my_tid, Time());
   int i;
   for(i = 0; i < 3; ++i) {
-    Delay(71);
-    bwprintf(COM2, "Tid %d: delay time is %d number of delays is %d\n\r", my_tid, 71, i + 1);
+    Delay(710);
+    // bwprintf(COM2, "Tid %d: delay time is %d number of delays is %d\n\r", my_tid, 71, i + 1);
   }
   bwprintf(COM2, "Task %d exiting at: %d\n\r", my_tid, Time());
   Exit();
