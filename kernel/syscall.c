@@ -148,6 +148,7 @@ int kernel_kernel_Send( int tid, void *msg, int msglen, void *reply, int rplen) 
 
   volatile struct task_descriptor * td = (struct task_descriptor *) TASK_DESCRIPTOR_START;
   volatile struct kernel_stack * ks = (struct kernel_stack *) KERNEL_STACK_START;
+  (void) ks;
 
   // TODO: check if td exists
 

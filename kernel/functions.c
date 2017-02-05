@@ -33,7 +33,7 @@ void idle_task(void) {
   volatile struct kernel_stack * ks = (struct kernel_stack *) KERNEL_STACK_START;
   volatile int * temp = &(ks->num_tasks);
   idle_ticks = 0;
-  int pre = cyclesPerTick;
+  unsigned int pre = cyclesPerTick;
   while (*temp != 4) {
     unsigned int cur = *((int *)(timerValue));
     if (cur > pre) ++idle_ticks;
@@ -69,7 +69,7 @@ void dummy_receiver_with_timer(void) {
 
 void the_other_task_1(void){
   int my_tid = MyTid();
-  bwprintf(COM2, "Task %d created at: %d\n\r", my_tid, Time() / 10);
+  bwprintf(COM2, "Task %d created at: %d\n\r", my_tid, Time());
   int i;
   for(i = 0; i < 20; ++i) {
     Delay(10);
@@ -81,7 +81,7 @@ void the_other_task_1(void){
 }
 void the_other_task_2(void){
   int my_tid = MyTid();
-  bwprintf(COM2, "Task %d created at: %d\n\r", my_tid, Time() / 10);
+  bwprintf(COM2, "Task %d created at: %d\n\r", my_tid, Time());
   int i;
   for(i = 0; i < 9; ++i) {
     Delay(23);
@@ -93,7 +93,7 @@ void the_other_task_2(void){
 }
 void the_other_task_3(void){
   int my_tid = MyTid();
-  bwprintf(COM2, "Task %d created at: %d\n\r", my_tid, Time() / 10);
+  bwprintf(COM2, "Task %d created at: %d\n\r", my_tid, Time());
   int i;
   for(i = 0; i < 6; ++i) {
     Delay(33);
@@ -105,7 +105,7 @@ void the_other_task_3(void){
 }
 void the_other_task_4(void){
   int my_tid = MyTid();
-  bwprintf(COM2, "Task %d created at: %d\n\r", my_tid, Time() / 10);
+  bwprintf(COM2, "Task %d created at: %d\n\r", my_tid, Time());
   int i;
   for(i = 0; i < 3; ++i) {
     Delay(71);
@@ -122,8 +122,6 @@ void firsttask(void) {
   Create(P_HIGH, clockserver);
   Create(P_SUPER_HIGH, timer_notifier);
   Create(P_LOW, &idle_task);
-
-  bwprintf(COM2, "idle usage: %d%%\n\r", idle_ticks * 10 / time_ticks);
 
   Create(3, &the_other_task_1);
   Create(4, &the_other_task_2);
