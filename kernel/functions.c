@@ -19,7 +19,7 @@ void idle_task(void) {
   int * timerControl = (int *)(TIMER1_BASE + CRTL_OFFSET);
 
   // 508000 cycles/s = 50800 cycles/0.1s
-  int cyclesPerTick = ONE_TICK / 10;
+  int cyclesPerTick = ONE_TICK / 40;
 
   // Load the timer
   // Disable first
@@ -28,8 +28,10 @@ void idle_task(void) {
   *timerLoad = cyclesPerTick;
   // Enable timer, periodic mode, 508 kHz clock
   *timerControl = ENABLE_MASK | MODE_MASK| CLKSEL_MASK ;
-  volatile int i = 0;
+  volatile int i = 16000000;
+  int j = 0;
   (void) i;
+  (void) j;
   volatile struct kernel_stack * ks = (struct kernel_stack *) KERNEL_STACK_START;
   volatile int * temp = &(ks->num_tasks);
   idle_ticks = 0;
@@ -39,8 +41,12 @@ void idle_task(void) {
     if (cur > pre) ++idle_ticks;
     pre = cur;
   }
-  bwprintf(COM2, "idle usage: %d%%\n\r", idle_ticks * 10 / time_ticks);
+  idle_print();
   Exit();
+}
+
+void idle_print() {
+  bwprintf(COM2, "\033[s\033[A\033[50Cidle usage: %d%%\n\r\033[u", idle_ticks * 100 / 40 / time_ticks);
 }
 
 void dummy_sender(void) {
@@ -74,7 +80,7 @@ void the_other_task_1(void){
   for(i = 0; i < 20; ++i) {
     Delay(10);
     bwprintf(COM2, "Tid %d: delay time is %d number of delays is %d\n\r", my_tid, 10, i + 1);
-    bwprintf(COM2, "idle usage: %d%%\n\r", idle_ticks * 10 / time_ticks);
+    idle_print();
   }
   bwprintf(COM2, "Task %d exiting at: %u\n\r", my_tid, Time());
   Exit();
@@ -86,7 +92,7 @@ void the_other_task_2(void){
   for(i = 0; i < 9; ++i) {
     Delay(23);
     bwprintf(COM2, "Tid %d: delay time is %d number of delays is %d\n\r", my_tid, 23, i + 1);
-    bwprintf(COM2, "idle usage: %d%%\n\r", idle_ticks * 10 / time_ticks);
+    idle_print();
   }
   bwprintf(COM2, "Task %d exiting at: %u\n\r", my_tid, Time());
   Exit();
@@ -98,7 +104,7 @@ void the_other_task_3(void){
   for(i = 0; i < 6; ++i) {
     Delay(33);
     bwprintf(COM2, "Tid %d: delay time is %d number of delays is %d\n\r", my_tid, 33, i + 1);
-    bwprintf(COM2, "idle usage: %d%%\n\r", idle_ticks * 10 / time_ticks);
+    idle_print();
   }
   bwprintf(COM2, "Task %d exiting at: %u\n\r", my_tid, Time());
   Exit();
@@ -110,7 +116,7 @@ void the_other_task_4(void){
   for(i = 0; i < 3; ++i) {
     Delay(71);
     bwprintf(COM2, "Tid %d: delay time is %d number of delays is %d\n\r", my_tid, 71, i + 1);
-    bwprintf(COM2, "idle usage: %d%%\n\r", idle_ticks * 10 / time_ticks);
+    idle_print();
   }
   bwprintf(COM2, "Task %d exiting at: %u\n\r", my_tid, Time());
   Exit();

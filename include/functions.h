@@ -9,5 +9,7 @@ void dummy_sender(void);
 
 void dummy_receiver(void);
 
+void idle_print();
+
 #endif /* FUNCTIONS_H */
 
