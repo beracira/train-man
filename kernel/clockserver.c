@@ -42,7 +42,7 @@ int DelayUntil(unsigned int ticks) {
 }
 
 int Delay(unsigned int ticks) {
-  DelayUntil(time_ticks + ticks);
+  DelayUntil(time_ticks + ticks - 1);
   return 0;
 }
 

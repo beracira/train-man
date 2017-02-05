@@ -11,6 +11,8 @@
 
 int activate(void);
 
+unsigned int idle_ticks = 0;
+
 void initialize(void) {
 
   asm("MRC p15, 0, r0, c1, c0, 0"); // read c1
@@ -25,6 +27,8 @@ void initialize(void) {
 
   bwsetfifo(COM2, OFF);
   bwprintf(COM2, "\n\r");
+
+  idle_ticks = 0;
 
   // Load label for swi entry
   asm("ldr r0, =activate_enter_kernel;"); 
@@ -138,6 +142,7 @@ int handle(int num) {
       if (irq_bit) {
         irq_clear_timer();
         td[await_event_list_ptr[TIMER_EVENT]].state = READY;
+        if (ks->tid == 5) ++idle_ticks;
       }
 
       break;
