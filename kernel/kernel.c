@@ -13,6 +13,16 @@ int activate(void);
 
 void initialize(void) {
 
+  asm("MRC p15, 0, r0, c1, c0, 0"); // read c1
+  asm("AND r0, r0, #0xffffefff"); // clear bits to be cleared
+  asm("ORR r0, r0, #0x00001000"); // set bits to be set
+  asm("MCR p15, 0, r0, c1, c0, 0"); // write c1
+
+  asm("MRC p15, 0, r0, c1, c0, 0"); // read c1
+  asm("AND r0, r0, #0xfffffffb"); // clear bits to be cleared
+  asm("ORR r0, r0, #0x00000004"); // set bits to be set
+  asm("MCR p15, 0, r0, c1, c0, 0"); // write c1
+
   bwsetfifo(COM2, OFF);
   bwprintf(COM2, "\n\r");
 
@@ -22,9 +32,9 @@ void initialize(void) {
   asm("str r0, [r1, #0];");
   asm("ldr r0, =activate_enter_kernel_irq;"); 
   asm("mov r1, #0x38;"); 
-  asm("str r0, [r1, #0];");
+asm("str r0, [r1, #0];");
 
-  int first_tid = td_add(firsttask, P_HIGH, 0);
+  int first_tid = td_add(firsttask, P_FIRST_TASK, 0);
   set_active(first_tid);
   volatile struct kernel_stack * ks = (struct kernel_stack *) KERNEL_STACK_START;
   ks->num_tasks = 1;
@@ -112,6 +122,7 @@ int activate(void) {
 }
 
 int handle(int num) {
+  volatile struct task_descriptor * td = (struct task_descriptor *) TASK_DESCRIPTOR_START;
   volatile struct kernel_stack * ks = (struct kernel_stack *) KERNEL_STACK_START;
   num = ks->syscall_code;
 
@@ -119,17 +130,14 @@ int handle(int num) {
 
   int * int_enable = (int *) (VIC2_BASE + VICxIRQStatus);
   int irq_bit = 0;
-  //int * temp = (int *) 0x800B001c;
   switch(num){
     case IRQ:
-      //*temp = 1;
 
       irq_bit = (*int_enable >> (51 - 32)) & 1;
 
       if (irq_bit) {
         irq_clear_timer();
-        ++time_ticks;
-        remove_delay_list();
+        td[await_event_list_ptr[TIMER_EVENT]].state = READY;
       }
 
       break;
@@ -173,7 +181,6 @@ int main( int argc, char* argv[] ) {
 
   while(1 + 1 == 2) {
     int active = schedule();
-    //bwprintf( COM2, "%d\n\r", active);
     if (active == -1) return 0;
     set_active(active);
     

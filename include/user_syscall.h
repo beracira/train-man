@@ -10,6 +10,9 @@
 #define SEND        6
 #define RECEIVE     7
 #define REPLY       8
+#define AWAITEVENT  9
+
+#define TIMER_EVENT 51
 
 int Create(int priority, void (*code) ( ) );
 
@@ -26,5 +29,7 @@ int Send( int tid, void *msg, int msglen, void *reply, int rplen);
 int Receive( int *tid, void *msg, int msglen );
 
 int Reply( int tid, void *reply, int replylen );
+
+int AwaitEvent(int eventid);
 
 #endif // USER_SYSCALL_H

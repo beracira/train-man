@@ -1,9 +1,11 @@
 #include "clockserver.h"
+#include "syscall.h"
 #include "user_syscall.h"
 #include "common.h"
 #include "../io/include/bwio.h"
 
 struct CLK_DELAY_LIST * clk_delay_list_ptr = 0;
+int * await_event_list_ptr = 0;
 
 unsigned int time_ticks = 0;
 
@@ -41,6 +43,7 @@ int DelayUntil(unsigned int ticks) {
 
 int Delay(unsigned int ticks) {
   DelayUntil(time_ticks + ticks);
+  return 0;
 }
 
 void insert_delay_list(int tid, unsigned int ticks) {
@@ -63,7 +66,7 @@ void remove_delay_list() {
   while (clk_delay_list_ptr->last != 0 && clk_delay_list_ptr->wakeup_time[0] < time_ticks) {
     int tid = clk_delay_list_ptr->tid[0];
     int dummy1 = 1, dummy2 = 2;
-    kernel_kernel_Send(tid, &dummy1, sizeof(int), &dummy2, sizeof(int));
+    Send(tid, &dummy1, sizeof(int), &dummy2, sizeof(int));
     int i;
     for (i = 0; i < clk_delay_list_ptr->last; ++i) { // last one should be -1
       clk_delay_list_ptr->tid[i] = clk_delay_list_ptr->tid[i + 1];
@@ -88,6 +91,11 @@ void clockserver(void) {
 
   struct CLK_DELAY_LIST clk_delay_list;
   clk_delay_list_ptr = &clk_delay_list;
+  int await_event_list[64];
+  int i;
+  for (i = 0; i < 64; ++i) await_event_list[i] = -1;
+  await_event_list_ptr = (int *) &await_event_list;
+
   init_delay_list(); 
 
   time_ticks = 0;
@@ -111,6 +119,9 @@ void clockserver(void) {
         insert_delay_list(sender_tid, req.ticks);
         break;
 
+      case CLK_INC:
+        ++time_ticks;
+        remove_delay_list();
       default:
         break;
     }

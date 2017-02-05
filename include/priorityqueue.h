@@ -3,12 +3,14 @@
 
 #define PRIORITY_QUEUE_START  0x01600000
 #define QUEUE_SIZE  50
-#define NUM_QUEUES  3 // max priority
+#define NUM_QUEUES  32 // max priority
 
 //priorities
-#define P_HIGH 0
-#define P_MEDIUM 1
-#define P_LOW 2
+#define P_SUPER_HIGH 0
+#define P_HIGH       1
+#define P_FIRST_TASK 2
+#define P_MEDIUM     15
+#define P_LOW        31
 
 struct priority_queue {
   int tid[QUEUE_SIZE];

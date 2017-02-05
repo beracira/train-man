@@ -117,3 +117,17 @@ int Reply( int tid, void *reply, int replylen ) {
   return ks->usr_r0;
 
 }
+
+int AwaitEvent(int eventid) {
+  (void) eventid;
+  volatile struct task_descriptor * td = (struct task_descriptor *) TASK_DESCRIPTOR_START;
+  volatile struct kernel_stack * ks = (struct kernel_stack *) KERNEL_STACK_START;
+
+  int my_tid = ks->tid;
+  td[my_tid].state = EVENT_BLOCKED;
+  Pass();
+
+  return 0;
+}
+
+

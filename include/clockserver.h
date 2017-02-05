@@ -3,11 +3,13 @@
 
 #include "common.h"
 extern unsigned int time_ticks;
+extern int * await_event_list_ptr;
 
 #define CLK_DELAY 1
 #define	CLK_TIME 2
 #define CLK_DELAY_UNTIL 3
 #define CLK_AWAIT_EVENT 4
+#define CLK_INC         5
 
 #define CLK_TID 3
 

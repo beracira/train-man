@@ -10,6 +10,7 @@
 #define SEND_BLOCKED 3
 #define RECEIVE_BLOCKED 4
 #define REPLY_BLOCKED 5
+#define EVENT_BLOCKED 6
 
 struct Sender {
   int sender_tid;

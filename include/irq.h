@@ -22,4 +22,6 @@ void irq_clear_timer(void);
 
 void irq_disable_timer(void);
 
+void timer_notifier(void);
+
 #endif /* IRQ_H */

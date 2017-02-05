@@ -23,6 +23,8 @@ int kernel_Exit(void);
 
 int kernel_Send( int tid, void *msg, int msglen, void *reply, int rplen);
 
+int kernel_kernel_Send( int tid, void *msg, int msglen, void *reply, int rplen);
+
 int kernel_Receive( int *tid, void *msg, int msglen );
 
 int kernel_Reply( int tid, void *reply, int replylen );
