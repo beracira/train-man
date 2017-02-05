@@ -13,11 +13,13 @@
 
 
 void idle_task(void) {
-  volatile int i;
+  volatile int i = 0;
   volatile struct kernel_stack * ks = (struct kernel_stack *) KERNEL_STACK_START;
   volatile int * temp = &(ks->num_tasks);
   while (*temp != 4) {
-    // bwprintf(COM2, "idle usage: %u %u\n\r", idle_ticks, time_ticks);
+    while (i++ < 1600000);
+    bwprintf(COM2, "%d%% %u %u\n\r", (idle_ticks * 100 / time_ticks), idle_ticks, time_ticks);
+    i = 0;
   }
   Exit();
 }

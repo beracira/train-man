@@ -2,6 +2,7 @@
 #include "syscall.h"
 #include "user_syscall.h"
 #include "common.h"
+#include "nameserver.h"
 #include "../io/include/bwio.h"
 
 struct CLK_DELAY_LIST * clk_delay_list_ptr = 0;
@@ -97,6 +98,8 @@ void clockserver(void) {
   await_event_list_ptr = (int *) &await_event_list;
 
   init_delay_list(); 
+
+  RegisterAs("clock");
 
   time_ticks = 0;
   timer_init();
