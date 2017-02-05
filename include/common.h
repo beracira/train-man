@@ -3,7 +3,7 @@
 
 #define MAX_TASKS 50
 
-#define ONE_TICK 508
+#define ONE_TICK 5080
 #define SEC 50800
 #define TIMER3_BASE 0x80810080
 #define TIMER3_CONTROL 0x80810088
