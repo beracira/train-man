@@ -49,30 +49,6 @@ void idle_print() {
   bwprintf(COM2, "\033[s\033[A\033[50Cidle usage: %d%%\n\r\033[u", idle_ticks * 100 / 40 / time_ticks);
 }
 
-void dummy_sender(void) {
-  char * str = "this is a lot of work";
-  char reply[30];
-  bwprintf( COM2, "before send\n\r");
-  int result = Send(3, str, 22, reply, 30);
-  bwprintf( COM2, "after send\n\r");
-  bwprintf( COM2, "Result of send: %d\n\r", result);
-  bwprintf( COM2, "%s\n\r", reply);
-  Exit();
-}
-
-void dummy_receiver_with_timer(void) {
-
-  int sender_tid = -1;
-  char msg[64];
-  int i;
-  for (i = 0; i < 100; ++i) {
-    Receive(&sender_tid, &msg, 64);
-    Reply(sender_tid, &msg, 64);
-    bwprintf( COM2, "receive i: %d\n\r", i);
-  }
-  Exit();
-}
-
 void the_other_task_1(void){
   int my_tid = MyTid();
   bwprintf(COM2, "Task %d created at: %d\n\r", my_tid, Time());
@@ -124,15 +100,62 @@ void the_other_task_4(void){
 
 void firsttask(void) {
 
+  
+  // K3 tasks
   Create(P_HIGH, nameserver);
   Create(P_HIGH, clockserver);
   Create(P_SUPER_HIGH, timer_notifier);
-  Create(P_LOW, &idle_task);
+  // Create(P_LOW, &idle_task);
 
-  Create(3, &the_other_task_1);
-  Create(4, &the_other_task_2);
-  Create(5, &the_other_task_3);
-  Create(6, &the_other_task_4);
+  // Create(3, &the_other_task_1);
+  // Create(4, &the_other_task_2);
+  // Create(5, &the_other_task_3);
+  // Create(6, &the_other_task_4);
+  int *high, *low;
+  high = (int *)( UART1_BASE + UART_LCRM_OFFSET );
+  low = (int *)( UART1_BASE + UART_LCRL_OFFSET );
+  *high = 0x0;
+  *low = 0xBF;
+  *(int *)( UART1_BASE + UART_LCRH_OFFSET ) = 0x68;
+
+    volatile int *flags, *data;
+
+    flags = (int *)( UART1_BASE + UART_FLAG_OFFSET );
+    data = (int *)( UART1_BASE + UART_DATA_OFFSET );
+    
+  
+  bwprintf(COM2, "first task started\n\r");
+  irq_enable_uart1_receive();
+
+  //*data = 'x';
+
+  // irq_enable_uart1_transmit();
+
+  //irq_enable_uart2_receive();
+
+  // irq_enable_uart2_transmit();
+
+  char c = bwgetc(COM2);
+
+  //bwprintf(COM2, "char c %c \r\n", c);
+
+      flags = (int *)( UART1_BASE + UART_FLAG_OFFSET );
+    data = (int *)( UART1_BASE + UART_DATA_OFFSET );
+    
+  *data = c;
+
+  while(1);
+  // while (c != 'q'){
+  //   c = bwgetc(COM2);
+
+  // int *flags, *data;
+
+  //   flags = (int *)( UART2_BASE + UART_FLAG_OFFSET );
+  //   data = (int *)( UART2_BASE + UART_DATA_OFFSET );
+
+  // while( ( *flags & TXFF_MASK ) ) ;
+  // *data = c;
+  // }
 
   Exit();
 }

@@ -128,19 +128,65 @@ int handle(int num) {
 
   // NOTE: can't declare variables in switch statement; do it up here
 
-  int * int_enable = (int *) (VIC2_BASE + VICxIRQStatus);
-  int irq_bit = 0;
+  volatile int * int_enable1 = (int *) (VIC1_BASE + VICxIRQStatus);
+  volatile int * int_enable2 = (int *) (VIC2_BASE + VICxIRQStatus);
+  volatile int timer_reg = ((*int_enable2 >> (51 - 32)) & 1);
+  int * uart1_clear = 0;
+  int * uart2_clear = 0;
+
+  int i = 0;
+
+  volatile int *flags, *data;
+    flags = (int *)( UART1_BASE + UART_FLAG_OFFSET );
+    data = (int *)( UART1_BASE + UART_DATA_OFFSET );
+    char c = 0;
+ // int irq_bit = 0;
   switch(num){
     case IRQ:
 
-      irq_bit = (*int_enable >> (51 - 32)) & 1;
-
-      if (irq_bit) {
+     // irq_bit = (*int_enable >> (51 - 32)) & 1;
+      // Timer
+      //if ((*int_enable2 >> (51 - 32)) & 1) {
+    	if (timer_reg) {
+      	// bwprintf(COM2, "before clear -  - timer reg %d .\n\r", timer_reg);
         irq_clear_timer();
         td[await_event_list_ptr[TIMER_EVENT]].state = READY;
         // ++time_ticks;
         // remove_delay_list();
       }
+      else {
+
+        // *data = 'y';
+        bwprintf(COM2, "%x\n\r", *((int *) 0x808c001c));
+        while(i++ < 800000);
+        i = 0;
+        //while (1);
+        uart1_clear = (int *) (UART1_BASE + UART_INTR_OFFSET);
+        *uart1_clear = 0;
+        uart2_clear = (int *) (UART2_BASE + UART_INTR_OFFSET);
+        *uart2_clear = 0;
+        c = *data;
+        bwprintf(COM2, "c is %c \n\r", c);
+      }
+      // // UART1 receive
+      // if ((*int_enable1 >> (52 - 32)) & 1) {
+      //   bwprintf(COM2, "uart1 receive! \n\r");
+      // }
+      // // UART1 transmit
+      // if ((*int_enable1 >> (24)) & 1) {
+      //   bwprintf(COM2, "uart1 transmit! \n\r");
+      //   while (1);
+      //   uart1_clear = (int *) (UART1_BASE + UART_INTR_OFFSET);
+      //   *uart1_clear = 0;
+      // }
+      // // UART2 receive
+      // if ((*int_enable1 >> (25)) & 1) {
+      //   bwprintf(COM2, "uart2 receive! \n\r");
+      // }
+      // // UART2 transmit
+      // if ((*int_enable1 >> (26)) & 1) {
+      //   //bwprintf(COM2, "uart2 transmit! \n\r");
+      // }
 
       break;
     case CREATE:

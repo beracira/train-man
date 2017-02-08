@@ -4,20 +4,17 @@
 #include "user_syscall.h"
 
 void irq_enable_timer(void) {
-  int * int_enable = (int *) (VIC2_BASE + VICxIntEnable);
+  volatile int * int_enable = (int *) (VIC2_BASE + VICxIntEnable);
   *int_enable = *int_enable | (1 << (51 - 32));
 }
 
 void irq_clear_timer(void) {
-  int * clear = (int *) (TIMER3_BASE + CLR_OFFSET);
+  volatile int * clear = (int *) (TIMER3_BASE + CLR_OFFSET);
   *clear = 1;
 }
 
 void irq_disable_timer(void) {
-  // int * int_enable = (int *) (VIC2_BASE + VICxIntEnable);
-  // *int_enable = *int_enable  & ~(1 << (51 - 32));
-
-  int * int_en_clean = (int *) (VIC2_BASE + VICxIntEnClear);
+  volatile int * int_en_clean = (int *) (VIC2_BASE + VICxIntEnClear);
   *int_en_clean = *int_en_clean | (1 << (51 - 32));
 }
 
@@ -35,3 +32,40 @@ void timer_notifier(void) {
     Send(CLK_TID, &req, sizeof(struct clk_request), &result, 0);
   }
 }
+
+void irq_enable_uart1_receive(void) {
+  volatile int * uart_int_enable = (int *) (UART1_BASE + UART_CTLR_OFFSET);
+  *uart_int_enable &= ~TIEN_MASK;
+
+   *uart_int_enable |= RIEN_MASK;
+   volatile int * uart2_int_enable = (int *) (UART2_BASE + UART_CTLR_OFFSET);
+   *uart2_int_enable &= ~RIEN_MASK;
+   *uart2_int_enable &= ~TIEN_MASK;
+  volatile int * int_enable = (int *) (VIC1_BASE + VICxIntEnable);
+  *int_enable = *int_enable | (1 << 23);
+  *int_enable = *int_enable | (1 << 24);
+  *int_enable = *int_enable | (1 << 25);
+  *int_enable = *int_enable | (1 << 26);
+}
+
+// void irq_enable_uart1_transmit(void) {
+//   // volatile int * uart_int_enable = (int *) (UART1_BASE + UART_CTLR_OFFSET);
+//   // *uart_int_enable ^= TIEN_MASK;
+//   volatile int * int_enable = (int *) (VIC1_BASE + VICxIntEnable);
+//   *int_enable = *int_enable | (1 << (UART1_IntTransmit));
+// }
+
+void irq_enable_uart2_receive(void) {
+  // volatile int * uart_int_enable = (int *) (UART2_BASE + UART_CTLR_OFFSET);
+  // *uart_int_enable ^= RIEN_MASK;
+  volatile int * vic_int_enable = (int *) (VIC1_BASE + VICxIntEnable);
+  *vic_int_enable = *vic_int_enable | (1 << (UART2_IntReceive));
+}
+
+void irq_enable_uart2_transmit(void) {
+  volatile int * uart_int_enable = (int *) (UART2_BASE + UART_CTLR_OFFSET);
+  *uart_int_enable ^= TIEN_MASK;
+  volatile int * vic_int_enable = (int *) (VIC1_BASE + VICxIntEnable);
+  *vic_int_enable = *vic_int_enable | (1 << (UART2_IntTransmit));
+}
+
