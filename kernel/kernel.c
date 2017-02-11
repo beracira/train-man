@@ -8,9 +8,12 @@
 #include "user_syscall.h"
 #include "irq.h"
 #include "clockserver.h"
+#include "io.h"
 
 int activate(void);
 
+int counter = 0;
+int err = 0;
 void initialize(void) {
 
   asm("MRC p15, 0, r0, c1, c0, 0"); // read c1
@@ -23,8 +26,11 @@ void initialize(void) {
   asm("ORR r0, r0, #0x00000004"); // set bits to be set
   asm("MCR p15, 0, r0, c1, c0, 0"); // write c1
 
+  bwsetfifo(COM1, OFF);
   bwsetfifo(COM2, OFF);
   bwprintf(COM2, "\n\r");
+  counter = 0;
+  err = 0;
 
   // Load label for swi entry
   asm("ldr r0, =activate_enter_kernel;"); 
@@ -131,15 +137,18 @@ int handle(int num) {
   volatile int * int_enable1 = (int *) (VIC1_BASE + VICxIRQStatus);
   volatile int * int_enable2 = (int *) (VIC2_BASE + VICxIRQStatus);
   volatile int timer_reg = ((*int_enable2 >> (51 - 32)) & 1);
-  int * uart1_clear = 0;
-  int * uart2_clear = 0;
+  // int * uart1_clear = 0;
+  // int * uart2_clear = 0;
 
   int i = 0;
 
-  volatile int *flags, *data;
-    flags = (int *)( UART1_BASE + UART_FLAG_OFFSET );
-    data = (int *)( UART1_BASE + UART_DATA_OFFSET );
-    char c = 0;
+  volatile int *data1, *data2;
+  volatile int flags;
+  data1 = (int *)( UART1_BASE + UART_DATA_OFFSET );
+  data2 = (int *)( UART2_BASE + UART_DATA_OFFSET );
+  char c = 0;
+  volatile int * cts_1 = (UART1_BASE + UART_FLAG_OFFSET);
+  volatile int * cts_2 = (UART2_BASE + UART_FLAG_OFFSET);
  // int irq_bit = 0;
   switch(num){
     case IRQ:
@@ -155,18 +164,40 @@ int handle(int num) {
         // remove_delay_list();
       }
       else {
+        flags = *((int *) 0x808c001c); // COM1 
+        if (flags == 2) {
+          c = *data1;
+          buffer_add(TRAIN_RECEIVE, c);
+        } else if (flags == 4) {
+          buffer_remove(TRAIN_SEND);
+          break;
+        } else if (flags == 0) {
+          // counter += 1;
+        } else {
+          err = flags;
+        }
 
-        // *data = 'y';
-        bwprintf(COM2, "%x\n\r", *((int *) 0x808c001c));
-        while(i++ < 800000);
-        i = 0;
-        //while (1);
-        uart1_clear = (int *) (UART1_BASE + UART_INTR_OFFSET);
-        *uart1_clear = 0;
-        uart2_clear = (int *) (UART2_BASE + UART_INTR_OFFSET);
-        *uart2_clear = 0;
-        c = *data;
-        bwprintf(COM2, "c is %c \n\r", c);
+        flags = *((int *) 0x808d001c); // COM2
+        if (flags == 2) {
+          c = *data2;
+          buffer_add(TERMINAL_RECEIVE, c);
+        } else if (flags == 4) {
+          buffer_remove(TERMINAL_SEND);
+          break;
+        } else if (flags == 0) {
+          // counter += 1;
+        } else {
+          err = flags;
+        }
+
+        // while(i++ < 800000) asm("");
+        // i = 0;
+        // while (1) asm("");
+
+        // uart1_clear = (int *) (UART1_BASE + UART_INTR_OFFSET);
+        // *uart1_clear = 0;
+        // uart2_clear = (int *) (UART2_BASE + UART_INTR_OFFSET);
+        // *uart2_clear = 0;          
       }
       // // UART1 receive
       // if ((*int_enable1 >> (52 - 32)) & 1) {

@@ -1,0 +1,284 @@
+#include "io.h"
+#include "../io/include/ts7200.h"
+#include "../io/include/bwio.h"
+#include "user_syscall.h"
+#include "td.h"
+#include "syscall.h"
+
+
+struct IO_Buffer * train_send_ptr = 0;
+struct IO_Buffer * train_receive_ptr = 0;
+
+struct IO_Buffer * terminal_send_ptr = 0;
+struct IO_Buffer * terminal_receive_ptr = 0;
+
+struct IO_Wait_List * train_wait_list_ptr = 0;
+struct IO_Wait_List * terminal_wait_list_ptr = 0;
+
+
+void IO_init() {
+
+}
+
+void Putc(int uart, char ch) {
+  if (uart == 1) {
+    buffer_add(TRAIN_SEND, ch);
+  } else {
+    buffer_add(TERMINAL_SEND, ch);
+  }
+}
+
+char Getc(int uart) {
+  volatile struct kernel_stack * ks = (struct kernel_stack *) KERNEL_STACK_START;
+  
+  struct IO_Request input;
+  struct IO_Request output;
+
+  input.c = 254;
+  input.tid = ks->tid;
+  output.c = 'a';
+  if (uart == 1) {
+    input.type = TRAIN_RECEIVE;
+  } else {
+    input.type = TERMINAL_RECEIVE;
+  }
+
+  Send(IO_TID, &input, sizeof(input), &output, sizeof(output));
+  int sender_tid = 0;
+  char ch = 98, dummy;
+
+  int k = Receive( &sender_tid, &ch, sizeof(char));
+  Reply(sender_tid, &dummy, sizeof(char));
+
+  return ch;
+}
+
+inline void buffer_add(int uart, char c) {
+  struct IO_Buffer * target = 0;
+  volatile int * uart_int_enable = 0;
+  volatile int mask = 0;
+
+  switch (uart) {
+    case TRAIN_SEND:
+      target = train_send_ptr;
+      uart_int_enable = (int *) (UART1_BASE + UART_CTLR_OFFSET);
+      mask = TIEN_MASK;
+      *uart_int_enable |= mask;
+      break;
+    case TRAIN_RECEIVE:
+      target = train_receive_ptr;
+      // uart_int_enable = (int *) (UART1_BASE + UART_CTLR_OFFSET);
+      // mask = RIEN_MASK;
+      break;
+    case TERMINAL_SEND:
+      target = terminal_send_ptr;
+      uart_int_enable = (int *) (UART2_BASE + UART_CTLR_OFFSET);
+      mask = TIEN_MASK;
+      *uart_int_enable |= mask;
+      break;
+    case TERMINAL_RECEIVE:
+      target = terminal_receive_ptr;
+      // uart_int_enable = (int *) (UART2_BASE + UART_CTLR_OFFSET);
+      // mask = RIEN_MASK;
+      break;
+  }
+
+
+  target->buffer[target->tail++] = c;
+  target->tail %= IO_BUFFER_SIZE;
+
+  if (uart == TRAIN_RECEIVE) {
+    if (train_wait_list_ptr->head != train_wait_list_ptr->tail) {
+      remove_wait_list(1);
+    }
+  } else if (uart == TERMINAL_RECEIVE) {
+    if (terminal_wait_list_ptr->head != terminal_wait_list_ptr->tail) {
+      remove_wait_list(2);
+    }
+  }
+}
+
+
+inline char buffer_remove(int uart) {
+  struct IO_Buffer * target = 0;
+  volatile int * uart_int_enable = 0;
+  volatile int mask = 0;
+  volatile int *data;
+
+  switch (uart) {
+    case TRAIN_SEND:
+      target = train_send_ptr;
+      uart_int_enable = (int *) (UART1_BASE + UART_CTLR_OFFSET);
+      data = (int *)( UART1_BASE + UART_DATA_OFFSET );
+      mask = TIEN_MASK;
+      break;
+    case TRAIN_RECEIVE:
+      target = train_receive_ptr;
+      uart_int_enable = (int *) (UART1_BASE + UART_CTLR_OFFSET);
+      data = (int *)( UART1_BASE + UART_DATA_OFFSET );
+      mask = RIEN_MASK;
+      break;
+    case TERMINAL_SEND:
+      target = terminal_send_ptr;
+      uart_int_enable = (int *) (UART2_BASE + UART_CTLR_OFFSET);
+      data = (int *)( UART2_BASE + UART_DATA_OFFSET );
+      mask = TIEN_MASK;
+      break;
+    case TERMINAL_RECEIVE:
+      target = terminal_receive_ptr;
+      uart_int_enable = (int *) (UART2_BASE + UART_CTLR_OFFSET);
+      data = (int *)( UART2_BASE + UART_DATA_OFFSET );
+      mask = RIEN_MASK;
+      break;
+  }
+
+
+  if (target->head == target->tail) {
+    *uart_int_enable &= ~mask;
+  } else {
+    char retval = target->buffer[target->head++];
+    target->head %= IO_BUFFER_SIZE;
+    if (uart == TRAIN_SEND || uart == TERMINAL_SEND)
+      *data = retval;
+    return retval;
+  }
+}
+
+
+
+// inline char buffer_remove(struct IO_Buffer * target) {
+//   if (target->head == target->tail) return -1;
+//   char retval = target->buffer[target->head++];
+//   target->head %= IO_BUFFER_SIZE;
+//   return retval;
+// }
+
+
+void insert_wait_list(int uart, int tid) {
+  if (uart == 1) {
+    train_wait_list_ptr->tid[train_wait_list_ptr->tail++] = tid;
+    train_wait_list_ptr->tail %= IO_BUFFER_SIZE;
+  } else {
+    terminal_wait_list_ptr->tid[terminal_wait_list_ptr->tail++] = tid;
+    terminal_wait_list_ptr->tail %= IO_BUFFER_SIZE;
+  }
+}
+
+char * get_char_buffer_ptr = 0;
+int get_char_cur = 0;
+
+void remove_wait_list(int uart) {
+  if (uart == 1) {
+    int tid = train_wait_list_ptr->tid[train_wait_list_ptr->head++];
+    train_wait_list_ptr->head %= IO_BUFFER_SIZE;
+    char ch, dummy;
+    ch = buffer_remove(TRAIN_RECEIVE);
+    get_char_buffer_ptr[get_char_cur] = ch;
+    kernel_kernel_Send(tid, &(get_char_buffer_ptr[get_char_cur]), sizeof(char), &dummy, sizeof(char));
+    get_char_cur += 1;
+    get_char_cur %= 10240;
+  } else {
+    int tid = terminal_wait_list_ptr->tid[terminal_wait_list_ptr->head++];
+    terminal_wait_list_ptr->head %= IO_BUFFER_SIZE;
+    char ch, dummy;
+    ch = buffer_remove(TERMINAL_RECEIVE);
+    get_char_buffer_ptr[get_char_cur] = ch;
+    kernel_kernel_Send(tid, &(get_char_buffer_ptr[get_char_cur]), sizeof(char), &dummy, sizeof(char));
+    get_char_cur += 1;
+    get_char_cur %= 10240;
+  }
+}
+
+
+void IO_Server() {
+  IO_init();
+
+  struct IO_Buffer train_send;
+  struct IO_Buffer train_receive;
+  struct IO_Buffer terminal_send;
+  struct IO_Buffer terminal_receive;
+  struct IO_Wait_List train_wait_list;
+  struct IO_Wait_List terminal_wait_list;
+  char get_char_buffer[10240];
+
+  train_send_ptr = &train_send;
+  train_receive_ptr = &train_receive;
+  terminal_send_ptr = &terminal_send;
+  terminal_receive_ptr = &terminal_receive;
+  get_char_buffer_ptr = &get_char_buffer;
+
+  train_wait_list_ptr = &train_wait_list;
+  terminal_wait_list_ptr = &terminal_wait_list;
+
+  int i;
+  for (i = 0; i < IO_BUFFER_SIZE; ++i) {
+    train_send_ptr->buffer[i] = 0;
+    train_receive_ptr->buffer[i] = 0;
+    terminal_send_ptr->buffer[i] = 0;
+    terminal_receive_ptr->buffer[i] = 0;
+    train_wait_list_ptr->tid[i] = 0;
+    terminal_wait_list_ptr->tid[i] = 0;
+  }
+
+  train_send_ptr->head = 0;
+  train_send_ptr->tail = 0;
+  train_receive_ptr->head = 0;
+  train_receive_ptr->tail = 0;
+  terminal_send_ptr->head = 0;
+  terminal_send_ptr->tail = 0;
+  terminal_receive_ptr->head = 0;
+  terminal_receive_ptr->tail = 0;
+  train_wait_list_ptr->head = 0;
+  train_wait_list_ptr->tail = 0;
+  terminal_wait_list_ptr->head = 0;
+  terminal_wait_list_ptr->tail = 0;
+  get_char_cur = 0;
+
+  int sender_tid = -1;
+  struct IO_Request req;
+  struct IO_Request result;
+
+  while (1 + 1 == 2) {
+    Receive( &sender_tid, &req, sizeof(struct IO_Request));
+
+    switch(req.type) {
+      case TRAIN_RECEIVE:
+        insert_wait_list(1, req.tid);
+        break;
+
+      case TERMINAL_RECEIVE:
+        insert_wait_list(2, req.tid);
+        break;
+
+      default:
+        break;
+    }
+
+    Reply(sender_tid, &result, sizeof(struct IO_Request));
+  }
+}
+
+// void IO_Notifier() {
+//   volatile int flags;
+//   bwprintf(COM2, "%x\n\r", *((int *) 0x808d001c));
+//   flags = *((int *) 0x808c001c); // COM1 
+//   if (flags == 2) {
+//     // RIS 
+//   } else if (flags == 4) {
+//     buffer_remove(TRAIN_SEND);
+//     break;
+//   } else {
+//     //ERROR
+//   }
+
+//   flags = *((int *) 0x808d001c); // COM2
+//   if (flags == 2) {
+//     c = *data2;
+//     buffer_add(TERMINAL_RECEIVE, c);
+//   } else if (flags == 4) {
+//     buffer_remove(TERMINAL_SEND);
+//     break;
+//   } else {
+//     //ERROR
+//   }
+// }

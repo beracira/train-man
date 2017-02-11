@@ -7,6 +7,7 @@
 #include "common.h"
 #include "irq.h"
 #include "kernel.h"
+#include "io.h"
 
 #include "../io/include/bwio.h"
 #include "../io/include/ts7200.h"
@@ -36,7 +37,7 @@ void idle_task(void) {
   volatile int * temp = &(ks->num_tasks);
   idle_ticks = 0;
   unsigned int pre = cyclesPerTick;
-  while (*temp != 4) {
+  while (*temp != 5) {
     unsigned int cur = *((int *)(timerValue));
     if (cur > pre) ++idle_ticks;
     pre = cur;
@@ -104,8 +105,9 @@ void firsttask(void) {
   // K3 tasks
   Create(P_HIGH, nameserver);
   Create(P_HIGH, clockserver);
+  Create(P_HIGH, IO_Server);
   Create(P_SUPER_HIGH, timer_notifier);
-  // Create(P_LOW, &idle_task);
+  Create(P_LOW, &idle_task);
 
   // Create(3, &the_other_task_1);
   // Create(4, &the_other_task_2);
@@ -118,13 +120,13 @@ void firsttask(void) {
   *low = 0xBF;
   *(int *)( UART1_BASE + UART_LCRH_OFFSET ) = 0x68;
 
-    volatile int *flags, *data;
+  volatile int *flags, *data;
 
-    flags = (int *)( UART1_BASE + UART_FLAG_OFFSET );
-    data = (int *)( UART1_BASE + UART_DATA_OFFSET );
+  flags = (int *)( UART1_BASE + UART_FLAG_OFFSET );
+  data = (int *)( UART1_BASE + UART_DATA_OFFSET );
     
   
-  bwprintf(COM2, "first task started\n\r");
+  // bwprintf(COM2, "first task started\n\r");
   irq_enable_uart1_receive();
 
   //*data = 'x';
@@ -135,16 +137,34 @@ void firsttask(void) {
 
   // irq_enable_uart2_transmit();
 
-  char c = bwgetc(COM2);
-
   //bwprintf(COM2, "char c %c \r\n", c);
 
-      flags = (int *)( UART1_BASE + UART_FLAG_OFFSET );
-    data = (int *)( UART1_BASE + UART_DATA_OFFSET );
-    
-  *data = c;
+  // flags = (int *)( UART1_BASE + UART_FLAG_OFFSET );
+  // data = (int *)( UART1_BASE + UART_DATA_OFFSET );
 
-  while(1);
+  // *data = c;
+
+  // char str[] = "let's print a string!\n\r";
+  // int i;
+  // int len = strlen(str);
+  // int k;
+  // for (k = 0; k < 50; k++)
+  //   for (i = 0; i < 24; ++i) {
+  //     Putc(1, str[i]);
+  //     Putc(2, str[i]);
+  //     // int a = 0;
+  //     // while (++a < 100000) asm("");  
+  //   }
+
+  while(1) {
+    char c = Getc(2);
+    Putc(1, c);
+    // Putc(2, c);
+    // Putc(2,counter);
+    bwprintf(COM2, "%d\n\r", counter);
+    bwprintf(COM2, "%d\n\r", err);
+  }
+
   // while (c != 'q'){
   //   c = bwgetc(COM2);
 

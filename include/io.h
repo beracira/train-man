@@ -1,0 +1,47 @@
+#ifndef IO_H
+#define IO_H
+
+#define IO_BUFFER_SIZE 1024
+
+#define TRAIN_SEND       1
+#define TRAIN_RECEIVE    2
+#define TERMINAL_SEND    3
+#define TERMINAL_RECEIVE 4
+
+#define IO_TID           4
+
+extern struct IO_Buffer * train_send_ptr;
+extern struct IO_Buffer * train_receive_ptr;
+extern struct IO_Buffer * terminal_send_ptr;
+extern struct IO_Buffer * terminal_receive_ptr;
+
+struct IO_Request{
+  int tid;
+  int type;
+  char c;
+};
+
+struct IO_Buffer{
+  char buffer[IO_BUFFER_SIZE];
+  int head;
+  int tail;
+};
+
+struct IO_Wait_List{
+  int tid[IO_BUFFER_SIZE];
+  int head;
+  int tail;
+};
+
+void IO_init();
+
+void Putc(int uart, char ch);
+
+inline void buffer_add(int uart, char c);
+
+inline char buffer_remove(int uart);
+
+void IO_Server();
+
+void remove_wait_list(int uart);
+#endif
