@@ -1,7 +1,7 @@
 #ifndef KERNEL_H
 #define KERNEL_H
 
-extern int counter;
+extern unsigned int counter;
 extern int err;
 
 #endif /* KERNEL_H */

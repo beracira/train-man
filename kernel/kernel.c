@@ -12,7 +12,7 @@
 
 int activate(void);
 
-int counter = 0;
+unsigned int counter = 0;
 int err = 0;
 void initialize(void) {
 
@@ -26,9 +26,9 @@ void initialize(void) {
   asm("ORR r0, r0, #0x00000004"); // set bits to be set
   asm("MCR p15, 0, r0, c1, c0, 0"); // write c1
 
-  bwsetfifo(COM1, OFF);
-  bwsetfifo(COM2, OFF);
-  bwprintf(COM2, "\n\r");
+  // bwsetfifo(COM1, OFF);
+  // bwsetfifo(COM2, OFF);
+  // bwprintf(COM2, "\n\r");
   counter = 0;
   err = 0;
 
@@ -38,7 +38,7 @@ void initialize(void) {
   asm("str r0, [r1, #0];");
   asm("ldr r0, =activate_enter_kernel_irq;"); 
   asm("mov r1, #0x38;"); 
-asm("str r0, [r1, #0];");
+  asm("str r0, [r1, #0];");
 
   int first_tid = td_add(firsttask, P_FIRST_TASK, 0);
   set_active(first_tid);
@@ -66,11 +66,6 @@ int activate(void) {
   asm("ldr sp, [r9, #0];");     // load sp
   
   volatile struct kernel_stack * ks = (struct kernel_stack *) KERNEL_STACK_START;
-  // bwprintf( COM2, "ks->irq: %d\n\r", ks->irq);
-  // bwprintf( COM2, "ks->started: %d\n\r", ks->started);
-  // bwprintf( COM2, "ks->lr: %d\n\r", (int)ks->usr_lr);
-  // bwprintf( COM2, "ks->svc_lr: %d\n\r", ks->lr_svc);
-  // bwprintf( COM2, "the_other_task: %d\n\r", the_other_task);
   if (ks->irq == 1) {
     ks->irq = 0;
     asm("ldmfd  sp, {r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, fp, sp, lr};");
@@ -147,9 +142,9 @@ int handle(int num) {
   data1 = (int *)( UART1_BASE + UART_DATA_OFFSET );
   data2 = (int *)( UART2_BASE + UART_DATA_OFFSET );
   char c = 0;
-  volatile int * cts_1 = (UART1_BASE + UART_FLAG_OFFSET);
-  volatile int * cts_2 = (UART2_BASE + UART_FLAG_OFFSET);
- // int irq_bit = 0;
+  volatile int * cts_1 = (int *)(UART1_BASE + UART_FLAG_OFFSET);
+  volatile int * cts_2 = (int *)(UART2_BASE + UART_FLAG_OFFSET);
+  volatile int * uart1_int_enable = (int *) (UART1_BASE + UART_CTLR_OFFSET);
   switch(num){
     case IRQ:
 
@@ -170,12 +165,9 @@ int handle(int num) {
           buffer_add(TRAIN_RECEIVE, c);
         } else if (flags == 4) {
           buffer_remove(TRAIN_SEND);
+          // *uart1_int_enable &= ~TIEN_MASK;
           break;
-        } else if (flags == 0) {
-          // counter += 1;
-        } else {
-          err = flags;
-        }
+        } 
 
         flags = *((int *) 0x808d001c); // COM2
         if (flags == 2) {
@@ -184,40 +176,9 @@ int handle(int num) {
         } else if (flags == 4) {
           buffer_remove(TERMINAL_SEND);
           break;
-        } else if (flags == 0) {
-          // counter += 1;
-        } else {
-          err = flags;
         }
-
-        // while(i++ < 800000) asm("");
-        // i = 0;
-        // while (1) asm("");
-
-        // uart1_clear = (int *) (UART1_BASE + UART_INTR_OFFSET);
-        // *uart1_clear = 0;
-        // uart2_clear = (int *) (UART2_BASE + UART_INTR_OFFSET);
-        // *uart2_clear = 0;          
       }
-      // // UART1 receive
-      // if ((*int_enable1 >> (52 - 32)) & 1) {
-      //   bwprintf(COM2, "uart1 receive! \n\r");
-      // }
-      // // UART1 transmit
-      // if ((*int_enable1 >> (24)) & 1) {
-      //   bwprintf(COM2, "uart1 transmit! \n\r");
-      //   while (1);
-      //   uart1_clear = (int *) (UART1_BASE + UART_INTR_OFFSET);
-      //   *uart1_clear = 0;
-      // }
-      // // UART2 receive
-      // if ((*int_enable1 >> (25)) & 1) {
-      //   bwprintf(COM2, "uart2 receive! \n\r");
-      // }
-      // // UART2 transmit
-      // if ((*int_enable1 >> (26)) & 1) {
-      //   //bwprintf(COM2, "uart2 transmit! \n\r");
-      // }
+
 
       break;
     case CREATE:

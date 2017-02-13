@@ -9,7 +9,7 @@
 #include "kernel.h"
 #include "io.h"
 
-#include "../io/include/bwio.h"
+//#include "../io/include/bwio.h"
 #include "../io/include/ts7200.h"
 
 unsigned int idle_ticks = 0;
@@ -37,7 +37,7 @@ void idle_task(void) {
   volatile int * temp = &(ks->num_tasks);
   idle_ticks = 0;
   unsigned int pre = cyclesPerTick;
-  while (*temp != 5) {
+  while (*temp != 10) {
     unsigned int cur = *((int *)(timerValue));
     if (cur > pre) ++idle_ticks;
     pre = cur;
@@ -113,6 +113,7 @@ void firsttask(void) {
   // Create(4, &the_other_task_2);
   // Create(5, &the_other_task_3);
   // Create(6, &the_other_task_4);
+
   int *high, *low;
   high = (int *)( UART1_BASE + UART_LCRM_OFFSET );
   low = (int *)( UART1_BASE + UART_LCRL_OFFSET );
@@ -124,8 +125,11 @@ void firsttask(void) {
 
   flags = (int *)( UART1_BASE + UART_FLAG_OFFSET );
   data = (int *)( UART1_BASE + UART_DATA_OFFSET );
-    
+
+  bwsetfifo(COM2, OFF);
   
+  int i;
+  for (i = 0; i < 55; ++i) asm("nop");
   // bwprintf(COM2, "first task started\n\r");
   irq_enable_uart1_receive();
 
@@ -144,26 +148,23 @@ void firsttask(void) {
 
   // *data = c;
 
-  // char str[] = "let's print a string!\n\r";
+  char str[] = "let's print a string!\n\r";
   // int i;
-  // int len = strlen(str);
-  // int k;
-  // for (k = 0; k < 50; k++)
-  //   for (i = 0; i < 24; ++i) {
-  //     Putc(1, str[i]);
-  //     Putc(2, str[i]);
-  //     // int a = 0;
-  //     // while (++a < 100000) asm("");  
-  //   }
-
-  while(1) {
-    char c = Getc(2);
-    Putc(1, c);
-    // Putc(2, c);
-    // Putc(2,counter);
-    bwprintf(COM2, "%d\n\r", counter);
-    bwprintf(COM2, "%d\n\r", err);
+  int len = strlen(str);
+  int k;
+  for (k = 0; k < 50; k++) {
+    printf(2, "string: %d", 1);
+    //printf(1, str);
   }
+
+  // while(1) {
+  //   char c = Getc(2);
+  //   Putc(1, c);
+  //   // Putc(2, c);
+  //   // Putc(2,counter);
+  //   bwprintf(COM2, "%d\n\r", counter);
+  //   bwprintf(COM2, "%d\n\r", err);
+  // }
 
   // while (c != 'q'){
   //   c = bwgetc(COM2);

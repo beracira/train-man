@@ -1,7 +1,9 @@
 #ifndef IO_H
 #define IO_H
 
-#define IO_BUFFER_SIZE 1024
+#include "../io/include/bwio.h"
+
+#define IO_BUFFER_SIZE 10240
 
 #define TRAIN_SEND       1
 #define TRAIN_RECEIVE    2
@@ -9,6 +11,8 @@
 #define TERMINAL_RECEIVE 4
 
 #define IO_TID           4
+
+
 
 extern struct IO_Buffer * train_send_ptr;
 extern struct IO_Buffer * train_receive_ptr;
@@ -37,6 +41,8 @@ void IO_init();
 
 void Putc(int uart, char ch);
 
+char Getc(int uart);
+
 inline void buffer_add(int uart, char c);
 
 inline char buffer_remove(int uart);
@@ -44,4 +50,7 @@ inline char buffer_remove(int uart);
 void IO_Server();
 
 void remove_wait_list(int uart);
-#endif
+
+void printf( int channel, char *fmt, ... );
+
+#endif /* IO_H */

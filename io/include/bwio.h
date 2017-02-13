@@ -2,6 +2,9 @@
  * bwio.h
  */
 
+#ifndef BWIO_H
+#define BWIO_H
+
 typedef char *va_list;
 
 #define __va_argsiz(t)	\
@@ -37,3 +40,5 @@ int bwputr( int channel, unsigned int reg );
 void bwputw( int channel, int n, char fc, char *bf );
 
 void bwprintf( int channel, char *format, ... );
+
+#endif

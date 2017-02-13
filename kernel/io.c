@@ -103,7 +103,7 @@ inline char buffer_remove(int uart) {
   struct IO_Buffer * target = 0;
   volatile int * uart_int_enable = 0;
   volatile int mask = 0;
-  volatile int *data;
+  volatile int *data = 0;
 
   switch (uart) {
     case TRAIN_SEND:
@@ -142,6 +142,8 @@ inline char buffer_remove(int uart) {
       *data = retval;
     return retval;
   }
+
+  return 255;
 }
 
 
@@ -205,7 +207,7 @@ void IO_Server() {
   train_receive_ptr = &train_receive;
   terminal_send_ptr = &terminal_send;
   terminal_receive_ptr = &terminal_receive;
-  get_char_buffer_ptr = &get_char_buffer;
+  get_char_buffer_ptr = get_char_buffer;
 
   train_wait_list_ptr = &train_wait_list;
   terminal_wait_list_ptr = &terminal_wait_list;
@@ -282,3 +284,158 @@ void IO_Server() {
 //     //ERROR
 //   }
 // }
+
+
+
+char ioc2x( char ch ) {
+  if ( (ch <= 9) ) return '0' + ch;
+  return 'a' + ch - 10;
+}
+
+int ioputx( int channel, char c ) {
+  char chh, chl;
+
+  chh = ioc2x( c / 16 );
+  chl = ioc2x( c % 16 );
+  Putc(channel, c);
+  Putc( channel, chl );
+  return 0;
+}
+
+int ioputr( int channel, unsigned int reg ) {
+  int byte;
+  char *ch = (char *) &reg;
+
+  for( byte = 3; byte >= 0; byte-- ) ioputx( channel, ch[byte] );
+  Putc(channel, ' ');
+  return 0;
+}
+
+int ioputstr( int channel, char *str ) {
+  while( *str ) {
+    Putc(channel, *str ); 
+    str++;
+  }
+  return 0;
+}
+
+void ioputw( int channel, int n, char fc, char *bf ) {
+  char ch;
+  char *p = bf;
+
+  while( *p++ && n > 0 ) n--;
+  while( n-- > 0 ) Putc( channel, fc );
+  while( ( ch = *bf++ ) ) Putc( channel, ch );
+}
+
+int ioa2d( char ch ) {
+  if( ch >= '0' && ch <= '9' ) return ch - '0';
+  if( ch >= 'a' && ch <= 'f' ) return ch - 'a' + 10;
+  if( ch >= 'A' && ch <= 'F' ) return ch - 'A' + 10;
+  return -1;
+}
+
+char ioa2i( char ch, char **src, int base, int *nump ) {
+  int num, digit;
+  char *p;
+
+  p = *src; num = 0;
+  while( ( digit = ioa2d( ch ) ) >= 0 ) {
+    if ( digit > base ) break;
+    num = num*base + digit;
+    ch = *p++;
+  }
+  *src = p; *nump = num;
+  return ch;
+}
+
+void ioui2a( unsigned int num, unsigned int base, char *bf ) {
+  int n = 0;
+  int dgt;
+  unsigned int d = 1;
+  
+  while( (num / d) >= base ) d *= base;
+  while( d != 0 ) {
+    dgt = num / d;
+    num %= d;
+    d /= base;
+    if( n || dgt > 0 || d == 0 ) {
+      *bf++ = dgt + ( dgt < 10 ? '0' : 'a' - 10 );
+      ++n;
+    }
+  }
+  *bf = 0;
+}
+
+void ioi2a( int num, char *bf ) {
+  if( num < 0 ) {
+    num = -num;
+    *bf++ = '-';
+  }
+  ioui2a( num, 10, bf );
+}
+
+void ioformat ( int channel, char *fmt, va_list va ) {
+  char bf[12];
+  char ch, lz;
+  int w;
+
+  
+  while ( ( ch = *(fmt++) ) ) {
+    if ( ch != '%' )
+      Putc( channel, ch );
+    else {
+      lz = 0; w = 0;
+      ch = *(fmt++);
+      switch ( ch ) {
+      case '0':
+        lz = 1; ch = *(fmt++);
+        break;
+      case '1':
+      case '2':
+      case '3':
+      case '4':
+      case '5':
+      case '6':
+      case '7':
+      case '8':
+      case '9':
+        ch = ioa2i( ch, &fmt, 10, &w );
+        break;
+      }
+      switch( ch ) {
+      case 0: return;
+      case 'c':
+        Putc( channel, va_arg( va, char ) );
+        break;
+      case 's':
+        ioputw( channel, w, 0, va_arg( va, char* ) );
+        break;
+      case 'u':
+        ioui2a( va_arg( va, unsigned int ), 10, bf );
+        ioputw( channel, w, lz, bf );
+        break;
+      case 'd':
+        ioi2a( va_arg( va, int ), bf );
+        ioputw( channel, w, lz, bf );
+        break;
+      case 'x':
+        ioui2a( va_arg( va, unsigned int ), 16, bf );
+        ioputw( channel, w, lz, bf );
+        break;
+      case '%':
+        Putc( channel, ch );
+        break;
+      }
+    }
+  }
+}
+
+void printf( int channel, char *fmt, ... ) {
+        va_list va;
+
+        va_start(va,fmt);
+        ioformat( channel, fmt, va );
+        va_end(va);
+}
+
