@@ -148,12 +148,11 @@ void firsttask(void) {
 
   // *data = c;
 
-  char str[] = "let's print a string!\n\r";
+  //char str[] = "let's print a string!\n\r";
   // int i;
-  int len = strlen(str);
   int k;
-  for (k = 0; k < 50; k++) {
-    printf(2, "string: %d", 1);
+  for (k = 0; k < 10; k++) {
+    printf(2, "test printf %d: %d \n\r", i, 1);
     //printf(1, str);
   }
 

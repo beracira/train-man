@@ -129,22 +129,17 @@ int handle(int num) {
 
   // NOTE: can't declare variables in switch statement; do it up here
 
-  volatile int * int_enable1 = (int *) (VIC1_BASE + VICxIRQStatus);
   volatile int * int_enable2 = (int *) (VIC2_BASE + VICxIRQStatus);
   volatile int timer_reg = ((*int_enable2 >> (51 - 32)) & 1);
   // int * uart1_clear = 0;
   // int * uart2_clear = 0;
-
-  int i = 0;
 
   volatile int *data1, *data2;
   volatile int flags;
   data1 = (int *)( UART1_BASE + UART_DATA_OFFSET );
   data2 = (int *)( UART2_BASE + UART_DATA_OFFSET );
   char c = 0;
-  volatile int * cts_1 = (int *)(UART1_BASE + UART_FLAG_OFFSET);
-  volatile int * cts_2 = (int *)(UART2_BASE + UART_FLAG_OFFSET);
-  volatile int * uart1_int_enable = (int *) (UART1_BASE + UART_CTLR_OFFSET);
+  
   switch(num){
     case IRQ:
 

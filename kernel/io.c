@@ -47,7 +47,7 @@ char Getc(int uart) {
   int sender_tid = 0;
   char ch = 98, dummy;
 
-  int k = Receive( &sender_tid, &ch, sizeof(char));
+  Receive( &sender_tid, &ch, sizeof(char));
   Reply(sender_tid, &dummy, sizeof(char));
 
   return ch;
