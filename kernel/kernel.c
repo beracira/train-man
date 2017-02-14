@@ -224,6 +224,7 @@ int main( int argc, char* argv[] ) {
     
     int request = activate(); //active);
     // printf(2, "\033[s\n\ractivate: %d\033[u", active);
+    // printf( 2, "activate: %d\n\r", active);
 
     (void) request;
     handle(0);

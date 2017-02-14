@@ -147,6 +147,11 @@ void firsttask(void) {
   //     // int a = 0;
   //     // while (++a < 100000) asm("");  
   //   }
+  int k;
+  for (k = 0; k < 10; k++) {
+    printf(2, "test printf %d: %d \n\r", k, 1);
+    //printf(1, str);
+  }
 
   // while(1) {
   //   char c = Getc(2);
