@@ -4,6 +4,7 @@
 #include "user_syscall.h"
 #include "td.h"
 #include "syscall.h"
+#include "irq.h"
 
 struct IO_Buffer * train_send_ptr = 0;
 struct IO_Buffer * train_receive_ptr = 0;
@@ -32,6 +33,7 @@ void IO_init() {
   irq_enable_uart1_receive();
 
   bwsetfifo( COM2, OFF );
+
   io_ready = 0;
 }
 

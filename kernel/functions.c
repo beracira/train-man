@@ -40,7 +40,7 @@ void idle_task(void) {
   volatile int * temp = &(ks->num_tasks);
   idle_ticks = 0;
   unsigned int pre = cyclesPerTick;
-  while (*temp != 5) {
+  while (*temp != 10) {
     unsigned int cur = *((int *)(timerValue));
     if (cur > pre) ++idle_ticks;
     pre = cur;
@@ -102,9 +102,15 @@ void the_other_task_4(void){
   Exit();
 }
 
+void speed_test(void) {
+  Putc(1, 10); // speed
+  Putc(1, 71); // train num
+ // set_train_speed(71, 10);
+  Exit();
+}
+
 void firsttask(void) {
 
-  
   // K3 tasks
   Create(P_NAME_SERVER, nameserver);
   Create(P_CLOCK_SERVER, clockserver);

@@ -9,6 +9,7 @@
 #include "irq.h"
 #include "clockserver.h"
 #include "io.h"
+#include "courier.h"
 
 int activate(void);
 
@@ -26,9 +27,6 @@ void initialize(void) {
   asm("ORR r0, r0, #0x00000004"); // set bits to be set
   asm("MCR p15, 0, r0, c1, c0, 0"); // write c1
 
-  // bwsetfifo(COM1, OFF);
-  // bwsetfifo(COM2, OFF);
-  // bwprintf(COM2, "\n\r");
   counter = 0;
   err = 0;
 
@@ -46,7 +44,12 @@ void initialize(void) {
   ks->num_tasks = 1;
 
   init_queue();
+
   IO_init();
+  int i = 0;
+  while (i++ < 100000);
+  bwsetfifo(COM1, OFF);
+  //bwprintf(COM2, "\n\r");
 }
 
 int activate(void) {
@@ -151,6 +154,7 @@ int handle(int num) {
         irq_clear_timer();
         if (io_ready && time_ticks % 10 == 0) {
           update_time();
+          wake_train();
         }
         // printf(2, "%u\n\r", time_ticks);
         ++time_ticks;

@@ -13,6 +13,18 @@ struct cr_request {
   int arg2;
 };
 
+struct CR_TRAIN_LIST {
+  int train;
+  int speed;
+};
+
+struct CR_REVERSE_LIST {
+  int train[100];
+  int time[100];
+  int speed[100];
+  int head;
+  int tail;
+};
 
 void set_train_speed(int train, int speed);
 
