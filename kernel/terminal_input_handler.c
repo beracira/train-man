@@ -89,6 +89,7 @@ int command_parser(char * cmd, int cmd_len) {
       return 1;
     }
   }
+  return 0;
 }
 
 void input_handle() {

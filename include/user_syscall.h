@@ -32,4 +32,6 @@ int Reply( int tid, void *reply, int replylen );
 
 int AwaitEvent(int eventid);
 
+void printf( int channel, char *fmt, ... );
+
 #endif // USER_SYSCALL_H

@@ -6,7 +6,7 @@ XCC = /u/wbcowan/gnuarm-4.0.2/arm-elf/bin/gcc
 AS	= /u/wbcowan/gnuarm-4.0.2/arm-elf/bin/as
 LD  = /u/wbcowan/gnuarm-4.0.2/arm-elf/bin/ld
 
-CFLAGSO2  = -c -fPIC -Wall -O2 -Wextra -fno-builtin -I. -I../include -mcpu=arm920t -msoft-float
+CFLAGSO2  = -c -fPIC -Wall -O3 -Wextra -fno-builtin -I. -I../include -mcpu=arm920t -msoft-float
 CFLAGSO0 = -c -fPIC -Wall -O0 -Wextra -fno-builtin -I. -I../include -mcpu=arm920t -msoft-float
 # -g: include hooks for gdb
 # -c: only compile

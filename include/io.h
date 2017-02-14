@@ -53,6 +53,8 @@ void IO_Server();
 
 void remove_wait_list(int uart);
 
+void ioformat( int channel, char *fmt, va_list va );
+
 void printf( int channel, char *fmt, ... );
 
 #endif /* IO_H */

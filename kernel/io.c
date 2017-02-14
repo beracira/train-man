@@ -468,26 +468,3 @@ void ioformat ( int channel, char *fmt, va_list va ) {
   }
 }
 
-void printf( int channel, char *fmt, ... ) {
-  // asm
-  // asm("MRS R8");
-  volatile int * uart_int_enable = 0;
-  volatile int mask = 0;
-  uart_int_enable = (int *) (UART1_BASE + UART_CTLR_OFFSET);
-  mask = TIEN_MASK;
-
-  if (channel == 2)
-    uart_int_enable = (int *) (UART2_BASE + UART_CTLR_OFFSET);
-  *uart_int_enable &= ~mask;
-
-  va_list va;
-
-  va_start(va,fmt);
-  ioformat( channel, fmt, va );
-  va_end(va);
-
-  if (channel == 2)
-    uart_int_enable = (int *) (UART2_BASE + UART_CTLR_OFFSET);
-  *uart_int_enable |= mask;
-}
-
