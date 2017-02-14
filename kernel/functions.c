@@ -8,8 +8,9 @@
 #include "irq.h"
 #include "kernel.h"
 #include "io.h"
+#include "train_ui.h"
 
-//#include "../io/include/bwio.h"
+#include "../io/include/bwio.h"
 #include "../io/include/ts7200.h"
 
 unsigned int idle_ticks = 0;
@@ -37,7 +38,7 @@ void idle_task(void) {
   volatile int * temp = &(ks->num_tasks);
   idle_ticks = 0;
   unsigned int pre = cyclesPerTick;
-  while (*temp != 10) {
+  while (*temp != 5) {
     unsigned int cur = *((int *)(timerValue));
     if (cur > pre) ++idle_ticks;
     pre = cur;
@@ -107,31 +108,13 @@ void firsttask(void) {
   Create(P_HIGH, clockserver);
   Create(P_HIGH, IO_Server);
   Create(P_SUPER_HIGH, timer_notifier);
+  Create(P_HIGH, UI_Server);
   Create(P_LOW, &idle_task);
 
   // Create(3, &the_other_task_1);
   // Create(4, &the_other_task_2);
   // Create(5, &the_other_task_3);
   // Create(6, &the_other_task_4);
-
-  int *high, *low;
-  high = (int *)( UART1_BASE + UART_LCRM_OFFSET );
-  low = (int *)( UART1_BASE + UART_LCRL_OFFSET );
-  *high = 0x0;
-  *low = 0xBF;
-  *(int *)( UART1_BASE + UART_LCRH_OFFSET ) = 0x68;
-
-  volatile int *flags, *data;
-
-  flags = (int *)( UART1_BASE + UART_FLAG_OFFSET );
-  data = (int *)( UART1_BASE + UART_DATA_OFFSET );
-
-  bwsetfifo(COM2, OFF);
-  
-  int i;
-  for (i = 0; i < 55; ++i) asm("nop");
-  // bwprintf(COM2, "first task started\n\r");
-  irq_enable_uart1_receive();
 
   //*data = 'x';
 
@@ -148,13 +131,17 @@ void firsttask(void) {
 
   // *data = c;
 
-  //char str[] = "let's print a string!\n\r";
+  // char str[] = "let's print a string!\n\r";
   // int i;
-  int k;
-  for (k = 0; k < 10; k++) {
-    printf(2, "test printf %d: %d \n\r", i, 1);
-    //printf(1, str);
-  }
+  // int len = strlen(str);
+  // int k;
+  // for (k = 0; k < 50; k++)
+  //   for (i = 0; i < 24; ++i) {
+  //     Putc(1, str[i]);
+  //     Putc(2, str[i]);
+  //     // int a = 0;
+  //     // while (++a < 100000) asm("");  
+  //   }
 
   // while(1) {
   //   char c = Getc(2);

@@ -48,9 +48,9 @@ void irq_enable_uart1_receive(void) {
   *int_enable = *int_enable | (1 << 24);
   *int_enable = *int_enable | (1 << 25);
   *int_enable = *int_enable | (1 << 26);
-  int_enable = (int *) (VIC2_BASE + VICxIntEnable);
-  *int_enable = *int_enable | (1 << (52 - 32));
-  *int_enable = *int_enable | (1 << (54 - 32));
+  // int_enable = (int *) (VIC2_BASE + VICxIntEnable);
+  // *int_enable = *int_enable | (1 << (52 - 32));
+  // *int_enable = *int_enable | (1 << (54 - 32));
 }
 
 // void irq_enable_uart1_transmit(void) {

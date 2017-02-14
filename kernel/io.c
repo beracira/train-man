@@ -5,7 +5,6 @@
 #include "td.h"
 #include "syscall.h"
 
-
 struct IO_Buffer * train_send_ptr = 0;
 struct IO_Buffer * train_receive_ptr = 0;
 
@@ -15,9 +14,24 @@ struct IO_Buffer * terminal_receive_ptr = 0;
 struct IO_Wait_List * train_wait_list_ptr = 0;
 struct IO_Wait_List * terminal_wait_list_ptr = 0;
 
+int io_ready = 0;
 
 void IO_init() {
+  int *high, *low;
+  high = (int *)( UART1_BASE + UART_LCRM_OFFSET );
+  low = (int *)( UART1_BASE + UART_LCRL_OFFSET );
+  *high = 0x0;
+  *low = 0xBF;
+  *(int *)( UART1_BASE + UART_LCRH_OFFSET ) = 0x68;
 
+  volatile int *flags, *data;
+
+  flags = (int *)( UART1_BASE + UART_FLAG_OFFSET );
+  data = (int *)( UART1_BASE + UART_DATA_OFFSET );
+    
+  irq_enable_uart1_receive();
+
+  io_ready = 0;
 }
 
 void Putc(int uart, char ch) {
@@ -193,7 +207,7 @@ void remove_wait_list(int uart) {
 
 
 void IO_Server() {
-  IO_init();
+  // IO_init(); // done by kernel init
 
   struct IO_Buffer train_send;
   struct IO_Buffer train_receive;
@@ -235,6 +249,8 @@ void IO_Server() {
   terminal_wait_list_ptr->head = 0;
   terminal_wait_list_ptr->tail = 0;
   get_char_cur = 0;
+
+  io_ready = 1;
 
   int sender_tid = -1;
   struct IO_Request req;

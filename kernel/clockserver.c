@@ -108,7 +108,7 @@ void clockserver(void) {
   struct clk_request req;
   struct clk_request result;
  
-	while (1 + 1 ==2) {
+	while (1 + 1 == 2) {
 		Receive( &sender_tid, &req, sizeof(struct clk_request));
 
     switch(req.type) {

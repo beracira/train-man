@@ -19,6 +19,8 @@ extern struct IO_Buffer * train_receive_ptr;
 extern struct IO_Buffer * terminal_send_ptr;
 extern struct IO_Buffer * terminal_receive_ptr;
 
+extern int io_ready;
+
 struct IO_Request{
   int tid;
   int type;

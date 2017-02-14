@@ -46,7 +46,7 @@ void initialize(void) {
   ks->num_tasks = 1;
 
   init_queue();
-  
+  IO_init();
 }
 
 int activate(void) {
@@ -150,6 +150,9 @@ int handle(int num) {
       	// bwprintf(COM2, "before clear -  - timer reg %d .\n\r", timer_reg);
         irq_clear_timer();
         td[await_event_list_ptr[TIMER_EVENT]].state = READY;
+        if (io_ready && time_ticks % 10 == 0) {
+          update_time();
+        }
         // ++time_ticks;
         // remove_delay_list();
       }
