@@ -24,12 +24,16 @@ void timer_notifier(void) {
   struct clk_request req;
   struct clk_request result;
   req.tid = my_tid;
+  int i = 0;
 
   while (1 + 1 == 2) {
+    printf(2, "before send: %d\n\r", ++i);
     AwaitEvent(TIMER_EVENT);
     req.type = CLK_INC;
     req.ticks = 0;
+    printf(2, "asdf: %d\n\r", ++i);
     Send(CLK_TID, &req, sizeof(struct clk_request), &result, 0);
+    printf(2, "after send: %d\n\r", ++i);
   }
 }
 

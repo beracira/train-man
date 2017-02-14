@@ -8,7 +8,11 @@
 //priorities
 #define P_SUPER_HIGH 0
 #define P_HIGH       1
-#define P_FIRST_TASK 2
+#define P_CLOCK_NOTIFIER 1
+#define P_CLOCK_SERVER 2
+#define P_NAME_SERVER 3
+#define P_OTHER_SERVERS 4
+#define P_FIRST_TASK 10
 #define P_MEDIUM     15
 #define P_LOW        31
 

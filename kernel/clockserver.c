@@ -67,7 +67,7 @@ void remove_delay_list() {
   while (clk_delay_list_ptr->last != 0 && clk_delay_list_ptr->wakeup_time[0] < time_ticks) {
     int tid = clk_delay_list_ptr->tid[0];
     int dummy1 = 1, dummy2 = 2;
-    Send(tid, &dummy1, sizeof(int), &dummy2, sizeof(int));
+    kernel_kernel_Send(tid, &dummy1, sizeof(int), &dummy2, sizeof(int));
     int i;
     for (i = 0; i < clk_delay_list_ptr->last; ++i) { // last one should be -1
       clk_delay_list_ptr->tid[i] = clk_delay_list_ptr->tid[i + 1];
@@ -124,6 +124,7 @@ void clockserver(void) {
 
       case CLK_INC:
         ++time_ticks;
+        printf(2, "server time %u\n\r", time_ticks);
         remove_delay_list();
       default:
         break;

@@ -149,12 +149,12 @@ int handle(int num) {
     	if (timer_reg) {
       	// bwprintf(COM2, "before clear -  - timer reg %d .\n\r", timer_reg);
         irq_clear_timer();
-        td[await_event_list_ptr[TIMER_EVENT]].state = READY;
         if (io_ready && time_ticks % 10 == 0) {
           update_time();
         }
-        // ++time_ticks;
-        // remove_delay_list();
+        // printf(2, "%u\n\r", time_ticks);
+        ++time_ticks;
+        remove_delay_list();
       }
       else {
         flags = *((int *) 0x808c001c); // COM1 
@@ -221,10 +221,13 @@ int main( int argc, char* argv[] ) {
     int active = schedule();
     if (active == -1) return 0;
     set_active(active);
-    
+
+    // if (active != 8) {
+    //   printf( 2, "activate: %d\n\r", active);
+    // }
     int request = activate(); //active);
     // printf(2, "\033[s\n\ractivate: %d\033[u", active);
-    // printf( 2, "activate: %d\n\r", active);
+
 
     (void) request;
     handle(0);

@@ -1,4 +1,5 @@
 #include "terminal_input_handler.h"
+#include "courier.h"
 #include "io.h"
 
 int stoi(char * str, int len) {
@@ -52,15 +53,20 @@ int command_parser(char * cmd, int cmd_len) {
         int train_speed = stoi(item[2], item_len[2]);
         if (num_item != 3)
           printf(2, "\033[A\033[KLast command: Invalid Command\033[B");
-        else
+        else {
+          // set_train_speed(train_number, train_speed);
+          // printf(1, "%c%c", train_number, train_speed);
           printf(2, "\033[A\033[KLast command: %s %d %d\033[B", item[0], train_number, train_speed);
+        }
       } else if (item[0][0] == 'r') {
         int train_number = stoi(item[1], item_len[1]);
 
         if (num_item != 3)
           printf(2, "\033[A\033[KLast command: Invalid Command\033[B");
-        else
+        else {
+          // reverse_train(train_number);
           printf(2, "\033[A\033[KLast command: %s %d\033[B", item[0], train_number);
+        }
       } else if (item[0][0] == 's') {
         int switch_number = stoi(item[1], item_len[1]);
         if ((switch_number >= 1 && switch_number <= 17) || (switch_number >= 0x99 && switch_number <= 0x9c)) {
@@ -68,8 +74,10 @@ int command_parser(char * cmd, int cmd_len) {
 
           if (num_item != 2)
             printf(2, "\033[A\033[KLast command: Invalid Command\033[B");
-          else
+          else {
+            // flip_switch(switch_number, 34);
             printf(2, "\033[A\033[KLast command: %s %d %d\033[B", item[0], switch_number);
+          }
         } else {
           printf(2, "\033[A\033[KLast command: Invalid Switch\033[B");
           return 1;

@@ -10,6 +10,7 @@
 #include "io.h"
 #include "train_ui.h"
 #include "terminal_input_handler.h"
+#include "courier.h"
 
 #include "../io/include/bwio.h"
 #include "../io/include/ts7200.h"
@@ -105,16 +106,26 @@ void firsttask(void) {
 
   
   // K3 tasks
-  Create(P_HIGH, nameserver);
-  Create(P_HIGH, clockserver);
-  Create(P_HIGH, IO_Server);
-  Create(P_SUPER_HIGH, timer_notifier);
-  Create(P_HIGH, UI_Server);
+  Create(P_NAME_SERVER, nameserver);
+  Create(P_CLOCK_SERVER, clockserver);
+  Create(P_OTHER_SERVERS, IO_Server);
+  Create(P_OTHER_SERVERS, UI_Server);
+  Create(P_OTHER_SERVERS, courier_server);
   Create(P_MEDIUM, input_handle);
   Create(P_LOW, &idle_task);
 
-  int i;
-  for (i = 0; i < 10; ++i) Putc(1, 10);
+  // int i = 0;
+  // for (i = 0; i < 256; ++i) Putc(1, i);
+
+  // Putc(1, 10);
+  // Putc(1, 58);
+  // Putc(1, 58);
+  // Putc(1, 58);
+  // i = 0;
+  // while (i++ < 100000) asm("NOP");
+  // while (i++ < 100000);
+  // Putc(1, 57);
+  // printf(1, "%c%c", 10, 58);
 
   // Create(3, &the_other_task_1);
   // Create(4, &the_other_task_2);
@@ -147,12 +158,6 @@ void firsttask(void) {
   //     // int a = 0;
   //     // while (++a < 100000) asm("");  
   //   }
-  int k;
-  for (k = 0; k < 10; k++) {
-    printf(2, "test printf %d: %d \n\r", k, 1);
-    //printf(1, str);
-  }
-
   // while(1) {
   //   char c = Getc(2);
   //   Putc(1, c);

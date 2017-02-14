@@ -75,27 +75,22 @@ void courier_server(void) {
 
     switch(req.type) {
       case CR_SET_SPEED:
-        Putc(1, req.arg2); // speed
-        Putc(1, req.arg1); // train num
+        printf(1, "%c%c", req.arg2, req.arg1);
         break;
 
       case CR_REVERSE_WAIT:
         // set train speed to 0
-        Putc(1, 0);
-        Putc(1, req.arg1);
+        printf(1, "%c%c", 0, req.arg1);
 
       case CR_REVERSE_SET:
         // reverse train
-        Putc(1, 15);
-        Putc(1, req.arg1);
+        printf(1, "%c%c", 15, req.arg1);
         // set train speed to 14
-        Putc(1, 14);
-        Putc(1, req.arg1);
+        printf(1, "%c%c", 14, req.arg1);
         break;
 
       case CR_SWITCH:
-        Putc(1, req.arg2); // direction
-        Putc(1, req.arg1); // switch num
+        printf(1, "%c%c", req.arg2, req.arg1);
         Putc(1, 32);
         break;
 
