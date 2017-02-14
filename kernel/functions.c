@@ -9,6 +9,7 @@
 #include "kernel.h"
 #include "io.h"
 #include "train_ui.h"
+#include "terminal_input_handler.h"
 
 #include "../io/include/bwio.h"
 #include "../io/include/ts7200.h"
@@ -109,7 +110,11 @@ void firsttask(void) {
   Create(P_HIGH, IO_Server);
   Create(P_SUPER_HIGH, timer_notifier);
   Create(P_HIGH, UI_Server);
+  Create(P_MEDIUM, input_handle);
   Create(P_LOW, &idle_task);
+
+  int i;
+  for (i = 0; i < 10; ++i) Putc(1, 10);
 
   // Create(3, &the_other_task_1);
   // Create(4, &the_other_task_2);

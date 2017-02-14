@@ -223,7 +223,7 @@ int main( int argc, char* argv[] ) {
     set_active(active);
     
     int request = activate(); //active);
-    // bwprintf( COM2, "activate: %d\n\r", active);
+    // printf(2, "\033[s\n\ractivate: %d\033[u", active);
 
     (void) request;
     handle(0);

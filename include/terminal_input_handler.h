@@ -1,6 +1,6 @@
 #ifndef TERMINAL_INPUT_HANDLER_H
 #define TERMINAL_INPUT_HANDLER_H
 
-
+void input_handle();
 
 #endif // TERMINAL_INPUT_HANDLER_H

@@ -31,6 +31,7 @@ void IO_init() {
     
   irq_enable_uart1_receive();
 
+  bwsetfifo( COM2, OFF );
   io_ready = 0;
 }
 
@@ -112,6 +113,21 @@ inline void buffer_add(int uart, char c) {
   }
 }
 
+inline void buffer_add_printf(int uart, char c) {
+  struct IO_Buffer * target = 0;
+
+  switch (uart) {
+    case 1:
+      target = train_send_ptr;
+      break;
+    case 2:
+      target = terminal_send_ptr;
+      break;
+  }
+
+  target->buffer[target->tail++] = c;
+  target->tail %= IO_BUFFER_SIZE;
+}
 
 inline char buffer_remove(int uart) {
   struct IO_Buffer * target = 0;
@@ -313,8 +329,8 @@ int ioputx( int channel, char c ) {
 
   chh = ioc2x( c / 16 );
   chl = ioc2x( c % 16 );
-  Putc(channel, c);
-  Putc( channel, chl );
+  buffer_add_printf( channel, c);
+  buffer_add_printf( channel, chl );
   return 0;
 }
 
@@ -323,13 +339,13 @@ int ioputr( int channel, unsigned int reg ) {
   char *ch = (char *) &reg;
 
   for( byte = 3; byte >= 0; byte-- ) ioputx( channel, ch[byte] );
-  Putc(channel, ' ');
+  buffer_add_printf(channel, ' ');
   return 0;
 }
 
 int ioputstr( int channel, char *str ) {
   while( *str ) {
-    Putc(channel, *str ); 
+    buffer_add_printf(channel, *str ); 
     str++;
   }
   return 0;
@@ -340,8 +356,8 @@ void ioputw( int channel, int n, char fc, char *bf ) {
   char *p = bf;
 
   while( *p++ && n > 0 ) n--;
-  while( n-- > 0 ) Putc( channel, fc );
-  while( ( ch = *bf++ ) ) Putc( channel, ch );
+  while( n-- > 0 ) buffer_add_printf( channel, fc );
+  while( ( ch = *bf++ ) ) buffer_add_printf( channel, ch );
 }
 
 int ioa2d( char ch ) {
@@ -399,7 +415,7 @@ void ioformat ( int channel, char *fmt, va_list va ) {
   
   while ( ( ch = *(fmt++) ) ) {
     if ( ch != '%' )
-      Putc( channel, ch );
+      buffer_add_printf( channel, ch );
     else {
       lz = 0; w = 0;
       ch = *(fmt++);
@@ -422,7 +438,7 @@ void ioformat ( int channel, char *fmt, va_list va ) {
       switch( ch ) {
       case 0: return;
       case 'c':
-        Putc( channel, va_arg( va, char ) );
+        buffer_add_printf( channel, va_arg( va, char ) );
         break;
       case 's':
         ioputw( channel, w, 0, va_arg( va, char* ) );
@@ -440,7 +456,7 @@ void ioformat ( int channel, char *fmt, va_list va ) {
         ioputw( channel, w, lz, bf );
         break;
       case '%':
-        Putc( channel, ch );
+        buffer_add_printf( channel, ch );
         break;
       }
     }
@@ -448,10 +464,18 @@ void ioformat ( int channel, char *fmt, va_list va ) {
 }
 
 void printf( int channel, char *fmt, ... ) {
-        va_list va;
+  va_list va;
 
-        va_start(va,fmt);
-        ioformat( channel, fmt, va );
-        va_end(va);
+  va_start(va,fmt);
+  ioformat( channel, fmt, va );
+  va_end(va);
+
+  volatile int * uart_int_enable = 0;
+  volatile int mask = 0;
+  uart_int_enable = (int *) (UART1_BASE + UART_CTLR_OFFSET);
+  mask = TIEN_MASK;
+  if (channel == 2)
+    uart_int_enable = (int *) (UART2_BASE + UART_CTLR_OFFSET);
+  *uart_int_enable |= mask;
 }
 

@@ -94,15 +94,7 @@ int com1_init() {
   * (int *) ( UART1_BASE + UART_LCRH_OFFSET) = 0x68;
   return 0;
 }
-int stoi(char * str, int len) {
-  int i;
-  int retval = 0;
-  for (i = 0; i < len; ++i) {
-    retval += str[i] - '0';
-    retval *= 10;
-  }
-  return retval / 10;
-}
+
 int put_int(int n) {
   if (n == 0) {
     putchar_terminal('0');
@@ -505,7 +497,7 @@ void UI_init() {
   for (i = 0x99; i <= 0x9c; ++i) {
     printf(2, "%d\t\n\r", i);
   }
-  printf(2, "Recently triggered sensors: \n\r$ ");
+  printf(2, "Recently triggered sensors: \n\rLast command:\n\r$ ");
 }
 
 void UI_Server() {
