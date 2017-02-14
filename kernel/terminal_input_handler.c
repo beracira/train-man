@@ -1,6 +1,7 @@
 #include "terminal_input_handler.h"
 #include "courier.h"
 #include "io.h"
+#include "user_syscall.h"
 
 int stoi(char * str, int len) {
   int i;
@@ -38,12 +39,12 @@ int command_parser(char * cmd, int cmd_len) {
   }
   if (start) ++num_item; 
   if (num_item > 3) {
-    printf(2, "\033[A\033[KLast command: Invalid Command\033[B");
+    printf(2, "\033[A\033[2K\rLast command: Invalid Command\033[B");
     return 1;
   } else {
     if (item_len[0] == 1) {
       if (item[0][0] == 'q') {
-        printf(2, "\033[A\033[KLast command: Quit\033[B");
+        printf(2, "\033[A\033[2K\rLast command: Quit\033[B");
         return -1;
       }
     } else if (item_len[0] == 2) {
@@ -52,45 +53,48 @@ int command_parser(char * cmd, int cmd_len) {
         int train_number = stoi(item[1], item_len[1]);
         int train_speed = stoi(item[2], item_len[2]);
         if (num_item != 3)
-          printf(2, "\033[A\033[KLast command: Invalid Command\033[B");
+          printf(2, "\033[A\033[2K\rLast command: Invalid Command\033[B");
         else {
-          // set_train_speed(train_number, train_speed);
-          // printf(1, "%c%c", train_number, train_speed);
-          printf(2, "\033[A\033[KLast command: %s %d %d\033[B", item[0], train_number, train_speed);
+          set_train_speed(train_number, train_speed);
+          printf(2, "\033[A\033[2K\rLast command: %s %d %d\033[B", item[0], train_number, train_speed);
         }
       } else if (item[0][0] == 'r') {
         int train_number = stoi(item[1], item_len[1]);
 
-        if (num_item != 3)
-          printf(2, "\033[A\033[KLast command: Invalid Command\033[B");
+        if (num_item != 2)
+          printf(2, "\033[A\033[2K\rLast command: Invalid Command\033[B");
         else {
-          // reverse_train(train_number);
-          printf(2, "\033[A\033[KLast command: %s %d\033[B", item[0], train_number);
+          reverse_train(train_number);
+          printf(2, "\033[A\033[2K\rLast command: %s %d\033[B", item[0], train_number);
         }
       } else if (item[0][0] == 's') {
         int switch_number = stoi(item[1], item_len[1]);
+        int direction = item[2][0] == 'S' || item[2][0] == 's' ? 33 : 34;
         if ((switch_number >= 1 && switch_number <= 17) || (switch_number >= 0x99 && switch_number <= 0x9c)) {
 
 
-          if (num_item != 2)
-            printf(2, "\033[A\033[KLast command: Invalid Command\033[B");
+          if (num_item != 3)
+            printf(2, "\033[A\033[2K\rLast command: Invalid Command\033[B");
           else {
-            // flip_switch(switch_number, 34);
-            printf(2, "\033[A\033[KLast command: %s %d %d\033[B", item[0], switch_number);
+            flip_switch(switch_number, direction);
+            printf(2, "\033[A\033[2K\rLast command: %s %d %c\033[B", item[0], switch_number, item[2][0]);
           }
         } else {
-          printf(2, "\033[A\033[KLast command: Invalid Switch\033[B");
+          printf(2, "\033[A\033[2K\rLast command: Invalid Switch\033[B");
           return 1;
         }
       }
     } else {
-      printf(2, "\033[A\033[KLast command: ERROR\033[B");
+      printf(2, "\033[A\033[2K\rLast command: ERROR\033[B");
       return 1;
     }
   }
 }
 
 void input_handle() {
+  
+
+  
   char cmd[1024];
   int cmd_len = 0;
 

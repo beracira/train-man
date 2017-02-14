@@ -6,6 +6,9 @@
 #define UPDATE_SWITCH   3
 #define UPDATE_SENSORS  4
 
+extern int ui_ready;
+extern int UI_TID;
+
 struct UI_Request{
   int type;
   int data1;

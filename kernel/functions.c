@@ -11,6 +11,7 @@
 #include "train_ui.h"
 #include "terminal_input_handler.h"
 #include "courier.h"
+#include "sensors.h"
 
 #include "../io/include/bwio.h"
 #include "../io/include/ts7200.h"
@@ -115,23 +116,24 @@ void firsttask(void) {
   Create(P_NAME_SERVER, nameserver);
   Create(P_CLOCK_SERVER, clockserver);
   Create(P_OTHER_SERVERS, IO_Server);
-  Create(P_OTHER_SERVERS, UI_Server);
   Create(P_OTHER_SERVERS, courier_server);
+  Create(P_OTHER_SERVERS, UI_Server);
   Create(P_MEDIUM, input_handle);
+  Create(P_MEDIUM, get_sensor_data);
   Create(P_LOW, &idle_task);
 
   // int i = 0;
   // for (i = 0; i < 256; ++i) Putc(1, i);
 
-  // Putc(1, 10);
   // Putc(1, 58);
   // Putc(1, 58);
-  // Putc(1, 58);
-  // i = 0;
-  // while (i++ < 100000) asm("NOP");
   // while (i++ < 100000);
   // Putc(1, 57);
-  // printf(1, "%c%c", 10, 58);
+  // volatile int i = 0;
+  // while (i++ < 10000) asm("NOP");
+  // printf(2, "after first put\n\r");
+  // printf(2, "ater second put\n\r");
+  // printf(2, "%d %d", train_send_ptr->buffer[0], train_send_ptr->buffer[1]);
 
   // Create(3, &the_other_task_1);
   // Create(4, &the_other_task_2);

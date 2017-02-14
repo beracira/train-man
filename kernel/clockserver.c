@@ -3,7 +3,7 @@
 #include "user_syscall.h"
 #include "common.h"
 #include "nameserver.h"
-#include "../io/include/bwio.h"
+#include "io.h"
 
 struct CLK_DELAY_LIST * clk_delay_list_ptr = 0;
 int * await_event_list_ptr = 0;

@@ -10,11 +10,14 @@
 #include "clockserver.h"
 #include "io.h"
 #include "courier.h"
+#include "train_ui.h"
 
 int activate(void);
 
 unsigned int counter = 0;
 int err = 0;
+int active = 0;
+
 void initialize(void) {
 
   asm("MRC p15, 0, r0, c1, c0, 0"); // read c1
@@ -46,9 +49,11 @@ void initialize(void) {
   init_queue();
 
   IO_init();
-  int i = 0;
-  while (i++ < 100000);
-  bwsetfifo(COM1, OFF);
+  courier_ready = 0;
+  ui_ready = 0;
+  // int i = 0;
+  // while (i++ < 100000);
+  // bwsetfifo(COM1, OFF);
   //bwprintf(COM2, "\n\r");
 }
 
@@ -154,30 +159,35 @@ int handle(int num) {
         irq_clear_timer();
         if (io_ready && time_ticks % 10 == 0) {
           update_time();
-          wake_train();
         }
-        // printf(2, "%u\n\r", time_ticks);
+        if (courier_ready) {
+          wake_train();
+          wake_train_second_part();
+        }
+        if (io_ready && ui_ready && time_ticks % 30 == 0) {
+          Putc(1, 128 + 5);
+        }
         ++time_ticks;
         remove_delay_list();
       }
       else {
         flags = *((int *) 0x808c001c); // COM1 
-        if (flags == 2) {
+        if (flags == 2 || flags == 3) {
           c = *data1;
           buffer_add(TRAIN_RECEIVE, c);
-        } else if (flags == 4) {
+        } else if (flags == 5 || flags == 4) {
           buffer_remove(TRAIN_SEND);
           // *uart1_int_enable &= ~TIEN_MASK;
-          break;
-        } 
+        } else {
+
+        }
 
         flags = *((int *) 0x808d001c); // COM2
-        if (flags == 2) {
+        if (flags == 2 || flags == 3) {
           c = *data2;
           buffer_add(TERMINAL_RECEIVE, c);
-        } else if (flags == 4) {
+        } else if (flags >= 4) {
           buffer_remove(TERMINAL_SEND);
-          break;
         }
       }
 
@@ -222,7 +232,7 @@ int main( int argc, char* argv[] ) {
   (void) ks;
 
   while(1 + 1 == 2) {
-    int active = schedule();
+    active = schedule();
     if (active == -1) return 0;
     set_active(active);
 

@@ -7,15 +7,12 @@
 #define CR_SWITCH       4
 #define CR_QUIT         5
 
+extern int courier_ready;
+
 struct cr_request {
   int type;
   int arg1;
   int arg2;
-};
-
-struct CR_TRAIN_LIST {
-  int train;
-  int speed;
 };
 
 struct CR_REVERSE_LIST {
@@ -33,5 +30,9 @@ void reverse_train(int train);
 void flip_switch(int switch_num, int dir);
 
 void courier_server(void);
+
+void wake_train();
+
+void wake_train_second_part();
 
 #endif /* COURIER_H */

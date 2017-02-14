@@ -37,5 +37,6 @@ void remove_delay_list();
 
 void clockserver(void);
 
+void update_time();
 
 #endif /* CLOCKSERVER_H */

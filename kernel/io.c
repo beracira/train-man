@@ -79,8 +79,7 @@ inline void buffer_add(int uart, char c) {
     case TRAIN_SEND:
       target = train_send_ptr;
       uart_int_enable = (int *) (UART1_BASE + UART_CTLR_OFFSET);
-      mask = TIEN_MASK;
-      *uart_int_enable |= mask;
+
       break;
     case TRAIN_RECEIVE:
       target = train_receive_ptr;
@@ -90,8 +89,7 @@ inline void buffer_add(int uart, char c) {
     case TERMINAL_SEND:
       target = terminal_send_ptr;
       uart_int_enable = (int *) (UART2_BASE + UART_CTLR_OFFSET);
-      mask = TIEN_MASK;
-      *uart_int_enable |= mask;
+
       break;
     case TERMINAL_RECEIVE:
       target = terminal_receive_ptr;
@@ -103,6 +101,11 @@ inline void buffer_add(int uart, char c) {
 
   target->buffer[target->tail++] = c;
   target->tail %= IO_BUFFER_SIZE;
+
+  if (uart == TRAIN_SEND || uart == TERMINAL_SEND) {
+    mask = TIEN_MASK;
+    *uart_int_enable |= mask;
+  }
 
   if (uart == TRAIN_RECEIVE) {
     if (train_wait_list_ptr->head != train_wait_list_ptr->tail) {
@@ -466,16 +469,23 @@ void ioformat ( int channel, char *fmt, va_list va ) {
 }
 
 void printf( int channel, char *fmt, ... ) {
+  // asm
+  // asm("MRS R8");
+  volatile int * uart_int_enable = 0;
+  volatile int mask = 0;
+  uart_int_enable = (int *) (UART1_BASE + UART_CTLR_OFFSET);
+  mask = TIEN_MASK;
+
+  if (channel == 2)
+    uart_int_enable = (int *) (UART2_BASE + UART_CTLR_OFFSET);
+  *uart_int_enable &= ~mask;
+
   va_list va;
 
   va_start(va,fmt);
   ioformat( channel, fmt, va );
   va_end(va);
 
-  volatile int * uart_int_enable = 0;
-  volatile int mask = 0;
-  uart_int_enable = (int *) (UART1_BASE + UART_CTLR_OFFSET);
-  mask = TIEN_MASK;
   if (channel == 2)
     uart_int_enable = (int *) (UART2_BASE + UART_CTLR_OFFSET);
   *uart_int_enable |= mask;

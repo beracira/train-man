@@ -3,5 +3,6 @@
 
 extern unsigned int counter;
 extern int err;
+extern int active;
 
 #endif /* KERNEL_H */

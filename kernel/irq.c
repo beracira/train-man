@@ -18,24 +18,24 @@ void irq_disable_timer(void) {
   *int_en_clean = *int_en_clean | (1 << (51 - 32));
 }
 
-void timer_notifier(void) {
-  int my_tid = MyTid();
-  await_event_list_ptr[TIMER_EVENT] = my_tid;
-  struct clk_request req;
-  struct clk_request result;
-  req.tid = my_tid;
-  int i = 0;
+// void timer_notifier(void) {
+//   int my_tid = MyTid();
+//   await_event_list_ptr[TIMER_EVENT] = my_tid;
+//   struct clk_request req;
+//   struct clk_request result;
+//   req.tid = my_tid;
+//   int i = 0;
 
-  while (1 + 1 == 2) {
-    printf(2, "before send: %d\n\r", ++i);
-    AwaitEvent(TIMER_EVENT);
-    req.type = CLK_INC;
-    req.ticks = 0;
-    printf(2, "asdf: %d\n\r", ++i);
-    Send(CLK_TID, &req, sizeof(struct clk_request), &result, 0);
-    printf(2, "after send: %d\n\r", ++i);
-  }
-}
+//   while (1 + 1 == 2) {
+//     printf(2, "before send: %d\n\r", ++i);
+//     AwaitEvent(TIMER_EVENT);
+//     req.type = CLK_INC;
+//     req.ticks = 0;
+//     printf(2, "asdf: %d\n\r", ++i);
+//     Send(CLK_TID, &req, sizeof(struct clk_request), &result, 0);
+//     printf(2, "after send: %d\n\r", ++i);
+//   }
+// }
 
 void irq_enable_uart1_receive(void) {
   volatile int * uart1_int_enable = (int *) (UART1_BASE + UART_CTLR_OFFSET);
