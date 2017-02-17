@@ -3,6 +3,7 @@
 #include "clockserver.h"
 #include "io.h"
 #include "train_ui.h"
+#include "sensors.h"
 
 int CR_TID = 0;
 int courier_ready = 0;
@@ -35,10 +36,12 @@ void reverse_train(int train) {
 }
 
 void wake_train() {
+
   int first_temp = 0;
   if (cr_reverse_list_ptr->time[cr_reverse_list_ptr->head] == 0) {
     // reverse train
-    printf(1, "%c%c", 15, cr_reverse_list_ptr->train[cr_reverse_list_ptr->head]);
+    // printf(1, "%c%c", 15, cr_reverse_list_ptr->train[cr_reverse_list_ptr->head]);
+    set_train_speed(cr_reverse_list_ptr->train[cr_reverse_list_ptr->head], 15);
     // set train speed to 14
     cr_set_speed_list_ptr->speed[cr_set_speed_list_ptr->tail] = cr_reverse_list_ptr->speed[cr_reverse_list_ptr->head];
     cr_set_speed_list_ptr->train[cr_set_speed_list_ptr->tail] = cr_reverse_list_ptr->train[cr_reverse_list_ptr->head];
@@ -59,6 +62,16 @@ void wake_train() {
       cr_reverse_list_ptr->time[first_temp] -= 1;
       first_temp++;
     }
+  }
+
+  if (cr_set_speed_list_ptr->head == cr_set_speed_list_ptr->tail) return;
+  if (time_ticks - cr_set_speed_list_ptr->time[cr_set_speed_list_ptr->head] > 200) {
+    train_list_ptr[cr_set_speed_list_ptr->train[cr_set_speed_list_ptr->head]] = cr_set_speed_list_ptr->speed[cr_set_speed_list_ptr->head];
+    // printf(1, "%c%c", cr_set_speed_list_ptr->speed[cr_set_speed_list_ptr->head], cr_set_speed_list_ptr->train[cr_set_speed_list_ptr->head]);
+    set_train_speed(cr_set_speed_list_ptr->train[cr_set_speed_list_ptr->head],
+      cr_set_speed_list_ptr->speed[cr_set_speed_list_ptr->head]);
+    cr_set_speed_list_ptr->head++;
+    cr_set_speed_list_ptr->head %= 100;
   }
 }
 
@@ -138,13 +151,39 @@ void courier_server(void) {
   int sender_tid = -1;
   struct cr_request req;
   struct cr_request result;
+  char dummy;
+  int request = 0;
   result.type = 0;
   result.arg1 = 0;
   result.arg2 = 0;
 
   courier_ready = 1;
   while (1) {
+    int j = 0;
+    // while (j++ < 100000) asm("NOP");
+    // printf(2, "request: %d\n\r", request);
+    if (request) {
+      char temp[10];
+      for (i = 0; i < 10; ++i) {
+        printf(2, "\033[s\033[H\033[2K%d\033[u", i);
+        temp[i] = Getc(1);
+      }
+      printf(2, "\033[s\033[H%d\033[u", 2);
+      printf(2, "\033[s\n\r\n\r\n\r\033[2K");
+      printf(2, "\n\r\033[u", sender_tid);
+      Send(SENSOR_TID, &temp, sizeof(temp), &dummy, sizeof(dummy));
+      printf(2, "\033[s\033[H%d\033[u", 3);
+      printf(2, "\033[s\n\r\n\r\n\r\033[2K");
+      for (i = 0; i < 10; ++i)
+        printf(2, "%d ", temp[i]);
+      printf(2, "\n\r\033[u", sender_tid);
+      // printf(2, "return from send\n\r");
+      request = 0;
+    }
+    printf(2, "\033[s\n\r\n\r\n\r\n\r\n\r\n\r\n\r\033[2K request: %d\n\r\033[u", request);
     Receive( &sender_tid, &req, sizeof(struct cr_request));
+    printf(2, "\033[s\n\r\n\r\n\r\n\r\033[2Ksender is %d\n\r\033[u", sender_tid);
+    printf(2, "\033[s\n\r\n\r\n\r\n\r\n\r\033[2K\n\r\033[u", sender_tid);
 
     switch(req.type) {
       case CR_SET_SPEED:
@@ -154,7 +193,6 @@ void courier_server(void) {
 
       case CR_REVERSE_WAIT:
         if (train_list[req.arg1] == 0) { // train is already reversing
-          break;
         } else {
           // set train speed to 0
           printf(1, "%c%c", 0, req.arg1);
@@ -164,23 +202,29 @@ void courier_server(void) {
           cr_reverse_list.tail %= 100;
           train_list[req.arg1] = 0;
         }
+        break;
         
       case CR_REVERSE_SET:
 
         break;
 
       case CR_SWITCH:
-        printf(1, "%c%c", req.arg2, req.arg1);
         Putc(1, 32);
         break;
 
       case CR_QUIT:
         break;
 
+      case CR_SENSOR_REQUEST:
+        Putc(1, 128 + 5);
+        request = 1;
+        break;
+
       default:
         break;
     }
     Reply(sender_tid, &result, sizeof(struct cr_request));
+    printf(2, "\033[s\n\r\n\r\n\r\n\r\n\r\033[2Kreplied to %d\n\r\033[u", sender_tid);
   }
 }
 

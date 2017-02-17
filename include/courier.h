@@ -6,8 +6,10 @@
 #define CR_REVERSE_SET  3
 #define CR_SWITCH       4
 #define CR_QUIT         5
+#define CR_SENSOR_REQUEST 451374
 
 extern int courier_ready;
+extern int CR_TID;
 
 struct cr_request {
   int type;

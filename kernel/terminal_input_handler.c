@@ -94,8 +94,6 @@ int command_parser(char * cmd, int cmd_len) {
 
 void input_handle() {
   
-
-  
   char cmd[1024];
   int cmd_len = 0;
 
@@ -115,8 +113,11 @@ void input_handle() {
       if (cmd_len != 0) {
         cmd[cmd_len++] = ' ';
         cmd[cmd_len++] = 0;
+        printf(2, "\033[s\n\r033[2K\033[u");
         printf(2, "\033[s\n\r\033[2K%s\033[u", cmd);
+        printf(2, "\033[s\n\r\n\r\033[2K\033[u");
         command_parser(cmd, cmd_len);
+        printf(2, "\033[s\n\r\n\r\033[2Kafter parsed\033[u");
       }
       cmd[cmd_len] = 0;
       int k = 0;

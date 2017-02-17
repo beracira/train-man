@@ -160,15 +160,16 @@ int handle(int num) {
         if (io_ready && time_ticks % 10 == 0) {
           update_time();
         }
-        if (courier_ready) {
-          wake_train();
-          wake_train_second_part();
-        }
-        if (io_ready && ui_ready && time_ticks % 30 == 0) {
-          Putc(1, 128 + 5);
-        }
+        // if (courier_ready) {
+        //   wake_train();
+        //   wake_train_second_part();
+        // }
+        // if (io_ready && ui_ready && time_ticks % 30 == 0) {
+        //   Putc(1, 128 + 5);
+        // }
         ++time_ticks;
         remove_delay_list();
+        // if (time_ticks % 2) bwprintf(1, "timer working\n\r");
       }
       else {
         flags = *((int *) 0x808c001c); // COM1 
@@ -182,6 +183,8 @@ int handle(int num) {
 
         }
 
+        // printf(2, "com1 flags %d\n\r", flags);
+
         flags = *((int *) 0x808d001c); // COM2
         if (flags == 2 || flags == 3) {
           c = *data2;
@@ -189,6 +192,7 @@ int handle(int num) {
         } else if (flags >= 4) {
           buffer_remove(TERMINAL_SEND);
         }
+        // printf(2, "com2 flags %d\n\r", flags);
       }
 
 
@@ -236,7 +240,7 @@ int main( int argc, char* argv[] ) {
     if (active == -1) return 0;
     set_active(active);
 
-    // if (active != 8) {
+    // if (active != 11) {
     //   printf( 2, "activate: %d\n\r", active);
     // }
     int request = activate(); //active);

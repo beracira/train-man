@@ -12,6 +12,7 @@
 #include "terminal_input_handler.h"
 #include "courier.h"
 #include "sensors.h"
+#include "scheduled.h"
 
 #include "../io/include/bwio.h"
 #include "../io/include/ts7200.h"
@@ -41,7 +42,7 @@ void idle_task(void) {
   volatile int * temp = &(ks->num_tasks);
   idle_ticks = 0;
   unsigned int pre = cyclesPerTick;
-  while (*temp != 10) {
+  while (*temp != 100) {
     unsigned int cur = *((int *)(timerValue));
     if (cur > pre) ++idle_ticks;
     pre = cur;
@@ -113,13 +114,14 @@ void speed_test(void) {
 void firsttask(void) {
 
   // K3 tasks
-  Create(P_NAME_SERVER, nameserver);
-  Create(P_CLOCK_SERVER, clockserver);
-  Create(P_OTHER_SERVERS, IO_Server);
-  Create(P_OTHER_SERVERS, courier_server);
-  Create(P_OTHER_SERVERS, UI_Server);
-  Create(P_MEDIUM, input_handle);
-  Create(P_MEDIUM, get_sensor_data);
+  Create(P_NAME_SERVER, nameserver); // 2
+  Create(P_CLOCK_SERVER, clockserver); // 3
+  Create(P_OTHER_SERVERS, IO_Server); // 4
+  Create(P_OTHER_SERVERS, get_sensor_data); //5
+  Create(P_OTHER_SERVERS, courier_server); // 6
+  Create(P_OTHER_SERVERS, UI_Server); //7
+  Create(P_MEDIUM, input_handle); //8 
+  Create(P_NOTIFIER, scheduled_tasks); //9
   Create(P_LOW, &idle_task);
 
   // int i = 0;

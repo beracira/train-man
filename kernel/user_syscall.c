@@ -131,27 +131,3 @@ int AwaitEvent(int eventid) {
   return 0;
 }
 
-void printf( int channel, char *fmt, ... ) {
-
-  asm volatile ("sub sp, sp, #4");
-  asm volatile ("str r0, [sp]");
-  asm volatile ("mrs r0, cpsr");
-  asm volatile ("sub sp, sp, #4");
-  asm volatile ("str r0, [sp]");
-  asm volatile ("ORR r0, r0, #0xc0");
-  asm volatile ("msr cpsr, r0");
-  asm volatile ("ldr r0, [sp, #-4]");
-
-  va_list va;
-
-  va_start(va,fmt);
-  ioformat( channel, fmt, va );
-  va_end(va);
-
-  asm volatile ("str r0, [sp, #-4]");
-  asm volatile ("ldr r0, [sp]");
-  asm volatile ("add sp, sp, #8");
-  asm volatile ("msr cpsr, r0");
-  asm volatile ("ldr r0, [sp, #4]");
-}
-

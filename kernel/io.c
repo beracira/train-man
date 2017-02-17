@@ -278,15 +278,19 @@ void IO_Server() {
   struct IO_Request result;
 
   while (1 + 1 == 2) {
+    // printf(2, "before io\n\r");
     Receive( &sender_tid, &req, sizeof(struct IO_Request));
+    // printf(2, "after io\n\r");
 
     switch(req.type) {
       case TRAIN_RECEIVE:
         insert_wait_list(1, req.tid);
+        // printf(2, "something\n\r");
         break;
 
       case TERMINAL_RECEIVE:
         insert_wait_list(2, req.tid);
+        // printf(2, "something else\n\r");
         break;
 
       default:
@@ -468,3 +472,23 @@ void ioformat ( int channel, char *fmt, va_list va ) {
   }
 }
 
+void printf( int channel, char *fmt, ... ) {
+  volatile int * uart_int_enable = 0;
+  volatile int mask = 0;
+  uart_int_enable = (int *) (UART1_BASE + UART_CTLR_OFFSET);
+  mask = TIEN_MASK;
+  if (channel == 2) {
+    uart_int_enable = (int *) (UART2_BASE + UART_CTLR_OFFSET);
+  }
+  *uart_int_enable &= ~mask;
+
+  va_list va;
+  va_start(va,fmt);
+  ioformat( channel, fmt, va );
+  va_end(va);
+  
+  if (channel == 2) {
+    uart_int_enable = (int *) (UART2_BASE + UART_CTLR_OFFSET);
+  }
+  *uart_int_enable |= mask;
+}

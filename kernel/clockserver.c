@@ -10,6 +10,8 @@ int * await_event_list_ptr = 0;
 
 unsigned int time_ticks = 0;
 
+int clock_ready = 0;
+
 unsigned int Time(void) {
   struct clk_request input;
   struct clk_request output;
@@ -108,6 +110,7 @@ void clockserver(void) {
   struct clk_request req;
   struct clk_request result;
  
+  clock_ready = 1;
 	while (1 + 1 == 2) {
 		Receive( &sender_tid, &req, sizeof(struct clk_request));
 

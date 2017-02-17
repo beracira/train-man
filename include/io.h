@@ -3,7 +3,7 @@
 
 #include "../io/include/bwio.h"
 
-#define IO_BUFFER_SIZE 10240
+#define IO_BUFFER_SIZE 102400
 
 #define TRAIN_SEND       1
 #define TRAIN_RECEIVE    2
