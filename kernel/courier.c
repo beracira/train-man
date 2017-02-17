@@ -152,7 +152,6 @@ void courier_server(void) {
 
       case CR_REVERSE_WAIT:
         if (train_list[req.arg1] == 0) { // train is already reversing
-          break;
         } else {
           // set train speed to 0
           printf(1, "%c%c", 0, req.arg1);
@@ -162,6 +161,7 @@ void courier_server(void) {
           cr_reverse_list.tail %= 100;
           train_list[req.arg1] = 0;
         }
+        break;
         
       case CR_REVERSE_SET:
 

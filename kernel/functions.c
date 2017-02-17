@@ -41,12 +41,12 @@ void idle_task(void) {
   volatile int * temp = &(ks->num_tasks);
   idle_ticks = 0;
   unsigned int pre = cyclesPerTick;
-  while (*temp != 10) {
+  while (*temp != 7) {
     unsigned int cur = *((int *)(timerValue));
     if (cur > pre) ++idle_ticks;
     pre = cur;
   }
-  idle_print();
+  // idle_print();
   Exit();
 }
 

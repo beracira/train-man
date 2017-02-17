@@ -105,18 +105,20 @@ void input_handle() {
       if (cmd_len != 0) {
         cmd_len--;
         cmd[cmd_len] = 0;
-        printf(2, "\033[s\n\r\n\r\033[2K%d\033[u", cmd_len);
         printf(2, "\b \b");
       }
     } else if (c != 13 && c != 11) {
-      cmd[cmd_len++] = c;
-      Putc(2, c);
+      if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9')
+         || c == ' ') {
+        cmd[cmd_len++] = c;
+        Putc(2, c);
+      }
     } else {
       if (cmd_len != 0) {
         cmd[cmd_len++] = ' ';
         cmd[cmd_len++] = 0;
-        printf(2, "\033[s\n\r\033[2K%s\033[u", cmd);
-        command_parser(cmd, cmd_len);
+        int retval = command_parser(cmd, cmd_len);
+        if (retval == -1) Exit();
       }
       cmd[cmd_len] = 0;
       int k = 0;
