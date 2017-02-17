@@ -133,6 +133,7 @@ int activate(void) {
 int handle(int num) {
   volatile struct task_descriptor * td = (struct task_descriptor *) TASK_DESCRIPTOR_START;
   volatile struct kernel_stack * ks = (struct kernel_stack *) KERNEL_STACK_START;
+  (void) td;
   num = ks->syscall_code;
 
   // NOTE: can't declare variables in switch statement; do it up here
