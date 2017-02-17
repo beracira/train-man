@@ -77,11 +77,13 @@ void flip_switch(int switch_num, int dir) {
   struct cr_request output;
 
   if (ui_ready) {
+    struct UI_Request input;
+    struct UI_Request output;
     input.type = UPDATE_SWITCH;
-    input.arg1 = switch_num;
-    input.arg2 = dir;
+    input.data1 = switch_num;
+    input.data2 = dir;
 
-    Send(UI_TID, (struct UI_Request *) &input, sizeof(struct cr_request), (struct UI_Request *) &output, sizeof(struct cr_request));
+    Send(UI_TID, &input, sizeof(struct UI_Request), &output, sizeof(struct UI_Request));
   }
 
   input.type = CR_SWITCH;
