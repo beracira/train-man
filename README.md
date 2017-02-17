@@ -1,4 +1,6 @@
 <snippet>
+## Sha1 of the commit for Kernel 4
+95362e45126d99c7e820e51d22d2f4cd1d6f0433
 
 ## Loading the program
 
