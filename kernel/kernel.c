@@ -11,12 +11,15 @@
 #include "io.h"
 #include "courier.h"
 #include "train_ui.h"
+#include "sensors.h"
 
 int activate(void);
 
 unsigned int counter = 0;
 int err = 0;
 int active = 0;
+int stop = 0;
+int stop_time = 0;
 
 void initialize(void) {
 
@@ -51,6 +54,8 @@ void initialize(void) {
   IO_init();
   courier_ready = 0;
   ui_ready = 0;
+  stop = 0;
+  stop_time = 0;
   // int i = 0;
   // while (i++ < 100000);
   // bwsetfifo(COM1, OFF);
@@ -165,8 +170,29 @@ int handle(int num) {
           wake_train();
           wake_train_second_part();
         }
-        if (io_ready && ui_ready && time_ticks % 30 == 0) {
+        if (io_ready && ui_ready && time_ticks % 20 == 0) {
           Putc(1, 128 + 5);
+        }
+        if (io_ready && ui_ready && time_ticks % 20 == 10) {
+          int temp = ('E' << 5) + 9;
+          int temp2 = ('D' << 5) + 5;
+          if (last_sensor == temp && stop == 0) {
+            // Putc(1, 0);
+            // volatile int i = 0;
+            // while (i++ < 500);
+            // Putc(1, 71);
+            stop = 1;
+            stop_time = time_ticks;
+          } else if (stop == 2 && last_sensor == temp2) {
+            printf(2, "%u\n\r", time_ticks);
+            stop = 3;
+          }
+        }
+        if (stop == 1 && stop_time + 53 <= time_ticks && time_ticks % 20 >= 10) {
+          printf(2, "%u\n\r", time_ticks);
+          Putc(1, 0);
+          Putc(1, 71);
+          stop = 2;
         }
         ++time_ticks;
         remove_delay_list();

@@ -460,7 +460,7 @@ void update_time() {
   unsigned int idle_percent = idle_ticks * 100 / 40 / time_ticks;
   idle_percent = idle_percent < 100 ? idle_percent : 100;
 
-  printf(2, "\033[s\033[2;9H");
+  printf(2, "\033[s\033[2;60H");
   int h = time / 10 / 60 / 60;
   if (h < 10) Putc(2, '0');
   printf(2, "%d:", h);
@@ -498,14 +498,21 @@ void UI_init() {
   int i;
 
   for (i = 1; i <= 17; ++i) {
-    flip_switch(i, 34);
-    printf(2, "%d\t%c\n\r", i, 'C');
-    Delay(50);
+    if (i != 10 && i != 13 && i != 16 && i != 17) {
+     flip_switch(i, 34);
+     printf(2, "%d\t%c\n\r", i, 'C');
+     Delay(20); 
+    } else {
+      flip_switch(i, 33);
+      printf(2, "%d\t%c\n\r", i, 'S');
+      Delay(20); 
+    }
   }
+
   for (i = 0x99; i <= 0x9c; ++i) {
     flip_switch(i, i & 1 ? 33 : 34);
     printf(2, "%d\t%c\n\r", i, i & 1 ? 'S' : 'C');
-    Delay(50);
+    Delay(20);
   }
   printf(2, "Recently triggered sensors: \n\rLast command:\n\r$ ");
 }

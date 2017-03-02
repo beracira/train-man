@@ -3,6 +3,8 @@
 
 #define SENSOR_ARRAY_SIZE 10
 
+int last_sensor = 0;
+
 void get_sensor_data() {
   int sensors[10];
   int sensor_len = 0;
@@ -53,6 +55,10 @@ void get_sensor_data() {
       printf(2, "\033[s\033[26;30H\033[K");
 
       int i = (tail - 1 + SENSOR_ARRAY_SIZE) % SENSOR_ARRAY_SIZE;
+      last_sensor = sensor_letter[i];
+      last_sensor <<= 5;
+      last_sensor += sensor_digit[i];
+      printf(2, "%d  ", last_sensor);
       do {
         if (sensor_letter[i] != 0)
           printf(2, "%c%d ", sensor_letter[i], sensor_digit[i]);
