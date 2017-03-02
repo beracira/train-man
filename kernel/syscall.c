@@ -87,6 +87,7 @@ int kernel_Exit(void){
   (void) td;
   int tid = ks->tid;
   int priority = ks->priority;
+  td[tid].state = EXIT_STATE;
 
   // need to get tid and priority of the task that called
 

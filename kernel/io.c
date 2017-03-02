@@ -17,6 +17,8 @@ struct IO_Wait_List * terminal_wait_list_ptr = 0;
 
 int io_ready = 0;
 
+int IO_TID = 0;
+
 void IO_init() {
   int *high, *low;
   high = (int *)( UART1_BASE + UART_LCRM_OFFSET );
@@ -60,12 +62,25 @@ char Getc(int uart) {
     input.type = TERMINAL_RECEIVE;
   }
 
-  Send(IO_TID, &input, sizeof(input), &output, sizeof(output));
+  if (uart == 1) {
+    train_wait_list_ptr->tid[train_wait_list_ptr->tail++] = ks->tid;
+    train_wait_list_ptr->tail %= IO_BUFFER_SIZE;
+  } else {
+    terminal_wait_list_ptr->tid[terminal_wait_list_ptr->tail++] = ks->tid;
+    terminal_wait_list_ptr->tail %= IO_BUFFER_SIZE;
+  }
+
   int sender_tid = 0;
   char ch = 98, dummy;
 
+  // if (uart == 1 )
+  // printf(2, "\033[s\033[Hbefore Receive\033[u");
   Receive( &sender_tid, &ch, sizeof(char));
+  // if (uart == 1 )
+  // printf(2, "\033[s\033[Hafter Receive\033[u");
   Reply(sender_tid, &dummy, sizeof(char));
+  // if (uart == 1 )
+  // printf(2, "\033[s\033[Hafter reply\033[u");
 
   return ch;
 }
@@ -169,7 +184,9 @@ inline char buffer_remove(int uart) {
 
 
   if (target->head == target->tail) {
-    *uart_int_enable &= ~mask;
+    if (uart == TRAIN_SEND || uart == TERMINAL_SEND) {
+      *uart_int_enable &= ~mask;
+    }
   } else {
     char retval = target->buffer[target->head++];
     target->head %= IO_BUFFER_SIZE;
@@ -204,31 +221,43 @@ void insert_wait_list(int uart, int tid) {
 char * get_char_buffer_ptr = 0;
 int get_char_cur = 0;
 
+int kk = 0;
 void remove_wait_list(int uart) {
   if (uart == 1) {
-    int tid = train_wait_list_ptr->tid[train_wait_list_ptr->head++];
-    train_wait_list_ptr->head %= IO_BUFFER_SIZE;
-    char ch, dummy;
-    ch = buffer_remove(TRAIN_RECEIVE);
-    get_char_buffer_ptr[get_char_cur] = ch;
-    kernel_kernel_Send(tid, &(get_char_buffer_ptr[get_char_cur]), sizeof(char), &dummy, sizeof(char));
-    get_char_cur += 1;
-    get_char_cur %= 10240;
+    printf(2, "\033[s\033[1;40H\033[K%d %d %d %d\033[u",
+     train_wait_list_ptr->head, train_wait_list_ptr->tail,
+      train_receive_ptr->head, train_receive_ptr->tail);
+    if (train_wait_list_ptr->head != train_wait_list_ptr->tail
+          && train_receive_ptr->head != train_receive_ptr->tail) {
+      int tid = train_wait_list_ptr->tid[train_wait_list_ptr->head++];
+      train_wait_list_ptr->head %= IO_BUFFER_SIZE;
+      printf(2, "\033[s\033[1;30H\033[K%d %d\033[u", train_wait_list_ptr->head, tid);
+      char ch, dummy;
+      ch = buffer_remove(TRAIN_RECEIVE);
+      get_char_buffer_ptr[get_char_cur] = ch;
+      kernel_kernel_Send(tid, &(get_char_buffer_ptr[get_char_cur]), sizeof(char), &dummy, sizeof(char));
+      get_char_cur += 1;
+      get_char_cur %= 10240;
+    }
   } else {
-    int tid = terminal_wait_list_ptr->tid[terminal_wait_list_ptr->head++];
-    terminal_wait_list_ptr->head %= IO_BUFFER_SIZE;
-    char ch, dummy;
-    ch = buffer_remove(TERMINAL_RECEIVE);
-    get_char_buffer_ptr[get_char_cur] = ch;
-    kernel_kernel_Send(tid, &(get_char_buffer_ptr[get_char_cur]), sizeof(char), &dummy, sizeof(char));
-    get_char_cur += 1;
-    get_char_cur %= 10240;
+    if (terminal_wait_list_ptr->head != terminal_wait_list_ptr->tail
+        && terminal_receive_ptr->head != terminal_receive_ptr->tail) {
+      int tid = terminal_wait_list_ptr->tid[terminal_wait_list_ptr->head++];
+      terminal_wait_list_ptr->head %= IO_BUFFER_SIZE;
+      char ch, dummy;
+      ch = buffer_remove(TERMINAL_RECEIVE);
+      get_char_buffer_ptr[get_char_cur] = ch;
+      kernel_kernel_Send(tid, &(get_char_buffer_ptr[get_char_cur]), sizeof(char), &dummy, sizeof(char));
+      get_char_cur += 1;
+      get_char_cur %= 10240;
+    }
   }
 }
 
 
 void IO_Server() {
   // IO_init(); // done by kernel init
+  IO_TID = MyTid();
 
   struct IO_Buffer train_send;
   struct IO_Buffer train_receive;

@@ -3,16 +3,14 @@
 
 #include "../io/include/bwio.h"
 
-#define IO_BUFFER_SIZE 102400
+#define IO_BUFFER_SIZE 10240
 
 #define TRAIN_SEND       1
 #define TRAIN_RECEIVE    2
 #define TERMINAL_SEND    3
 #define TERMINAL_RECEIVE 4
 
-#define IO_TID           4
-
-
+extern int IO_TID;
 
 extern struct IO_Buffer * train_send_ptr;
 extern struct IO_Buffer * train_receive_ptr;

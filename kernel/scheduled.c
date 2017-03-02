@@ -27,7 +27,7 @@ void send_sensor_request() {
   input.type = CR_SENSOR_REQUEST;
 
   while (1) {
-    Delay(30);
+    Delay(50);
     if (io_ready && ui_ready && courier_ready) {
       // printf(2, "before scheduled send %d\n\r", input.type);
       Send(CR_TID, &input, sizeof(input), &output, sizeof(output));

@@ -4,6 +4,7 @@
 #include "io.h"
 #include "train_ui.h"
 #include "sensors.h"
+#include "td.h"
 
 int CR_TID = 0;
 int courier_ready = 0;
@@ -158,32 +159,41 @@ void courier_server(void) {
   result.arg2 = 0;
 
   courier_ready = 1;
+  volatile int j = 0;
   while (1) {
-    int j = 0;
-    // while (j++ < 100000) asm("NOP");
     // printf(2, "request: %d\n\r", request);
     if (request) {
-      char temp[10];
-      for (i = 0; i < 10; ++i) {
-        printf(2, "\033[s\033[H\033[2K%d\033[u", i);
-        temp[i] = Getc(1);
-      }
-      printf(2, "\033[s\033[H%d\033[u", 2);
-      printf(2, "\033[s\n\r\n\r\n\r\033[2K");
-      printf(2, "\n\r\033[u", sender_tid);
-      Send(SENSOR_TID, &temp, sizeof(temp), &dummy, sizeof(dummy));
-      printf(2, "\033[s\033[H%d\033[u", 3);
-      printf(2, "\033[s\n\r\n\r\n\r\033[2K");
-      for (i = 0; i < 10; ++i)
-        printf(2, "%d ", temp[i]);
-      printf(2, "\n\r\033[u", sender_tid);
-      // printf(2, "return from send\n\r");
+      // char temp[10];
+      // for (i = 0; i < 10; ++i) {
+      //   printf(2, "\033[s\033[H\033[2K%d\033[u", i);
+      //   temp[i] = Getc(1);
+      // }
+      // printf(2, "\033[s\033[H%d\033[u", 2);
+      // printf(2, "\033[s\n\r\n\r\n\r\033[2K");
+      // printf(2, "\n\r\033[u", sender_tid);
+      // Send(SENSOR_TID, &dummy, sizeof(dummy), &dummy, sizeof(dummy));
+      // printf(2, "\033[s\033[H%d\033[u", 3);
+      // printf(2, "\033[s\n\r\n\r\n\r\033[2K");
+      // for (i = 0; i < 10; ++i)
+      //   printf(2, "%d ", temp[i]);
+      // printf(2, "\n\r\033[u", sender_tid);
+      // printf(2, "wfljwefojiwojiwojiwojwf\n\r");
+      // Delay(1);
+      while (j++ < 50000) asm("");
+      j = 0;
+      // Delay(5);
+      struct task_descriptor * td = (struct task_descriptor *) TASK_DESCRIPTOR_START;
+      td[SENSOR_TID].state = READY;
+      td[CR_TID].state = SENSOR_BLOCKED;
+      Pass();
       request = 0;
     }
-    printf(2, "\033[s\n\r\n\r\n\r\n\r\n\r\n\r\n\r\033[2K request: %d\n\r\033[u", request);
+    // printf(2, "\033[s\n\r\n\r\n\r\n\r\n\r\n\r\n\r\033[2K request: %d\n\r\033[u", request);
+    Delay(5);
+    j = 0;
     Receive( &sender_tid, &req, sizeof(struct cr_request));
     printf(2, "\033[s\n\r\n\r\n\r\n\r\033[2Ksender is %d\n\r\033[u", sender_tid);
-    printf(2, "\033[s\n\r\n\r\n\r\n\r\n\r\033[2K\n\r\033[u", sender_tid);
+    // printf(2, "\033[s\n\r\n\r\n\r\n\r\n\r\033[2K\n\r\033[u", sender_tid);
 
     switch(req.type) {
       case CR_SET_SPEED:
@@ -224,7 +234,7 @@ void courier_server(void) {
         break;
     }
     Reply(sender_tid, &result, sizeof(struct cr_request));
-    printf(2, "\033[s\n\r\n\r\n\r\n\r\n\r\033[2Kreplied to %d\n\r\033[u", sender_tid);
+    // printf(2, "\033[s\n\r\n\r\n\r\n\r\n\r\033[2Kreplied to %d\n\r\033[u", sender_tid);
   }
 }
 

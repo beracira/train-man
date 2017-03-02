@@ -4,6 +4,7 @@
 #include "common.h"
 #include "nameserver.h"
 #include "io.h"
+#include "td.h"
 
 struct CLK_DELAY_LIST * clk_delay_list_ptr = 0;
 int * await_event_list_ptr = 0;
@@ -11,6 +12,8 @@ int * await_event_list_ptr = 0;
 unsigned int time_ticks = 0;
 
 int clock_ready = 0;
+
+int CLK_TID = 0;
 
 unsigned int Time(void) {
   struct clk_request input;
@@ -38,8 +41,8 @@ int DelayUntil(unsigned int ticks) {
   Send(CLK_TID, &input, sizeof(struct clk_request), &output, sizeof(struct clk_request));
   int sender_tid = 0, dummy1 = 1, dummy2 = 2;
 
-  Receive( &sender_tid, &dummy1, sizeof(int));
-  Reply(sender_tid, &dummy2, sizeof(int));
+  // Receive( &sender_tid, &dummy1, sizeof(int));
+  // Reply(sender_tid, &dummy2, sizeof(int));
 
   return output.ticks;
 }
@@ -50,6 +53,8 @@ int Delay(unsigned int ticks) {
 }
 
 void insert_delay_list(int tid, unsigned int ticks) {
+  volatile struct task_descriptor * td = (struct task_descriptor *) TASK_DESCRIPTOR_START;
+  td[tid].state = DELAY_BLOCKED;
   int i = 0;
   for (i = 0; i < clk_delay_list_ptr->last; ++i) {
     if (clk_delay_list_ptr->wakeup_time[i] > ticks) break;
@@ -68,8 +73,10 @@ void insert_delay_list(int tid, unsigned int ticks) {
 void remove_delay_list() {
   while (clk_delay_list_ptr->last != 0 && clk_delay_list_ptr->wakeup_time[0] < time_ticks) {
     int tid = clk_delay_list_ptr->tid[0];
-    int dummy1 = 1, dummy2 = 2;
-    kernel_kernel_Send(tid, &dummy1, sizeof(int), &dummy2, sizeof(int));
+    // int dummy1 = 1, dummy2 = 2;
+    // kernel_kernel_Send(tid, &dummy1, sizeof(int), &dummy2, sizeof(int));
+    volatile struct task_descriptor * td = (struct task_descriptor *) TASK_DESCRIPTOR_START;
+    td[tid].state = READY;
     int i;
     for (i = 0; i < clk_delay_list_ptr->last; ++i) { // last one should be -1
       clk_delay_list_ptr->tid[i] = clk_delay_list_ptr->tid[i + 1];
@@ -91,6 +98,7 @@ void init_delay_list(void) {
 }
 
 void clockserver(void) {
+  CLK_TID = MyTid();
 
   struct CLK_DELAY_LIST clk_delay_list;
   clk_delay_list_ptr = &clk_delay_list;

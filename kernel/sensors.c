@@ -1,6 +1,8 @@
 #include "user_syscall.h"
 #include "sensors.h"
 #include "io.h"
+#include "td.h"
+#include "courier.h"
 
 #define SENSOR_ARRAY_SIZE 10
 
@@ -9,7 +11,7 @@ int SENSOR_TID = 0;
 void get_sensor_data() {
   SENSOR_TID = MyTid();
 
-  char sensors[10];
+  int sensors[10];
   int sensor_len = 0;
   char sensor_letter[SENSOR_ARRAY_SIZE];
   int sensor_digit[SENSOR_ARRAY_SIZE];
@@ -20,30 +22,33 @@ void get_sensor_data() {
   int tail = 0;
   int sender_tid = 10;
   char dummy = 0;
+  int first = 1;
   while (1 + 2 == 3) {
-    // printf(2, "before Receive\n\r");
-    Receive(&sender_tid, &sensors, sizeof(sensors));
-    // printf(2, "after Receive\n\r");
-    // while (sensor_len < 10) {
-    //   int c = Getc(1);
-    //   printf(2, "get!\n\r");
-    //   sensors[sensor_len++] = c;
-    //   printf(2, "%d\n\r", sensor_len);
-    // }
+    struct task_descriptor * td = (struct task_descriptor *) TASK_DESCRIPTOR_START;
+    td[SENSOR_TID].state = SENSOR_BLOCKED;
+    Pass();
+
+    i = 0;
+    while (i++ < 50000) asm("NOP");
+    i = 0;
+    while (i < 10) {
+      // int flags = *((int *) 0x808c001c);
+      printf(2, "\033[s\033[1;25H%d\033[u", i);
+      int c = Getc(1);
+      sensors[i++] = c;
+    }
     int k;
     for (k = 0; k < 5; ++k) {
       int high = sensors[k * 2];
       int low = sensors[k * 2 + 1];
+      // if (high == 46) high = 0;
       int radix = 16;
       while (low) {
         if (low & 1) {
-          // putchar_terminal('A' + k);
           sensor_letter[tail] = 'A' + k;
-          // put_int(radix);
           sensor_digit[tail] = radix;
           tail += 1;
           tail %= SENSOR_ARRAY_SIZE;
-          // putchar_terminal(' ');
         }
         low >>= 1;
         radix--;
@@ -51,13 +56,10 @@ void get_sensor_data() {
       radix = 8;
       while (high) {
         if (high & 1) {
-          // putchar_terminal('A' + k);
           sensor_letter[tail] = 'A' + k;
-          // put_int(radix);
           sensor_digit[tail] = radix;
           tail += 1;
           tail %= SENSOR_ARRAY_SIZE;
-          // putchar_terminal(' ');
         }
         high >>= 1;
         radix--;
@@ -74,7 +76,10 @@ void get_sensor_data() {
       i %= SENSOR_ARRAY_SIZE;
     } while (i != (tail - 1 + SENSOR_ARRAY_SIZE) % SENSOR_ARRAY_SIZE);
 
+    for (i = 0; i < 10; ++i) {
+      printf(2, "%d ", sensors[i]);
+    }
     printf(2, "\033[u");
-    Reply(sender_tid, &dummy, sizeof(dummy));
+    td[CR_TID].state = READY;
   }
 }

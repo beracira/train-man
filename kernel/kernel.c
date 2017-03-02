@@ -169,11 +169,17 @@ int handle(int num) {
         // }
         ++time_ticks;
         remove_delay_list();
+        remove_wait_list(1);
+        remove_wait_list(2);
         // if (time_ticks % 2) bwprintf(1, "timer working\n\r");
       }
       else {
         flags = *((int *) 0x808c001c); // COM1 
-        if (flags == 2 || flags == 3) {
+        // printf(2, "com1 flags %d\n\r", flags);
+        // printf(2, "\033[s\033[H\033[C %d\033[u", flags);
+        if (flags == 1) {
+          // *((int *) 0x808c001c) = 0;
+        } else if (flags == 2 || flags == 3) {
           c = *data1;
           buffer_add(TRAIN_RECEIVE, c);
         } else if (flags == 5 || flags == 4) {
@@ -183,7 +189,6 @@ int handle(int num) {
 
         }
 
-        // printf(2, "com1 flags %d\n\r", flags);
 
         flags = *((int *) 0x808d001c); // COM2
         if (flags == 2 || flags == 3) {

@@ -80,17 +80,17 @@ void UI_init() {
   printf(2, "\n\rSwitch\tState\n\r--------------\n\r");
   int i;
 
-  for (i = 1; i <= 17; ++i) {
-    // flip_switch(i, 34);
-    printf(2, "%d\t%c\n\r", i, 'C');
-    // Delay(50);
-  }
-  for (i = 0x99; i <= 0x9c; ++i) {
-    // flip_switch(i, i & 1 ? 33 : 34);
-    printf(2, "%d\t%c\n\r", i, i & 1 ? 'S' : 'C');
-    // Delay(50);
-  }
-  printf(2, "Recently triggered sensors: \n\rLast command:\n\r$ ");
+  // for (i = 1; i <= 17; ++i) {
+  //   // flip_switch(i, 34);
+  //   printf(2, "%d\t%c\n\r", i, 'C');
+  //   // Delay(50);
+  // }
+  // for (i = 0x99; i <= 0x9c; ++i) {
+  //   // flip_switch(i, i & 1 ? 33 : 34);
+  //   printf(2, "%d\t%c\n\r", i, i & 1 ? 'S' : 'C');
+  //   // Delay(50);
+  // }
+  // printf(2, "Recently triggered sensors: \n\rLast command:\n\r$ ");
 }
 
 void UI_Server() {

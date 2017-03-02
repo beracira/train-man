@@ -76,6 +76,7 @@ int command_parser(char * cmd, int cmd_len) {
           if (num_item != 3)
             printf(2, "\033[A\033[2K\rLast command: Invalid Command\033[B");
           else {
+            printf(2, "\033[A\033[2K\rLast command: %s %d %d\033[B", item[0], switch_number, direction);
             flip_switch(switch_number, direction);
             printf(2, "\033[A\033[2K\rLast command: %s %d %c\033[B", item[0], switch_number, item[2][0]);
           }

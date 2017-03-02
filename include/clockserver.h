@@ -11,7 +11,7 @@ extern int * await_event_list_ptr;
 #define CLK_AWAIT_EVENT 4
 #define CLK_INC         5
 
-#define CLK_TID 3
+extern int CLK_TID;
 
 struct CLK_DELAY_LIST{
   int tid[MAX_TASKS];
