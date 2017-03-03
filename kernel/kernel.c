@@ -188,7 +188,7 @@ int handle(int num) {
             stop = 3;
           }
         }
-        if (stop == 1 && stop_time + 53 <= time_ticks && time_ticks % 20 >= 10) {
+        if (stop == 1 && stop_time + 53 <= (int) time_ticks && time_ticks % 20 >= 10) {
           printf(2, "%u\n\r", time_ticks);
           Putc(1, 0);
           Putc(1, 71);

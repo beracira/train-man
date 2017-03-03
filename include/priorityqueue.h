@@ -14,7 +14,8 @@
 #define P_OTHER_SERVERS 4
 #define P_FIRST_TASK 10
 #define P_MEDIUM     15
-#define P_LOW        31
+#define P_LOW        30
+#define P_IDLE        31
 
 struct priority_queue {
   int tid[QUEUE_SIZE];

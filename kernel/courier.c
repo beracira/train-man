@@ -3,6 +3,7 @@
 #include "clockserver.h"
 #include "io.h"
 #include "train_ui.h"
+#include "track.h"
 
 int CR_TID = 0;
 int courier_ready = 0;
@@ -92,6 +93,12 @@ void flip_switch(int switch_num, int dir) {
   input.arg2 = dir;
 
   Send(CR_TID, &input, sizeof(struct cr_request), &output, sizeof(struct cr_request));
+
+  if (dir == 33) {
+    track_set_switch(switch_num, DIR_STRAIGHT);
+  } else {
+    track_set_switch(switch_num, DIR_CURVED);
+  }
 }
 
 void quit_system(void) {

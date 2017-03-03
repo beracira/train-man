@@ -12,6 +12,7 @@
 #include "terminal_input_handler.h"
 #include "courier.h"
 #include "sensors.h"
+#include "track.h"
 
 #include "../io/include/bwio.h"
 #include "../io/include/ts7200.h"
@@ -61,7 +62,46 @@ void speed_test(void) {
   Exit();
 }
 
+void track_test() {
+  track_node * track = (track_node *) 0x01700000;
+  int i = 0;
+  int posn = 61;
+  track_node *current = &track[posn];
+  printf(2, "\033[A\033[2K\r\r\n\033[B");
+ // printf(2, "\033[s\033[A\033[50C");
+  printf(2, "Node:");
+  for (i = 0; i < 20; i++) {
+    printf(2, "%s, ", current->name);
+
+    switch (current->type) {
+      // case (NODE_NONE):
+      //   break;
+      // case (NODE_SENSOR):
+      //   break;
+
+      case (NODE_BRANCH):
+        current = current->edge[current->dir].dest;
+        break;
+
+      // case (NODE_MERGE):
+      //   current = current->edge[DIR_AHEAD].dest;
+      //   break;
+      // case (NODE_ENTER):
+      //   break;
+      // case (NODE_EXIT):
+      //   break;
+        
+      default:
+        current = current->edge[DIR_AHEAD].dest;
+        break;
+    }
+  }
+}
+
 void firsttask(void) {
+
+  // always init track data first
+  init_data(TRACK_B);
 
   // K3 tasks
   Create(P_NAME_SERVER, nameserver);
@@ -73,18 +113,16 @@ void firsttask(void) {
   Create(P_MEDIUM, get_sensor_data);
   Create(P_LOW, &idle_task);
 
-  // printf(2, "\n\r\n\r\n\r\n\r\n\r\n\rcsdzsvszdv%d\n\r", time_pticks);
-  // set_train_speed(71, 10);
-  // int target = 0;
-  // while (1 + 1 == 2) {
-  //   target = ('B' << 5) + 1;
-  //   if (target == last_sensor) {
-  //     set_train_speed(71, 0);
-  //   } else {
-  //     Delay(50);
-  //   }
-  // }
+  // don't want to run the track code until everything is initialized
+  // note that this affect idle usage
+  while (!(io_ready && ui_ready)) {
+    Pass();
+  }
+
+  track_test();
 
   Exit();
 }
+
+
 
