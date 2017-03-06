@@ -2,6 +2,11 @@
 #include "courier.h"
 #include "io.h"
 #include "user_syscall.h"
+#include "path_finding.h"
+#include "stop.h"
+#include "sensors.h"
+
+int INPUT_TID = 0;
 
 int stoi(char * str, int len) {
   int i;
@@ -47,8 +52,8 @@ int command_parser(char * cmd, int cmd_len) {
         printf(2, "\033[A\033[2K\rLast command: Quit\033[B");
         return -1;
       }
-    } else if (item_len[0] == 2) {
-      item[0][2] = 0;
+    } else if (item_len[0] <= 10) {
+      item[0][(int)item_len[0]] = '\0';
       if (item[0][0] == 't') {
         int train_number = stoi(item[1], item_len[1]);
         int train_speed = stoi(item[2], item_len[2]);
@@ -67,10 +72,10 @@ int command_parser(char * cmd, int cmd_len) {
           reverse_train(train_number);
           printf(2, "\033[A\033[2K\rLast command: %s %d\033[B", item[0], train_number);
         }
-      } else if (item[0][0] == 's') {
+      } else if (item[0][0] == 's' && item[0][1] == 'w') {
         int switch_number = stoi(item[1], item_len[1]);
         int direction = item[2][0] == 'S' || item[2][0] == 's' ? 33 : 34;
-        if ((switch_number >= 1 && switch_number <= 17) || (switch_number >= 0x99 && switch_number <= 0x9c)) {
+        if ((switch_number >= 1 && switch_number <= 18) || (switch_number >= 0x99 && switch_number <= 0x9c)) {
 
 
           if (num_item != 3)
@@ -83,6 +88,20 @@ int command_parser(char * cmd, int cmd_len) {
           printf(2, "\033[A\033[2K\rLast command: Invalid Switch\033[B");
           return 1;
         }
+      } else if (item[0][0] == 's' && item[0][1] == 't' && item[0][2] == 'a' && item[0][3] == 'f') {
+        int train_number = stoi(item[1], item_len[1]);
+        int sensor = (item[2][0] - 'A') * 16 + stoi(item[2] + 1, item_len[2] - 1) - 1;
+        Stop(train_number, sensor, 0);
+        printf(2, "\033[A\033[2K\rLast command: %s %d %d\033[B", item[0], train_number, sensor);
+      } else if (item[0][0] == 's' && item[0][1] == 't' && item[0][2] == 'a' && item[0][3] == 't') {
+        int train_number = stoi(item[1], item_len[1]);
+        int sensor = (item[2][0] - 'A') * 16 + stoi(item[2] + 1, item_len[2] - 1) - 1;
+        int retval = find_path(train_number, last_sensor, sensor);
+        if (retval == 0) {
+          printf(2, "\033[A\033[2K\rLast command: %s %d %d\033[B", item[0], train_number, sensor);
+        } else {
+          printf(2, "\033[A\033[2K\rLast command: cannot stop %d %d\033[B", train_number, sensor);
+        }
       }
     } else {
       printf(2, "\033[A\033[2K\rLast command: ERROR\033[B");
@@ -94,7 +113,7 @@ int command_parser(char * cmd, int cmd_len) {
 
 void input_handle() {
   
-
+  INPUT_TID = MyTid();
   
   char cmd[1024];
   int cmd_len = 0;

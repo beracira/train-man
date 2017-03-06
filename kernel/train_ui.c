@@ -473,11 +473,11 @@ void update_time() {
 }
 
 int update_switch(int switch_number, int direction) {
-  if ((switch_number >= 1 && switch_number <= 17) || (switch_number >= 0x99 && switch_number <= 0x9c)) {
+  if ((switch_number >= 1 && switch_number <= 18) || (switch_number >= 0x99 && switch_number <= 0x9c)) {
     // int direction = cmd[i] == 'S' ? 33 : 34;
     // putchar_control(direction);
     // putchar_control(switch_number);
-    int line_number = switch_number <= 17 ? 4 + switch_number : 4 + 17 + switch_number - 0x99 + 1;
+    int line_number = switch_number <= 18 ? 4 + switch_number : 4 + 18 + switch_number - 0x99 + 1;
     // put_string("\033[s");
     // put_string("\033[");
     // put_int(switch_number <= 17 ? 4 + switch_number : 4 + 17 + switch_number - 0x99 + 1);
@@ -497,7 +497,7 @@ void UI_init() {
   printf(2, "\n\rSwitch\tState\n\r--------------\n\r");
   int i;
 
-  for (i = 1; i <= 17; ++i) {
+  for (i = 1; i <= 18; ++i) {
     if (i != 10 && i != 13 && i != 16 && i != 17) {
      flip_switch(i, 34);
      printf(2, "%d\t%c\n\r", i, 'C');

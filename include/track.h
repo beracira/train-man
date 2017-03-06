@@ -32,6 +32,7 @@ struct track_node {
   int type;
   int num;              /* sensor or switch number */
   int dir;
+  int index;
   track_node *forward;
   track_node *reverse;  /* same location, but opposite direction */
   track_edge edge[2];

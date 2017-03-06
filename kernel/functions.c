@@ -13,6 +13,7 @@
 #include "courier.h"
 #include "sensors.h"
 #include "track.h"
+#include "stop.h"
 
 #include "../io/include/bwio.h"
 #include "../io/include/ts7200.h"
@@ -108,6 +109,7 @@ void firsttask(void) {
   Create(P_CLOCK_SERVER, clockserver);
   Create(P_OTHER_SERVERS, IO_Server);
   Create(P_OTHER_SERVERS, courier_server);
+  Create(P_OTHER_SERVERS, stop_worker);
   Create(P_OTHER_SERVERS, UI_Server);
   Create(P_MEDIUM, input_handle);
   Create(P_MEDIUM, get_sensor_data);
@@ -118,8 +120,10 @@ void firsttask(void) {
   while (!(io_ready && ui_ready)) {
     Pass();
   }
+  int retval = find_path(70, 39);
+  // printf(2, "\033[s\033[H%d\033[u", retval);
 
-  track_test();
+  // track_test();
 
   Exit();
 }

@@ -7,13 +7,15 @@ void init_data(int t) {
   } else {
     init_trackb((track_node *) track);
   }
+  int i;
+  for (i = 0; i < TRACK_MAX; ++i) track[i].index = i;
   track_init_switch((track_node *) track);
 }
 
 
 static void *memset(void *s, int c, unsigned int n) {
   unsigned char *p = s;
-  while(n --> 0) { *p++ = (unsigned char)c; }
+  while(n-- > 0) { *p++ = (unsigned char)c; }
   return s;
 }
 

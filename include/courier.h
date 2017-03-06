@@ -8,6 +8,8 @@
 #define CR_QUIT         5
 
 extern int courier_ready;
+extern int CR_TID;
+extern int * train_list_ptr;
 
 struct cr_request {
   int type;

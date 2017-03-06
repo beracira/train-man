@@ -4,6 +4,8 @@
 #include "io.h"
 #include "train_ui.h"
 #include "track.h"
+#include "sensors.h"
+#include "td.h"
 
 int CR_TID = 0;
 int courier_ready = 0;
@@ -146,17 +148,32 @@ void courier_server(void) {
   int sender_tid = -1;
   struct cr_request req;
   struct cr_request result;
+  req.type = -1;
   result.type = 0;
   result.arg1 = 0;
   result.arg2 = 0;
 
   courier_ready = 1;
   while (1) {
+    if (sensor_requested) {
+      volatile struct task_descriptor * td = (struct task_descriptor *) TASK_DESCRIPTOR_START;
+      volatile struct kernel_stack * ks = (struct kernel_stack *) KERNEL_STACK_START;
+      td[ks->tid].state = SENSOR_BLOCKED;
+      Pass();
+    }
+    if (req.type != -1) {
+      if (req.type == CR_SET_SPEED) printf(1, "%c%c", req.arg2, req.arg1);
+      else if (req.type == CR_REVERSE_WAIT && train_list[req.arg1] != 0) printf(1, "%c%c", 0, req.arg1);
+      else if (req.type == CR_SWITCH) {
+        printf(1, "%c%c", req.arg2, req.arg1);
+        Putc(1, 32); 
+      }
+    }
     Receive( &sender_tid, &req, sizeof(struct cr_request));
 
     switch(req.type) {
       case CR_SET_SPEED:
-        printf(1, "%c%c", req.arg2, req.arg1);
+        // printf(1, "%c%c", req.arg2, req.arg1);
         train_list[req.arg1] = req.arg2;
         break;
 
@@ -164,7 +181,7 @@ void courier_server(void) {
         if (train_list[req.arg1] == 0) { // train is already reversing
         } else {
           // set train speed to 0
-          printf(1, "%c%c", 0, req.arg1);
+          // printf(1, "%c%c", 0, req.arg1);
           cr_reverse_list.speed[cr_reverse_list.tail] = train_list[req.arg1];
           cr_reverse_list.train[cr_reverse_list.tail] = req.arg1;
           cr_reverse_list.time[cr_reverse_list.tail++] = 500;
@@ -178,8 +195,8 @@ void courier_server(void) {
         break;
 
       case CR_SWITCH:
-        printf(1, "%c%c", req.arg2, req.arg1);
-        Putc(1, 32);
+        // printf(1, "%c%c", req.arg2, req.arg1);
+        // Putc(1, 32);
         break;
 
       case CR_QUIT:

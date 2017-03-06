@@ -56,6 +56,7 @@ void initialize(void) {
   ui_ready = 0;
   stop = 0;
   stop_time = 0;
+  sensor_requested = 0;
   // int i = 0;
   // while (i++ < 100000);
   // bwsetfifo(COM1, OFF);
@@ -172,27 +173,10 @@ int handle(int num) {
         }
         if (io_ready && ui_ready && time_ticks % 20 == 0) {
           Putc(1, 128 + 5);
+          sensor_requested = 1;
         }
         if (io_ready && ui_ready && time_ticks % 20 == 10) {
-          int temp = ('E' << 5) + 9;
-          int temp2 = ('D' << 5) + 5;
-          if (last_sensor == temp && stop == 0) {
-            // Putc(1, 0);
-            // volatile int i = 0;
-            // while (i++ < 500);
-            // Putc(1, 71);
-            stop = 1;
-            stop_time = time_ticks;
-          } else if (stop == 2 && last_sensor == temp2) {
-            printf(2, "%u\n\r", time_ticks);
-            stop = 3;
-          }
-        }
-        if (stop == 1 && stop_time + 53 <= (int) time_ticks && time_ticks % 20 >= 10) {
-          printf(2, "%u\n\r", time_ticks);
-          Putc(1, 0);
-          Putc(1, 71);
-          stop = 2;
+          remove_from_stop_queue();
         }
         ++time_ticks;
         remove_delay_list();

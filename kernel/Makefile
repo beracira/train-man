@@ -22,7 +22,7 @@ LDFLAGS = -init main -Map kernel.map -N  -T orex.ld -L/u/wbcowan/gnuarm-4.0.2/li
 EXEC = kernel.elf
 OBJECTS = kernel.o user_syscall.o common.o functions.o syscall.o \
  priorityqueue.o td.o nameserver.o irq.o clockserver.o io.o train_ui.o \
- terminal_input_handler.o courier.o sensors.o track.o
+ terminal_input_handler.o courier.o sensors.o track.o tc/stop.o tc/path_finding.o
 
 kernel.o: kernel.c
 	$(XCC) -S $(CFLAGSO0) $<
@@ -33,7 +33,7 @@ user_syscall.o: user_syscall.c
 	$(AS) $(ASFLAGS) -o $@ ${@:.o=.s}
 
 %.o: %.c
-	$(XCC) -S $(CFLAGSO2) $<
+	$(XCC) -S $(CFLAGSO2) -o ${@:.o=.s} $<
 	$(AS) $(ASFLAGS) -o $@ ${@:.o=.s}
 
 ${EXEC}: ${OBJECTS}
@@ -44,3 +44,6 @@ O0:
 
 clean:
 	-rm -f kernel.elf *.s *.o kernel.map *.d
+	cd tc
+	-rm -f kernel.elf *.s *.o kernel.map *.d
+	cd ..

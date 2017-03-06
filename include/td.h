@@ -11,6 +11,9 @@
 #define RECEIVE_BLOCKED 4
 #define REPLY_BLOCKED 5
 #define EVENT_BLOCKED 6
+#define WORKER_BLOCKED 21
+#define SENSOR_BLOCKED 22
+#define PATH_SWITCH_BLOCKED 23
 
 struct Sender {
   int sender_tid;

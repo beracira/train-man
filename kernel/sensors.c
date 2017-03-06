@@ -1,9 +1,14 @@
 #include "sensors.h"
 #include "io.h"
+#include "td.h"
+#include "courier.h"
+#include "terminal_input_handler.h"
+#include "path_finding.h"
 
 #define SENSOR_ARRAY_SIZE 10
 
 int last_sensor = 0;
+int sensor_requested = 0;
 
 void get_sensor_data() {
   int sensors[10];
@@ -15,6 +20,7 @@ void get_sensor_data() {
     sensor_letter[i] = 0;
   }
   int tail = 0;
+  sensor_requested = 0;
   while (1 + 2 == 3) {
     int c = Getc(1);
     sensors[sensor_len++] = c;
@@ -52,12 +58,11 @@ void get_sensor_data() {
           radix--;
         }
       }
-      printf(2, "\033[s\033[26;30H\033[K");
+      printf(2, "\033[s\033[27;30H\033[K");
 
       int i = (tail - 1 + SENSOR_ARRAY_SIZE) % SENSOR_ARRAY_SIZE;
-      last_sensor = sensor_letter[i];
-      last_sensor <<= 5;
-      last_sensor += sensor_digit[i];
+      last_sensor = (sensor_letter[i] - 'A') * 16;
+      last_sensor += sensor_digit[i] - 1;
       printf(2, "%d  ", last_sensor);
       do {
         if (sensor_letter[i] != 0)
@@ -70,5 +75,9 @@ void get_sensor_data() {
       printf(2, "\033[u");
       sensor_len = 0;
     }
+    sensor_requested = 0;
+    volatile struct task_descriptor * td = (struct task_descriptor *) TASK_DESCRIPTOR_START;
+    if (td[CR_TID].state == SENSOR_BLOCKED) td[CR_TID].state = READY;
+    if (target_sensor == last_sensor && td[INPUT_TID].state == PATH_SWITCH_BLOCKED) td[INPUT_TID].state = READY;
   }
 }
