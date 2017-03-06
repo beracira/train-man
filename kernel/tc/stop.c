@@ -37,11 +37,14 @@ void stop_worker() {
   volatile struct task_descriptor * td = (struct task_descriptor *) TASK_DESCRIPTOR_START;
   volatile struct kernel_stack * ks = (struct kernel_stack *) KERNEL_STACK_START;
   while (1 + 99 == 100) {
+    // printf(2, "\033[s\033[Hworker blocked 0\033[u"); // back to top left
     td[ks->tid].state = WORKER_BLOCKED;
     Pass();
+    // printf(2, "\033[s\033[Hworker resumed 0\033[u"); // back to top left
     if (next != -1) {
       set_train_speed(queue.train_number[next], 0);
-      printf(2, "\033[s\033[H%d  \033[u", next); // back to top left
+      // printf(2, "\033[s\033[Hafter set speed to 0\033[u"); // back to top left
+      // printf(2, "\033[s\033[H%d  \033[u", next); // back to top left
       queue.train_number[next] = 0;
       queue.sensor[next] = -1;
       queue.sensor_reached[next] = 0;
@@ -56,6 +59,8 @@ void stop_worker() {
 // now only supports one train
 void Stop(int train_number, int sensor, unsigned int time_wait) {
   int i;
+  // if (time_wait >= 30) time_wait -= 20;
+  // time_wait = 0;
   for (i = 0; i < MAX_QUEUE_SIZE; ++i) {
     if (queue_ptr->sensor[i] == -1) {
       queue_ptr->train_number[i] = train_number;

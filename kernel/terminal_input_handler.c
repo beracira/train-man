@@ -5,6 +5,7 @@
 #include "path_finding.h"
 #include "stop.h"
 #include "sensors.h"
+#include "common.h"
 
 int INPUT_TID = 0;
 
@@ -78,10 +79,23 @@ int command_parser(char * cmd, int cmd_len) {
         if ((switch_number >= 1 && switch_number <= 18) || (switch_number >= 0x99 && switch_number <= 0x9c)) {
 
 
-          if (num_item != 3)
+          if (num_item != 3) {
             printf(2, "\033[A\033[2K\rLast command: Invalid Command\033[B");
-          else {
+          } else {
             flip_switch(switch_number, direction);
+            printf(2, "\033[A\033[2K\rLast command: %s %d %c\033[B", item[0], switch_number, item[2][0]);
+          }
+        } else if (strcmp(item[0], "stex") == 0) {
+          if (num_item >= 0) {
+            printf(2, "\033[A\033[2K\rLast command: not implmented stex\033[B");
+          } else {
+            int train_number = stoi(item[1], item_len[1]);
+            int exit_num = stoi(item[2], item_len[2]);
+            if (exit_num > 10) {
+              printf(2, "\033[A\033[2K\rLast command: stex no such exit\033[B");
+              return 1;
+            }
+            // for (i = 0; i <)
             printf(2, "\033[A\033[2K\rLast command: %s %d %c\033[B", item[0], switch_number, item[2][0]);
           }
         } else {

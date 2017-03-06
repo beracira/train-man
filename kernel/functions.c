@@ -14,6 +14,7 @@
 #include "sensors.h"
 #include "track.h"
 #include "stop.h"
+#include "path_finding.h"
 
 #include "../io/include/bwio.h"
 #include "../io/include/ts7200.h"
@@ -102,7 +103,7 @@ void track_test() {
 void firsttask(void) {
 
   // always init track data first
-  init_data(TRACK_B);
+  init_data(TRACK_A);
 
   // K3 tasks
   Create(P_NAME_SERVER, nameserver);
@@ -117,10 +118,10 @@ void firsttask(void) {
 
   // don't want to run the track code until everything is initialized
   // note that this affect idle usage
-  while (!(io_ready && ui_ready)) {
-    Pass();
-  }
-  int retval = find_path(70, 39);
+  // while (!(io_ready && ui_ready)) {
+  //   Pass();
+  // }
+  // int retval = find_path(70, 39);
   // printf(2, "\033[s\033[H%d\033[u", retval);
 
   // track_test();

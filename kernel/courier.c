@@ -165,7 +165,7 @@ void courier_server(void) {
       if (req.type == CR_SET_SPEED) printf(1, "%c%c", req.arg2, req.arg1);
       else if (req.type == CR_REVERSE_WAIT && train_list[req.arg1] != 0) printf(1, "%c%c", 0, req.arg1);
       else if (req.type == CR_SWITCH) {
-        printf(1, "%c%c", req.arg2, req.arg1);
+        printf(1, "%c%c%c", req.arg2, req.arg1);
         Putc(1, 32); 
       }
     }

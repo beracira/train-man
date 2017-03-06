@@ -9,14 +9,34 @@
 
 #define MAX_PATH_LENGTH 100
 
+#define train_76 0
+#define train_71 1
+#define train_64 2
 
+short train_velocity[5][15][80][80] = {};
+double default_speed[5][15] = {};
 
 // int get_vol_ticks(int train_number, int speed, int sensor) {
 //   // return vol_map[train_number][speed][sensor];
 //   return 76.0;
 // }
 
+double get_velocity(int train_index, int speed, int now, int end, int dist) {
+  if (train_velocity[train_index][speed][now][end] == 1) {
+    return default_speed[train_index][speed];
+  } else {
+    return 1.0 * dist / train_velocity[train_index][speed][now][end];
+  }
+}
+
 int target_sensor = 0;
+
+int train_number_to_index(int x) {
+  if(x == 76) return train_76; 
+  if(x == 71) return train_71;
+  if(x == 64) return train_64;
+  return -1;
+}
 
 int exist(int origin, int * path, int len) {
   int i;
@@ -72,7 +92,7 @@ int find_path(int train_number, int origin, int dest) {
     path[0] = origin;
     int len = find_path_dfs(origin, dest, path, 1);
 
-    double acc = 15.87302 / 10;
+    double acc = 0.01745;
     int dist = 0;
     if (len >= 2) {
       int now = len - 2;
@@ -91,12 +111,36 @@ int find_path(int train_number, int origin, int dest) {
         } else {
           dist += track[path[now]].edge[DIR_AHEAD].dist;
           // double v_0 = get_vol(train_number, train_list_ptr[train_number], path[now]);
-          double v_0 = 3.6092;
+          int end = now + 1;
+          int dist_sensor_to_sensor = track[path[now]].edge[track[path[now]].dir].dist;
+          while (1 + 2 == 3) { // maybe include exit?
+            if (track[path[end]].type == NODE_SENSOR) {
+              break;
+            } else {
+              int temp = 0;
+              if (track[path[end]].edge[DIR_STRAIGHT].dest->index == path[end + 1]) {
+                track[path[end]].edge[DIR_STRAIGHT].dist;
+              } else {
+                track[path[end]].edge[DIR_CURVED].dist;
+              }
+              dist_sensor_to_sensor += temp;
+              end += 1;
+            }
+          }
+          int train_index = train_number_to_index(train_number);
+          int speed = train_list_ptr[train_number];
+          
+
+          double v_0 = get_velocity(train_index, speed, path[now], path[end], dist_sensor_to_sensor);
+
+          printf(2, "starting %s, ending %s, v: %d d: %d\n\r", track[path[now]].name, track[path[end]].name, (int)(v_0 * 100), dist_sensor_to_sensor);
           double temp = v_0 * v_0 / 2 / acc;
+          printf(2, "temp %d, dist %d\n\r", (int)temp, (int)dist);
           if (temp <= dist) {
             double d_stop = dist - temp;
             double t_stop = d_stop / v_0;
             Stop(train_number, path[now], t_stop);
+            printf(2, "\n\rcall stop at %s %d %d\n\r", track[path[now]].name, (int)(t_stop), (int) (v_0 * 100));
             break;
           } else if (temp > dist && now != 0) {
             now -= 1;
@@ -136,5 +180,15 @@ int find_path(int train_number, int origin, int dest) {
     }
     return 0;
   }
+}
+
+
+void train_velocity_init() {
+  int i;
+  short * const temp = (short *)train_velocity;
+  for (i = 0; i < 5 * 15 * 80 * 80; ++i) {
+    temp[i] = 1;
+  }
+  default_speed[train_64][10] = 4.93298;
 }
 
