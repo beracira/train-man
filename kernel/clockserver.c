@@ -99,7 +99,7 @@ void clockserver(void) {
 
   init_delay_list(); 
 
-  RegisterAs("clock");
+  //RegisterAs("clock");
 
   time_ticks = 0;
   timer_init();

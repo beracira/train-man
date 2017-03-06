@@ -3,7 +3,11 @@
 
 #define SENSOR_ACTIVATED 1
 
+#define MAX_TRAINS  10
+#define MAX_SPEED   14
+#define MAX_SENSORS 80
 
+void init_train_speeds(int track);
 
 struct vel_request {
   int type;

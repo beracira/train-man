@@ -1,5 +1,6 @@
 #include "sensors.h"
 #include "io.h"
+#include "velocity.h"
 
 #define SENSOR_ARRAY_SIZE 10
 
@@ -55,9 +56,11 @@ void get_sensor_data() {
       printf(2, "\033[s\033[26;30H\033[K");
 
       int i = (tail - 1 + SENSOR_ARRAY_SIZE) % SENSOR_ARRAY_SIZE;
-      last_sensor = sensor_letter[i];
-      last_sensor <<= 5;
-      last_sensor += sensor_digit[i];
+      // last_sensor = sensor_letter[i];
+      // last_sensor <<= 5;
+      // last_sensor += sensor_digit[i];
+      last_sensor = (sensor_letter[i] - 'A') * 16 + sensor_digit[i] - 1;
+
       printf(2, "%d  ", last_sensor);
       do {
         if (sensor_letter[i] != 0)
@@ -69,6 +72,9 @@ void get_sensor_data() {
 
       printf(2, "\033[u");
       sensor_len = 0;
+
+      // printf(2, "=======test");
+      sensor_data_received(last_sensor);
     }
   }
 }
