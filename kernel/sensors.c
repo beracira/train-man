@@ -1,6 +1,8 @@
 #include "sensors.h"
 #include "io.h"
 #include "velocity.h"
+#include "track.h"
+#include "clockserver.h"
 
 #define SENSOR_ARRAY_SIZE 10
 
@@ -16,6 +18,47 @@ void get_sensor_data() {
     sensor_letter[i] = 0;
   }
   int tail = 0;
+
+  //////////////////////////// 
+  // velocity calibration
+
+  struct train_velocity tv[80];
+
+  int prev_time = 0;
+
+  int time = 0;
+
+  int prev_sensor = -1;
+  volatile track_node * track = (track_node *) 0x01700000;
+
+ // int i = -1;
+  int d = 0;
+  int y = 5;
+
+  printf(2, "\033[s");
+  for (i = 0; i < 80; i++) {
+    tv[i].length = track[i].edge[DIR_AHEAD].dist;
+    tv[i].num = 0;
+    tv[i].time = 0;
+
+    if (i < 20) {
+      printf(2, "\033[%d;40H", i + y);
+    } else if (i < 40){
+      printf(2, "\033[%d;70H", i % 20 + y);      
+    } else if (i < 60){
+      printf(2, "\033[%d;100H", i % 20 + y);      
+    } else {
+      printf(2, "\033[%d;130H", i % 20 + y);      
+    }
+  
+    printf(2, "%s:%d t:%d n:%d sw:%d", 
+                  track[i].name, i, 
+                  tv[i].time, tv[i].num, 0);
+  }
+  printf(2, "\033[u");
+
+  //////////////////////////// 
+
   while (1 + 2 == 3) {
     int c = Getc(1);
     sensors[sensor_len++] = c;
@@ -56,10 +99,10 @@ void get_sensor_data() {
       printf(2, "\033[s\033[26;30H\033[K");
 
       int i = (tail - 1 + SENSOR_ARRAY_SIZE) % SENSOR_ARRAY_SIZE;
-      // last_sensor = sensor_letter[i];
-      // last_sensor <<= 5;
-      // last_sensor += sensor_digit[i];
-      last_sensor = (sensor_letter[i] - 'A') * 16 + sensor_digit[i] - 1;
+      last_sensor = sensor_letter[i];
+      last_sensor <<= 5;
+      last_sensor += sensor_digit[i];
+      int last_sensor2 = (sensor_letter[i] - 'A') * 16 + sensor_digit[i] - 1;
 
       printf(2, "%d  ", last_sensor);
       do {
@@ -73,8 +116,49 @@ void get_sensor_data() {
       printf(2, "\033[u");
       sensor_len = 0;
 
-      // printf(2, "=======test");
-      sensor_data_received(last_sensor);
+      //////////////////////////// 
+      // velocity calibration
+      if (prev_sensor == -1) {
+          prev_sensor = last_sensor2;
+          continue;
+        } else if (prev_sensor == last_sensor2) {
+          continue;
+        }
+
+        if (track[prev_sensor].edge[DIR_AHEAD].dest->type == NODE_BRANCH){
+          d = track[prev_sensor].edge[DIR_AHEAD].dest->dir;
+        } else {
+          d = -1;
+        }
+
+        time = time_ticks - prev_time;
+        prev_time = time_ticks;
+
+        tv[prev_sensor].time = ((tv[prev_sensor].time * tv[prev_sensor].num) + time) 
+                              / (tv[prev_sensor].num + 1);
+        tv[prev_sensor].num++;
+
+        i = prev_sensor;
+
+        printf(2, "\033[s");
+        if (i < 20) {
+          printf(2, "\033[%d;40H", prev_sensor % 20 + y);
+        } else if (i < 40){
+          printf(2, "\033[%d;70H", prev_sensor % 20 + y);      
+        } else if (i < 60){
+          printf(2, "\033[%d;100H", prev_sensor % 20 + y);      
+        } else {
+          printf(2, "\033[%d;130H", prev_sensor % 20 + y);      
+        }
+        // v = tv[i].length/tv[i].time;
+        printf(2, "%s:%d t:%d n:%d sw:%d", 
+                  track[prev_sensor].name, prev_sensor, 
+                  tv[prev_sensor].time, tv[prev_sensor].num, d);
+        
+        printf(2, "\033[u");
+
+        prev_sensor = last_sensor2;
+        //////////////////////////// 
     }
   }
 }

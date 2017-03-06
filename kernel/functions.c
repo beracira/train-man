@@ -111,7 +111,6 @@ void firsttask(void) {
   Create(P_OTHER_SERVERS, courier_server);
   Create(P_OTHER_SERVERS, UI_Server);
   Create(P_MEDIUM, input_handle);
-  Create(P_MEDIUM, velocity_server);
   Create(P_MEDIUM, get_sensor_data);
   Create(P_IDLE, &idle_task);
 
