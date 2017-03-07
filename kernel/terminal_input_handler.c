@@ -44,7 +44,7 @@ int command_parser(char * cmd, int cmd_len) {
     }
   }
   if (start) ++num_item; 
-  if (num_item > 3) {
+  if (num_item > 10) {
     printf(2, "\033[A\033[2K\rLast command: Invalid Command\033[B");
     return 1;
   } else {

@@ -52,7 +52,7 @@ void update_time() {
   unsigned int idle_percent = idle_ticks * 100 / 40 / time_ticks;
   idle_percent = idle_percent < 100 ? idle_percent : 100;
 
-  printf(2, "\033[s\033[2;60H");
+  printf(2, "\033[s\033[2;9H");
   int h = time / 10 / 60 / 60;
   if (h < 10) Putc(2, '0');
   printf(2, "%d:", h);

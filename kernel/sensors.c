@@ -217,12 +217,14 @@ void get_sensor_data() {
         }
       }
 
-      printf(2, "\033[s\033[2;40H\033[K From %s to %s Predict dist: %d default speed: %d\033[u",
+      if (predict_time > 1200 || predict_time < 0) predict_time = 0;
+
+      printf(2, "\033[s\033[3;40H\033[K From %s to %s Predict dist: %d default speed: %d\033[u",
         track[prev_sensor].name, track[last_sensor2].name, predict_dist, (int) default_speed[train_64][train_list_ptr[RUNNING_TRAIN]]);
-      printf(2, "\033[s\033[3;40H\033[K Predict time: %d Actual time: %d Delta: %d Dist: %d\033[u", 
+      printf(2, "\033[s\033[4;40H\033[K Predict time: %d Actual time: %d Delta: %d Dist: %d\033[u", 
         predict_time, time, time - predict_time, (time / predict_dist) * (time - predict_time));
       track_node * temp = get_next_sensor(last_sensor2);
-      printf(2, "\033[s\033[4;40H\033[K Next Sensor: %s\033[u", temp != 0 ? temp->name : "NULL");
+      printf(2, "\033[s\033[5;40H\033[K Next Sensor: %s\033[u", temp != 0 ? temp->name : "NULL");
       update_train_velocity(RUNNING_TRAIN, train_list_ptr[RUNNING_TRAIN], prev_sensor, last_sensor, time);
       prev_sensor = last_sensor2;
         //////////////////////////// 

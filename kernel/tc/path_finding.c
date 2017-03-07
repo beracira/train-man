@@ -103,7 +103,7 @@ int find_path(int train_number, int origin, int dest, int dist_init) {
     path_len = find_path_dfs(origin, dest, path, 1);
     int len = path_len;
 
-    int dist = dist_init;
+    int dist = 0;
     if (len >= 2) {
       int now = len - 1;
       while (now >= 0) {
@@ -123,13 +123,13 @@ int find_path(int train_number, int origin, int dest, int dist_init) {
           dist += track[path[now]].edge[DIR_AHEAD].dist;
           // double v_0 = get_vol(train_number, train_list_ptr[train_number], path[now]);
           int end = now + 1;
-          int dist_sensor_to_sensor = track[path[now]].edge[track[path[now]].dir].dist; //***
+          int dist_sensor_to_sensor = track[path[now]].edge[0].dist; //***
           while (track[path[end]].type == NODE_SENSOR) { // maybe include exit?
             int temp = 0;
             if (track[path[end]].edge[DIR_STRAIGHT].dest->index == path[end + 1]) {
-              track[path[end]].edge[DIR_STRAIGHT].dist;
+              temp = track[path[end]].edge[DIR_STRAIGHT].dist;
             } else {
-              track[path[end]].edge[DIR_CURVED].dist;
+              temp = track[path[end]].edge[DIR_CURVED].dist;
             }
             dist_sensor_to_sensor += temp;
             end += 1;
@@ -139,16 +139,18 @@ int find_path(int train_number, int origin, int dest, int dist_init) {
 
           double v_0 = get_velocity(train_index, speed, path[now], path[end], dist_sensor_to_sensor);
 
-          printf(2, "\n\rstarting %s, ending %s, v: %d d: %d\n\r", track[path[now]].name, track[path[end]].name, (int)(v_0 * 100), dist_sensor_to_sensor);
+          // printf(2, "\n\rstarting %s, ending %s, v: %d d: %d\n\r", track[path[now]].name, track[path[end]].name, (int)(v_0 * 100), dist_sensor_to_sensor);
           // double acc = train_acc[train_index][speed][get_sensor_color(path[now])];
           int temp = train_acc[train_index][speed][get_sensor_color(path[now])];
           // double temp = v_0 * v_0 / 2 / acc;
-          printf(2, "temp %d, dist %d\n\r", (int)temp, (int)dist);
+          // printf(2, "temp %d, dist %d\n\r", (int)temp, (int)dist);
           if (temp <= dist + 20) {
-            double d_stop = dist - temp;
+            double d_stop = dist + dist_init - temp;
+            if (d_stop < 0) d_stop = 0;
             double t_stop = d_stop / v_0;
+            if (t_stop < 0) t_stop = 0;
             Stop(train_number, path[now], t_stop);
-            printf(2, "\n\rcall stop at %s %d %d\n\r", track[path[now]].name, (int)(t_stop), (int) (v_0 * 100));
+            printf(2, "\033[s\033[13;40H\033[Kcall stop at %s %d %d\033[u", track[path[now]].name, (int)(d_stop), (int) (v_0 * 100));
             break;
           } else if (temp > dist && now != 0) {
             now -= 1;
