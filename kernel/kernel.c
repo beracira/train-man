@@ -12,6 +12,8 @@
 #include "courier.h"
 #include "train_ui.h"
 #include "sensors.h"
+#include "stop.h"
+#include "path_finding.h"
 
 int activate(void);
 
