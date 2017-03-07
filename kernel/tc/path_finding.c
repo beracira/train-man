@@ -103,9 +103,9 @@ int find_path(int train_number, int origin, int dest, int dist_init) {
     path_len = find_path_dfs(origin, dest, path, 1);
     int len = path_len;
 
-    int dist = 0;
+    int dist = dist_init;
     if (len >= 2) {
-      int now = len - 1;
+      int now = len - 2;
       while (now >= 0) {
         if (track[path[now]].type != NODE_SENSOR) {
           if (track[path[now]].type == NODE_BRANCH) {
@@ -124,7 +124,7 @@ int find_path(int train_number, int origin, int dest, int dist_init) {
           // double v_0 = get_vol(train_number, train_list_ptr[train_number], path[now]);
           int end = now + 1;
           int dist_sensor_to_sensor = track[path[now]].edge[0].dist; //***
-          while (track[path[end]].type == NODE_SENSOR) { // maybe include exit?
+          while (track[path[end]].type != NODE_SENSOR) { // maybe include exit?
             int temp = 0;
             if (track[path[end]].edge[DIR_STRAIGHT].dest->index == path[end + 1]) {
               temp = track[path[end]].edge[DIR_STRAIGHT].dist;
@@ -145,7 +145,7 @@ int find_path(int train_number, int origin, int dest, int dist_init) {
           // double temp = v_0 * v_0 / 2 / acc;
           // printf(2, "temp %d, dist %d\n\r", (int)temp, (int)dist);
           if (temp <= dist + 20) {
-            double d_stop = dist + dist_init - temp;
+            double d_stop = dist - temp;
             if (d_stop < 0) d_stop = 0;
             double t_stop = d_stop / v_0;
             if (t_stop < 0) t_stop = 0;
