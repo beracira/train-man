@@ -113,19 +113,15 @@ int find_path(int train_number, int origin, int dest) {
           // double v_0 = get_vol(train_number, train_list_ptr[train_number], path[now]);
           int end = now + 1;
           int dist_sensor_to_sensor = track[path[now]].edge[track[path[now]].dir].dist;
-          while (1 + 2 == 3) { // maybe include exit?
-            if (track[path[end]].type == NODE_SENSOR) {
-              break;
+          while (track[path[end]].type == NODE_SENSOR) { // maybe include exit?
+            int temp = 0;
+            if (track[path[end]].edge[DIR_STRAIGHT].dest->index == path[end + 1]) {
+              track[path[end]].edge[DIR_STRAIGHT].dist;
             } else {
-              int temp = 0;
-              if (track[path[end]].edge[DIR_STRAIGHT].dest->index == path[end + 1]) {
-                track[path[end]].edge[DIR_STRAIGHT].dist;
-              } else {
-                track[path[end]].edge[DIR_CURVED].dist;
-              }
-              dist_sensor_to_sensor += temp;
-              end += 1;
+              track[path[end]].edge[DIR_CURVED].dist;
             }
+            dist_sensor_to_sensor += temp;
+            end += 1;
           }
           int train_index = train_number_to_index(train_number);
           int speed = train_list_ptr[train_number];
@@ -254,5 +250,11 @@ void train_velocity_init() {
   train_velocity[train_64][10][71][45] = 228;
   train_velocity[train_64][14][72][52] = 104;
   train_velocity[train_64][10][72][52] = 123;
+
+  train_velocity[train_64][10][62][28] = 41;
+  train_velocity[train_64][10][28][49] = 91;
+  train_velocity[train_64][10][76][62] = 60;
+  train_velocity[train_64][10][49][67] = 33;
+  train_velocity[train_64][10][67][68] = 57;
 }
 
