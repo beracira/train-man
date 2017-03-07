@@ -102,7 +102,7 @@ void track_test() {
 void firsttask(void) {
 
   // always init track data first
-  init_data(TRACK_B);
+  init_data(TRACK_A);
 
   // K3 tasks
   Create(P_NAME_SERVER, nameserver);

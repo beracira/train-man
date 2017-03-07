@@ -497,23 +497,44 @@ void UI_init() {
   printf(2, "\n\rSwitch\tState\n\r--------------\n\r");
   int i;
 
-  for (i = 1; i <= 17; ++i) {
-    if (i != 10 && i != 13 && i != 16 && i != 17) {
-     flip_switch(i, 34);
-     printf(2, "%d\t%c\n\r", i, 'C');
-     Delay(20); 
-    } else {
-      flip_switch(i, 33);
-      printf(2, "%d\t%c\n\r", i, 'S');
-      Delay(20); 
-    }
+  char switches[200];
+  switches[1] = 'C';
+  switches[2] = 'C';
+  switches[3] = 'C';
+  switches[4] = 'C';
+  switches[5] = 'C';
+  switches[6] = 'C';
+  switches[7] = 'C';
+  switches[8] = 'C';
+  switches[9] = 'C';
+  switches[10] = 'C';
+  switches[11] = 'C';
+  switches[12] = 'C';
+  switches[13] = 'C';
+  switches[14] = 'C';
+  switches[15] = 'C';
+  switches[16] = 'C';
+  switches[17] = 'C';
+  switches[18] = 'C';
+
+  switches[0x99] = 'S';
+  switches[0x9a] = 'C';
+  switches[0x9b] = 'S';
+  switches[0x9c] = 'C';
+
+  // if (i != 10 && i != 13 && i != 16 && i != 17) {
+  for (i = 1; i <= 18; ++i) {
+    flip_switch(i, switches[i] == 'S' ? 33 : 34);
+    printf(2, "%d\t%c\n\r", i, switches[i]);
+    Delay(20); 
   }
 
   for (i = 0x99; i <= 0x9c; ++i) {
-    flip_switch(i, i & 1 ? 33 : 34);
-    printf(2, "%d\t%c\n\r", i, i & 1 ? 'S' : 'C');
-    Delay(20);
+    flip_switch(i, switches[i] == 'S' ? 33 : 34);
+    printf(2, "%d\t%c\n\r", i, switches[i]);
+    Delay(20); 
   }
+
   printf(2, "Recently triggered sensors: \n\rLast command:\n\r$ ");
 }
 

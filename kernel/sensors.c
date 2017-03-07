@@ -34,26 +34,36 @@ void get_sensor_data() {
  // int i = -1;
   int d = 0;
   int y = 5;
+  int k = 0;
 
+  track_node * k2;
   printf(2, "\033[s");
   for (i = 0; i < 80; i++) {
+
     tv[i].length = track[i].edge[DIR_AHEAD].dist;
+    
+    k2 =  track[i].edge[DIR_AHEAD].dest;
+    while (k2->type == NODE_BRANCH || k2->type == NODE_MERGE) {
+      tv[i].length += k2->edge[k2->dir].dist;
+      k2 =  k2->edge[k2->dir].dest;
+    }
+
     tv[i].num = 0;
     tv[i].time = 0;
 
     if (i < 20) {
-      printf(2, "\033[%d;40H", i + y);
+      printf(2, "\033[%d;30H", i + y);
     } else if (i < 40){
-      printf(2, "\033[%d;70H", i % 20 + y);      
+      printf(2, "\033[%d;65H", i % 20 + y);      
     } else if (i < 60){
       printf(2, "\033[%d;100H", i % 20 + y);      
     } else {
-      printf(2, "\033[%d;130H", i % 20 + y);      
+      printf(2, "\033[%d;135H", i % 20 + y);      
     }
   
-    printf(2, "%s:%d t:%d n:%d sw:%d", 
+    printf(2, "%s:%d XX t:%d n:%d sw:%d d:%d", 
                   track[i].name, i, 
-                  tv[i].time, tv[i].num, 0);
+                  tv[i].time, tv[i].num, 2, tv[i].length);
   }
   printf(2, "\033[u");
 
@@ -128,7 +138,7 @@ void get_sensor_data() {
         if (track[prev_sensor].edge[DIR_AHEAD].dest->type == NODE_BRANCH){
           d = track[prev_sensor].edge[DIR_AHEAD].dest->dir;
         } else {
-          d = -1;
+          d = DIR_AHEAD;
         }
 
         time = time_ticks - prev_time;
@@ -140,20 +150,26 @@ void get_sensor_data() {
 
         i = prev_sensor;
 
-        printf(2, "\033[s");
+        tv[prev_sensor].length = track[prev_sensor].edge[DIR_AHEAD].dist;
+        k2 =  track[prev_sensor].edge[DIR_AHEAD].dest;
+        while (k2->type == NODE_BRANCH || k2->type == NODE_MERGE) {
+          tv[prev_sensor].length += k2->edge[k2->dir].dist;
+          k2 =  k2->edge[k2->dir].dest;
+        }
+
         if (i < 20) {
-          printf(2, "\033[%d;40H", prev_sensor % 20 + y);
+          printf(2, "\033[%d;30H", i + y);
         } else if (i < 40){
-          printf(2, "\033[%d;70H", prev_sensor % 20 + y);      
+          printf(2, "\033[%d;65H", i % 20 + y);      
         } else if (i < 60){
-          printf(2, "\033[%d;100H", prev_sensor % 20 + y);      
+          printf(2, "\033[%d;100H", i % 20 + y);      
         } else {
-          printf(2, "\033[%d;130H", prev_sensor % 20 + y);      
+          printf(2, "\033[%d;135H", i % 20 + y);      
         }
         // v = tv[i].length/tv[i].time;
-        printf(2, "%s:%d t:%d n:%d sw:%d", 
-                  track[prev_sensor].name, prev_sensor, 
-                  tv[prev_sensor].time, tv[prev_sensor].num, d);
+        printf(2, "%s:%d %s t:%d n:%d sw:%d d:%d", 
+                  track[prev_sensor].name, prev_sensor, k2->name, 
+                  tv[prev_sensor].time, tv[prev_sensor].num, d, tv[prev_sensor].length);
         
         printf(2, "\033[u");
 
