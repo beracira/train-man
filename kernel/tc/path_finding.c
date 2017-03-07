@@ -7,10 +7,23 @@
 #include "io.h"
 #include "td.h"
 
-#define MAX_PATH_LENGTH 100
+#define LEARNING_FACTOR 0.95
 
-short train_velocity[5][15][80][80] = {};
+#define ORANGE 0
+#define RED    1
+#define BLUE   2
+#define GREEN  3
+#define CYAN   4
+#define PINK   5
+
+
+int train_velocity[5][15][80][80] = {};
 double default_speed[5][15] = {};
+int path[MAX_PATH_LENGTH] = {};
+int path_len = 0;
+
+int train_acc[5][15][10] = {};
+int sensor_type[80] = {};
 
 // int get_vol_ticks(int train_number, int speed, int sensor) {
 //   // return vol_map[train_number][speed][sensor];
@@ -49,11 +62,12 @@ int find_path_dfs(int origin, int dest, int * path, int len) {
   volatile track_node * track = (track_node *) TRACK_ADDR;
   if (origin == dest) {
     int i;
-    printf(2, "\033[s\033[H");
+    printf(2, "\033[s\033[10;40H\033[K\033[0;31m");
     for (i = 0; i < len; ++i) {
-      printf(2, "%s ", track[path[i]].name);
+      if (track[path[i]].type == NODE_SENSOR)
+        printf(2, "%s ", track[path[i]].name);
     }
-    printf(2, "\033[u");
+    printf(2, "\033[0m\033[u");
     return len;
   }
   if (exist(origin, path, len)) return 0;
@@ -75,23 +89,23 @@ int find_path_dfs(int origin, int dest, int * path, int len) {
     return 0;
   }
 }
-int find_path(int train_number, int origin, int dest) {
+int find_path(int train_number, int origin, int dest, int dist_init) {
   volatile track_node * track = (track_node *) TRACK_ADDR;
   counter = 1;
   if (origin == dest) {
     // do something
     return 0;
   } else {
-    int path[MAX_PATH_LENGTH];
     int i;
+    path_len = -1; // prevent get sensor data from print shit
     for (i = 0; i < MAX_PATH_LENGTH; ++i) path[i] = -1;
     path[0] = origin;
-    int len = find_path_dfs(origin, dest, path, 1);
+    path_len = find_path_dfs(origin, dest, path, 1);
+    int len = path_len;
 
-    double acc = 0.01745;
-    int dist = 0;
+    int dist = dist_init;
     if (len >= 2) {
-      int now = len - 2;
+      int now = len - 1;
       while (now >= 0) {
         if (track[path[now]].type != NODE_SENSOR) {
           if (track[path[now]].type == NODE_BRANCH) {
@@ -105,10 +119,11 @@ int find_path(int train_number, int origin, int dest) {
           }
           now -= 1;
         } else {
+          // if (now == len - 1) // stop after a sensor. with long dist;
           dist += track[path[now]].edge[DIR_AHEAD].dist;
           // double v_0 = get_vol(train_number, train_list_ptr[train_number], path[now]);
           int end = now + 1;
-          int dist_sensor_to_sensor = track[path[now]].edge[track[path[now]].dir].dist;
+          int dist_sensor_to_sensor = track[path[now]].edge[track[path[now]].dir].dist; //***
           while (track[path[end]].type == NODE_SENSOR) { // maybe include exit?
             int temp = 0;
             if (track[path[end]].edge[DIR_STRAIGHT].dest->index == path[end + 1]) {
@@ -121,14 +136,15 @@ int find_path(int train_number, int origin, int dest) {
           }
           int train_index = train_number_to_index(train_number);
           int speed = train_list_ptr[train_number];
-          
 
           double v_0 = get_velocity(train_index, speed, path[now], path[end], dist_sensor_to_sensor);
 
-          printf(2, "starting %s, ending %s, v: %d d: %d\n\r", track[path[now]].name, track[path[end]].name, (int)(v_0 * 100), dist_sensor_to_sensor);
-          double temp = v_0 * v_0 / 2 / acc;
+          printf(2, "\n\rstarting %s, ending %s, v: %d d: %d\n\r", track[path[now]].name, track[path[end]].name, (int)(v_0 * 100), dist_sensor_to_sensor);
+          // double acc = train_acc[train_index][speed][get_sensor_color(path[now])];
+          int temp = train_acc[train_index][speed][get_sensor_color(path[now])];
+          // double temp = v_0 * v_0 / 2 / acc;
           printf(2, "temp %d, dist %d\n\r", (int)temp, (int)dist);
-          if (temp <= dist) {
+          if (temp <= dist + 20) {
             double d_stop = dist - temp;
             double t_stop = d_stop / v_0;
             Stop(train_number, path[now], t_stop);
@@ -138,11 +154,13 @@ int find_path(int train_number, int origin, int dest) {
             now -= 1;
           } else {
             // cannot stop GG
+            path_len = -1;
             return -1;
           }
         }
       }
     } else {
+      path_len = -1;
       return -1;
     }
 
@@ -160,10 +178,10 @@ int find_path(int train_number, int origin, int dest) {
             flip_switch(track[path[i]].num, 33 + temp);
             Delay(10);
           } else {
-            printf(2, "\n\rblocked");
+            // printf(2, "\n\rblocked");
             td[ks->tid].state = PATH_SWITCH_BLOCKED;
             Pass();
-            printf(2, "\n\runblocked");
+            // printf(2, "\n\runblocked");
             int temp = 1 - track[path[i]].dir;
             flip_switch(track[path[i]].num, 33 + temp);
             Delay(10);
@@ -176,18 +194,70 @@ int find_path(int train_number, int origin, int dest) {
         target_sensor_closer = path[i];
       }
     }
+    // path_len = 0;
     return 0;
   }
 }
 
+void update_train_velocity(int train_number, int speed, int start, int end, int new_time) {
+  if (new_time >= 2000 || new_time <= 1) return;
+  int train_index = train_number_to_index(train_number);
+  if (train_velocity[train_index][speed][start][end] == 1) {
+    train_velocity[train_index][speed][start][end] = new_time;
+  } else {
+    int old_time = train_velocity[train_index][speed][start][end];
+    train_velocity[train_index][speed][start][end] = 
+        ((LEARNING_FACTOR) * old_time + (1 - LEARNING_FACTOR) * new_time) + 0.5;
+  }
+}
+
+void velocity_print(int train_number, int speed) {
+  int train_index = train_number_to_index(train_number);
+  int i, j;
+  printf(2, "\033[s\n\r\033[K");
+  for (i = 0; i < 80; ++i) {
+    for (j = 0; j < 80; ++j) {
+      if (train_velocity[train_index][speed][i][j] != 1) {
+        printf(2, "%d %d %d; ", i, j, train_velocity[train_index][speed][i][j]);
+      }
+    }
+  }
+  printf(2, "\n\r\033[u");
+}
 
 void train_velocity_init() {
+  path_len = -1;
+
   int i;
-  short * const temp = (short *)train_velocity;
+  int * const temp = (int *)train_velocity;
   for (i = 0; i < 5 * 15 * 80 * 80; ++i) {
     temp[i] = 1;
   }
+  default_speed[train_64][6] = 3.3596;
   default_speed[train_64][10] = 4.958;
+  default_speed[train_64][14] = 6.175;
+
+  // train_acc[train_64][6][ORANGE] = 0.00832;
+  // train_acc[train_64][6][RED] = 0.0094769;
+
+  // train_acc[train_64][6][BLUE] = 0.00832;
+  // train_acc[train_64][6][GREEN] = 0.00832;
+  // train_acc[train_64][6][CYAN] = 0.0083;
+  // train_acc[train_64][6][PINK] = 0.007755;
+
+  train_acc[train_64][6][ORANGE] = 460;
+  train_acc[train_64][6][RED] = 460;
+  train_acc[train_64][6][BLUE] = 460;
+  train_acc[train_64][6][GREEN] = 460;
+  train_acc[train_64][6][CYAN] = 540;
+  train_acc[train_64][6][PINK] = 460;
+
+  train_acc[train_64][10][ORANGE] = 770;
+  train_acc[train_64][10][RED] = 770;
+  train_acc[train_64][10][BLUE] = 770;
+  train_acc[train_64][10][GREEN] = 770;
+  train_acc[train_64][10][CYAN] = 900;
+  train_acc[train_64][10][PINK] = 770;
 
   train_velocity[train_64][10][2][42] = 73;
   train_velocity[train_64][10][2][44] = 115;
@@ -260,19 +330,19 @@ void train_velocity_init() {
   train_velocity[train_64][10][67][68] = 57;
 
   train_velocity[train_64][6][2][42] = 131;
-  train_velocity[train_64][6][3][31] = 146.3478261;
-  train_velocity[train_64][6][16][61] = 135.1538462;
+  train_velocity[train_64][6][3][31] = 146;
+  train_velocity[train_64][6][16][61] = 135;
   train_velocity[train_64][6][18][33] = 74;
   train_velocity[train_64][6][20][50] = 144;
-  train_velocity[train_64][6][21][43] = 125.3333333;
+  train_velocity[train_64][6][21][43] = 125;
   train_velocity[train_64][6][29][63] = 76;
   train_velocity[train_64][6][30][2] = 160;
   train_velocity[train_64][6][31][36] = 168;
-  train_velocity[train_64][6][31][41] = 133.5333333;
+  train_velocity[train_64][6][31][41] = 134;
   train_velocity[train_64][6][33][65] = 169;
   train_velocity[train_64][6][36][74] = 360;
   train_velocity[train_64][6][37][30] = 169;
-  train_velocity[train_64][6][41][16] = 134.25;
+  train_velocity[train_64][6][41][16] = 134;
   train_velocity[train_64][6][41][18] = 129;
   train_velocity[train_64][6][42][20] = 123;
   train_velocity[train_64][6][43][3] = 140;
@@ -281,7 +351,7 @@ void train_velocity_init() {
   train_velocity[train_64][6][48][29] = 171;
   train_velocity[train_64][6][50][68] = 100;
   train_velocity[train_64][6][51][21] = 148;
-  train_velocity[train_64][6][52][69] = 129.75;
+  train_velocity[train_64][6][52][69] = 130;
   train_velocity[train_64][6][53][56] = 244;
   train_velocity[train_64][6][55][71] = 140;
   train_velocity[train_64][6][56][75] = 134;
@@ -292,16 +362,33 @@ void train_velocity_init() {
   train_velocity[train_64][6][65][78] = 176;
   train_velocity[train_64][6][66][48] = 60;
   train_velocity[train_64][6][68][53] = 136;
-  train_velocity[train_64][6][69][51] = 157.9285714;
+  train_velocity[train_64][6][69][51] = 158;
   train_velocity[train_64][6][69][66] = 196;
   train_velocity[train_64][6][70][54] = 507;
   train_velocity[train_64][6][71][45] = 307;
   train_velocity[train_64][6][72][52] = 220;
   train_velocity[train_64][6][74][57] = 130;
   train_velocity[train_64][6][75][58] = 94;
-  train_velocity[train_64][6][77][72] = 132.25;
+  train_velocity[train_64][6][77][72] = 132;
   train_velocity[train_64][6][78][43] = 124;
-
-
 }
 
+
+int get_sensor_color(int sensor) {
+  if (sensor == 2 || sensor == 3 || sensor == 30 || sensor == 31 || sensor == 36 || sensor == 37 || sensor == 74 || sensor == 75 || sensor == 56 || sensor == 57 || sensor == 54 || sensor == 55)
+    return RED;
+
+  if (sensor == 42 || sensor == 43 || sensor == 78 || sensor == 79 || sensor == 66 || sensor == 67 || sensor == 68 || sensor == 69 || sensor == 52 || sensor == 53 || sensor == 72 || sensor == 73 || sensor == 76 || sensor == 77 || sensor == 62 || sensor == 63 || sensor == 18 || sensor == 19 || sensor == 40 || sensor == 41)
+    return BLUE;
+
+  if (sensor == 20 || sensor == 21 || sensor == 50 || sensor == 51 || sensor == 70 || sensor == 71 || sensor == 16 || sensor == 17 || sensor == 60 || sensor == 61 || sensor == 46 || sensor == 47 || sensor == 58 || sensor == 59 || sensor == 38 || sensor == 39 || sensor == 34 || sensor == 35)
+    return GREEN;
+
+  if (sensor == 64 || sensor == 65 || sensor == 48 || sensor == 49 || sensor == 32 || sensor == 33 || sensor == 76 || sensor == 77)
+    return CYAN;
+
+  if (sensor == 44 || sensor == 45)
+    return PINK;
+
+  return ORANGE;
+}
