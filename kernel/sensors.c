@@ -135,13 +135,15 @@ void get_sensor_data() {
       if (path_len == -1) {
         printf(2, "\033[s\033[10;40H\033[K\033[0;31mNO PATH\033[0m\033[u");
       } else if (path_len >= 2) {
-        // int flag = 0;
+        int flag = 0;
         printf(2, "\033[s\033[10;40H\033[K\033[0;31m");
         for (i = 0; i < path_len; ++i) {
           if (track[path[i]].type == NODE_SENSOR) {
-            if (path[i] == last_sensor) {
+            if (flag) {
               printf(2, "\033[32m");
-              // if (i == path_len - 1 || i == path_len -2) flag = 1;
+            }
+            if (path[i] == last_sensor) {
+              flag = 1;
             }
             printf(2, "%s ", track[path[i]].name);
           }
@@ -219,9 +221,9 @@ void get_sensor_data() {
 
       if (predict_time > 1200 || predict_time < 0) predict_time = 0;
 
-      printf(2, "\033[s\033[3;40H\033[K From %s to %s Predict dist: %d default speed: %d\033[u",
-        track[prev_sensor].name, track[last_sensor2].name, predict_dist, (int) default_speed[train_64][train_list_ptr[RUNNING_TRAIN]]);
-      printf(2, "\033[s\033[4;40H\033[K Predict time: %d Actual time: %d Delta: %d Dist: %d\033[u", 
+      printf(2, "\033[s\033[3;40H\033[K From %s to %s Predicted dist: %d\033[u",
+        track[prev_sensor].name, track[last_sensor2].name, predict_dist);
+      printf(2, "\033[s\033[4;40H\033[K Predicted time: %d Actual time: %d Delta: %d Dist: %d\033[u", 
         predict_time, time, time - predict_time, (time / predict_dist) * (time - predict_time));
       track_node * temp = get_next_sensor(last_sensor2);
       printf(2, "\033[s\033[5;40H\033[K Next Sensor: %s\033[u", temp != 0 ? temp->name : "NULL");
