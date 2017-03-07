@@ -134,52 +134,74 @@ void get_sensor_data() {
       //////////////////////////// 
       // velocity calibration
       if (prev_sensor == -1) {
-          prev_sensor = last_sensor2;
-          continue;
-        } else if (prev_sensor == last_sensor2) {
-          continue;
-        }
-
-        if (track[prev_sensor].edge[DIR_AHEAD].dest->type == NODE_BRANCH){
-          d = track[prev_sensor].edge[DIR_AHEAD].dest->dir;
-        } else {
-          d = DIR_AHEAD;
-        }
-
-        time = time_ticks - prev_time;
-        prev_time = time_ticks;
-
-        tv[prev_sensor].time = ((tv[prev_sensor].time * tv[prev_sensor].num) + time) 
-                              / (tv[prev_sensor].num + 1);
-        tv[prev_sensor].num++;
-
-        i = prev_sensor;
-
-        tv[prev_sensor].length = track[prev_sensor].edge[DIR_AHEAD].dist;
-        k2 =  track[prev_sensor].edge[DIR_AHEAD].dest;
-        while (k2->type == NODE_BRANCH || k2->type == NODE_MERGE) {
-          tv[prev_sensor].length += k2->edge[k2->dir].dist;
-          k2 =  k2->edge[k2->dir].dest;
-        }
-
-        // if (i < 20) {
-        //   printf(2, "\033[%d;30H", i + y);
-        // } else if (i < 40){
-        //   printf(2, "\033[%d;65H", i % 20 + y);      
-        // } else if (i < 60){
-        //   printf(2, "\033[%d;100H", i % 20 + y);      
-        // } else {
-        //   printf(2, "\033[%d;135H", i % 20 + y);      
-        // }
-        // // v = tv[i].length/tv[i].time;
-        
-        // printf(2, "%s:%d %s t:%d n:%d sw:%d d:%d", 
-        //           track[prev_sensor].name, prev_sensor, k2->name, 
-        //           tv[prev_sensor].time, tv[prev_sensor].num, d, tv[prev_sensor].length);
-        
-        // printf(2, "\033[u");
-
         prev_sensor = last_sensor2;
+        sensor_requested = 0;
+        volatile struct task_descriptor * td = (struct task_descriptor *) TASK_DESCRIPTOR_START;
+        if (td[CR_TID].state == SENSOR_BLOCKED) td[CR_TID].state = READY;
+        if (target_sensor == last_sensor && td[INPUT_TID].state == PATH_SWITCH_BLOCKED) td[INPUT_TID].state = READY;
+        continue;
+      } else if (prev_sensor == last_sensor2) {
+        sensor_requested = 0;
+        volatile struct task_descriptor * td = (struct task_descriptor *) TASK_DESCRIPTOR_START;
+        if (td[CR_TID].state == SENSOR_BLOCKED) td[CR_TID].state = READY;
+        if (target_sensor == last_sensor && td[INPUT_TID].state == PATH_SWITCH_BLOCKED) td[INPUT_TID].state = READY;
+        continue;
+      }
+
+      if (track[prev_sensor].edge[DIR_AHEAD].dest->type == NODE_BRANCH){
+        d = track[prev_sensor].edge[DIR_AHEAD].dest->dir;
+      } else {
+        d = DIR_AHEAD;
+      }
+
+      time = time_ticks - prev_time;
+      prev_time = time_ticks;
+
+      tv[prev_sensor].time = ((tv[prev_sensor].time * tv[prev_sensor].num) + time) 
+                            / (tv[prev_sensor].num + 1);
+      tv[prev_sensor].num++;
+
+      i = prev_sensor;
+
+      tv[prev_sensor].length = track[prev_sensor].edge[DIR_AHEAD].dist;
+      k2 =  track[prev_sensor].edge[DIR_AHEAD].dest;
+      while (k2->type == NODE_BRANCH || k2->type == NODE_MERGE) {
+        tv[prev_sensor].length += k2->edge[k2->dir].dist;
+        k2 =  k2->edge[k2->dir].dest;
+      }
+
+      // if (i < 20) {
+      //   printf(2, "\033[%d;30H", i + y);
+      // } else if (i < 40){
+      //   printf(2, "\033[%d;65H", i % 20 + y);      
+      // } else if (i < 60){
+      //   printf(2, "\033[%d;100H", i % 20 + y);      
+      // } else {
+      //   printf(2, "\033[%d;135H", i % 20 + y);      
+      // }
+      // // v = tv[i].length/tv[i].time;
+      
+      // printf(2, "%s:%d %s t:%d n:%d sw:%d d:%d", 
+      //           track[prev_sensor].name, prev_sensor, k2->name, 
+      //           tv[prev_sensor].time, tv[prev_sensor].num, d, tv[prev_sensor].length);
+      
+      // printf(2, "\033[u");
+
+      int predict_time = 0;
+      int predict_dist = get_next_sensor_dist(prev_sensor);
+      if (prev_sensor != -1) {
+        predict_time = train_velocity[train_64][train_list_ptr[64]][prev_sensor][last_sensor2];
+        if (predict_time == 1) {
+          predict_time = predict_dist / default_speed[train_64][train_list_ptr[64]];
+        }
+      }
+
+      printf(2, "\033[s\033[2;40H\033[K %s %s\033[u", track[prev_sensor].name, track[last_sensor2].name);
+      printf(2, "\033[s\033[3;40H\033[K %d %d %d %d\033[u", 
+        predict_time, time, time - predict_time, (time / predict_dist) * (time - predict_time));
+      track_node * temp = get_next_sensor(last_sensor2);
+      printf(2, "\033[s\033[4;40H\033[K Next Sensor: %s\033[u", temp != 0 ? temp->name : "NULL");
+      prev_sensor = last_sensor2;
         //////////////////////////// 
     }
     sensor_requested = 0;
@@ -187,4 +209,27 @@ void get_sensor_data() {
     if (td[CR_TID].state == SENSOR_BLOCKED) td[CR_TID].state = READY;
     if (target_sensor == last_sensor && td[INPUT_TID].state == PATH_SWITCH_BLOCKED) td[INPUT_TID].state = READY;
   }
+}
+
+track_node * get_next_sensor(int sensor) {
+   volatile track_node * track = (track_node *) 0x01700000;
+
+   track_node * k2;
+   k2 =  track[sensor].edge[DIR_AHEAD].dest;
+   while (k2->type == NODE_BRANCH || k2->type == NODE_MERGE) {
+     k2 =  k2->edge[k2->dir].dest;
+   }
+   return k2;
+}
+
+int get_next_sensor_dist(int sensor) {
+  volatile track_node * track = (track_node *) 0x01700000;
+  int dist = track[sensor].edge[DIR_AHEAD].dist;
+
+  track_node * k2 =  track[sensor].edge[DIR_AHEAD].dest;
+  while (k2->type == NODE_BRANCH || k2->type == NODE_MERGE) {
+    dist += k2->edge[k2->dir].dist;
+    k2 =  k2->edge[k2->dir].dest;
+  }
+  return dist;
 }

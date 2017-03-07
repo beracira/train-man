@@ -9,10 +9,6 @@
 
 #define MAX_PATH_LENGTH 100
 
-#define train_76 0
-#define train_71 1
-#define train_64 2
-
 short train_velocity[5][15][80][80] = {};
 double default_speed[5][15] = {};
 
@@ -158,15 +154,21 @@ int find_path(int train_number, int origin, int dest) {
       if (track[path[i]].type == NODE_BRANCH) {
         if (path[i + 1] != track[path[i]].edge[track[path[i]].dir].dest->index) {
           if (target_sensor == -1) {
-            flip_switch(track[path[i]].num, 33 + (1 - track[path[i]].dir));
-            Delay(20);            
+            int temp = 1 - track[path[i]].dir;
+            flip_switch(track[path[i]].num, 33 + temp);
+            Delay(10);
+            flip_switch(track[path[i]].num, 33 + temp);
+            Delay(10);
           } else {
             printf(2, "\n\rblocked");
             td[ks->tid].state = PATH_SWITCH_BLOCKED;
             Pass();
             printf(2, "\n\runblocked");
-            flip_switch(track[path[i]].num, 33 + (1 - track[path[i]].dir));
-            Delay(20);            
+            int temp = 1 - track[path[i]].dir;
+            flip_switch(track[path[i]].num, 33 + temp);
+            Delay(10);
+            flip_switch(track[path[i]].num, 33 + temp);
+            Delay(10);
           }
         }
       } else if (track[path[i]].type == NODE_SENSOR) {
