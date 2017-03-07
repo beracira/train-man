@@ -141,18 +141,17 @@ int find_path(int train_number, int origin, int dest, int dist_init) {
 
           // printf(2, "\n\rstarting %s, ending %s, v: %d d: %d\n\r", track[path[now]].name, track[path[end]].name, (int)(v_0 * 100), dist_sensor_to_sensor);
           // double acc = train_acc[train_index][speed][get_sensor_color(path[now])];
-          int temp = train_acc[train_index][speed][get_sensor_color(path[now])];
+          int stopping_dist = train_acc[train_index][speed][get_sensor_color(path[now])];
           // double temp = v_0 * v_0 / 2 / acc;
           // printf(2, "temp %d, dist %d\n\r", (int)temp, (int)dist);
-          if (temp <= dist + 20) {
-            double d_stop = dist - temp;
-            if (d_stop < 0) d_stop = 0;
-            double t_stop = d_stop / v_0;
+          if (stopping_dist <= dist) {
+            double d_stop = dist - stopping_dist;
+            int t_stop = d_stop / v_0;
             if (t_stop < 0) t_stop = 0;
             Stop(train_number, path[now], t_stop);
-            printf(2, "\033[s\033[13;40H\033[Kcall stop at %s %d %d\033[u", track[path[now]].name, (int)(d_stop), (int) (v_0 * 100));
+            printf(2, "\033[s\033[13;40H\033[Kcall stop at %s %d %d %d ss: %d dist: %d\033[u", track[path[now]].name, (int)(d_stop), (int)(t_stop), (int) (v_0 * 100), dist_sensor_to_sensor, dist);
             break;
-          } else if (temp > dist && now != 0) {
+          } else if (stopping_dist > dist && now != 0) {
             now -= 1;
           } else {
             // cannot stop GG

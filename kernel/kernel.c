@@ -178,7 +178,7 @@ int handle(int num) {
           Putc(1, 128 + 5);
           sensor_requested = 1;
         }
-        if (io_ready && ui_ready && time_ticks % 20 == 10) {
+        if (io_ready && ui_ready && time_ticks % 10 == 5) {
           remove_from_stop_queue();
         }
         ++time_ticks;
