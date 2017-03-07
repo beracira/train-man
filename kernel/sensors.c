@@ -6,6 +6,7 @@
 #include "path_finding.h"
 #include "track.h"
 #include "clockserver.h"
+#include "velocity.h"
 
 #define SENSOR_ARRAY_SIZE 10
 
