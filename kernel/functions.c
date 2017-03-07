@@ -114,17 +114,16 @@ void firsttask(void) {
   Create(P_OTHER_SERVERS, UI_Server);
   Create(P_MEDIUM, input_handle);
   Create(P_MEDIUM, get_sensor_data);
-  Create(P_LOW, &idle_task);
+  Create(P_IDLE, &idle_task);
 
-  // don't want to run the track code until everything is initialized
-  // note that this affect idle usage
+  // // don't want to run the track code until everything is initialized
+  // // note that this affect idle usage
   // while (!(io_ready && ui_ready)) {
   //   Pass();
   // }
-  // int retval = find_path(70, 39);
-  // printf(2, "\033[s\033[H%d\033[u", retval);
 
   // track_test();
+  // set_train_speed(71, 10);
 
   Exit();
 }
