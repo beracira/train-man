@@ -55,6 +55,7 @@ void initialize(void) {
 
   IO_init();
   train_velocity_init();
+  train_init();
   courier_ready = 0;
   ui_ready = 0;
   stop = 0;

@@ -89,7 +89,7 @@ int command_parser(char * cmd, int cmd_len) {
           if (num_item >= 0) {
             printf(2, "\033[A\033[2K\rLast command: not implmented stex\033[B");
           } else {
-            int train_number = stoi(item[1], item_len[1]);
+            // int train_number = stoi(item[1], item_len[1]);
             int exit_num = stoi(item[2], item_len[2]);
             if (exit_num > 10) {
               printf(2, "\033[A\033[2K\rLast command: stex no such exit\033[B");
@@ -105,7 +105,7 @@ int command_parser(char * cmd, int cmd_len) {
       } else if (strcmp(item[0], "staf")) {
         int train_number = stoi(item[1], item_len[1]);
         int sensor = (item[2][0] - 'A') * 16 + stoi(item[2] + 1, item_len[2] - 1) - 1;
-        item[2][item_len[2]] = 0;
+        item[2][(int)item_len[2]] = 0;
         int delay = 0;
         if (num_item == 4) {
           delay = stoi(item[3], item_len[3]);
@@ -120,9 +120,11 @@ int command_parser(char * cmd, int cmd_len) {
           dist_init = stoi(item[3], item_len[3]);
         }
         int retval = find_path(train_number, last_sensor, sensor, dist_init);
-        item[2][item_len[2]] = 0;
+        item[2][(int)(item_len[2])] = 0;
         if (retval == 0) {
           printf(2, "\033[A\033[2K\rLast command: %s %d %s %d\033[B", item[0], train_number, item[2], dist_init);
+        } else if (retval == 1) {
+          printf(2, "\033[A\033[2K\rLast command: not on the right path %d %s\033[B", train_number, item[2]);
         } else {
           printf(2, "\033[A\033[2K\rLast command: cannot stop %d %s\033[B", train_number, item[2]);
         }

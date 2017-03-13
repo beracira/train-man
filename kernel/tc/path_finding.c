@@ -16,8 +16,7 @@
 #define CYAN   4
 #define PINK   5
 
-
-struct Train * train_64_struct_ptr = 0;
+struct Train train_64_struct = {};
 
 int train_velocity[5][15][80][80] = {};
 double default_speed[5][15] = {};
@@ -30,6 +29,47 @@ int sensor_type[80] = {};
 // int get_vol_ticks(int train_number, int speed, int sensor) {
 //   // return vol_map[train_number][speed][sensor];
 //   return 76.0;
+// }
+
+// worker for path finding
+// int path_finding_train_list[100] = {};
+// int path_finding_dest_list[100] = {};
+// volatile int path_finding_list_head = 0;
+// volatile int path_finding_list_tail = 0;
+
+// worker for path finding
+// int PATH_TID = 0;
+
+// worker for path finding
+// void path_finding_init() {
+//   path_finding_list_head = 0;
+//   path_finding_list_tail = 0;  
+//   int i;
+//   for(i = 0; i < 100; ++i) {
+//     path_finding_train_list[i] = 0;
+//     path_finding_dest_list[i] = 0;
+//   }
+// }
+
+// worker for path finding
+// void path_finding_worker() {
+//   path_finding_init();
+
+//   PATH_TID = MyTid();
+
+//   volatile struct task_descriptor * td = (struct task_descriptor *) TASK_DESCRIPTOR_START;
+//   volatile struct kernel_stack * ks = (struct kernel_stack *) KERNEL_STACK_START;
+
+//   while (1 * 1 == 1) {
+//     if (path_finding_list_head == path_finding_list_tail) {
+//       td[ks->tid].state = WORKER_BLOCKED;
+//       Pass();
+//     }
+//     if (path_finding_list_head != path_finding_list_tail) {
+//       int head = path_finding_list_head;
+//       find_path(int train_number, int origin, int dest, int dist_init);      
+//     }
+//   }
 // }
 
 double get_velocity(int train_index, int speed, int now, int end, int dist) {
@@ -91,6 +131,39 @@ int find_path_dfs(int origin, int dest, int * path, int len) {
     return 0;
   }
 }
+
+int find_path_bfs(int origin, int dest, int * path, int len) {
+  volatile track_node * track = (track_node *) TRACK_ADDR;
+  if (origin == dest) {
+    int i;
+    printf(2, "\033[s\033[10;40H\033[K\033[0;31m");
+    for (i = 0; i < len; ++i) {
+      if (track[path[i]].type == NODE_SENSOR)
+        printf(2, "%s ", track[path[i]].name);
+    }
+    printf(2, "\033[0m\033[u");
+    return len;
+  }
+  if (exist(origin, path, len)) return 0;
+  int type = track[origin].type;
+  if (type == NODE_SENSOR || type == NODE_MERGE || type == NODE_ENTER) {
+    path[len] = track[origin].edge[DIR_AHEAD].dest->index;
+    return find_path_dfs(track[origin].edge[DIR_AHEAD].dest->index, dest, path, len + 1);
+  } else if (type == NODE_BRANCH) {
+    path[len] = track[origin].edge[DIR_STRAIGHT].dest->index;
+    int retval = -1;
+    retval = find_path_dfs(track[origin].edge[DIR_STRAIGHT].dest->index, dest, path, len + 1);
+    if (retval > 0) return retval;
+    path[len] = track[origin].edge[DIR_CURVED].dest->index;
+    retval = find_path_dfs(track[origin].edge[DIR_CURVED].dest->index, dest, path, len + 1);
+    if (retval > 0) return retval;
+    return 0;
+  } else {
+    // exit
+    return 0;
+  }
+}
+
 int find_path(int train_number, int origin, int dest, int dist_init) {
   volatile track_node * track = (track_node *) TRACK_ADDR;
   counter = 1;
@@ -193,6 +266,13 @@ int find_path(int train_number, int origin, int dest, int dist_init) {
           }
         }
       } else if (track[path[i]].type == NODE_SENSOR) {
+        // if (path_err) {
+          // printf(2, "\n\rtarget: %d", target_sensor);
+          // Delay(5);
+          // int * i = 1;2
+          // *i = 1;
+          // return 1;
+        // }
         target_sensor = target_sensor_closer;
         target_sensor_closer = path[i];
       }
@@ -255,8 +335,6 @@ void short_move(int train_number, int dist) {
 }
 
 void train_velocity_init() {
-  struct Train train_64_struct;
-  train_64_struct_ptr = &train_64_struct;
   // init train 64 struct
   train_64_struct.prev_sensor = 0;
   train_64_struct.cur_sensor = 0;

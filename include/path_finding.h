@@ -11,14 +11,15 @@ struct Train {
   int prev_sensor;
   int cur_sensor;
   int speed;
+  int missed_count;
   int direction;
   int time_current_sensor;
   int predict_sensors[100];
 };
 
 extern int target_sensor;
-extern struct Train * train_64_struct_ptr;
 
+extern struct Train train_64_struct;
 extern int path[MAX_PATH_LENGTH];
 extern int path_len;
 extern int train_velocity[5][15][80][80];
