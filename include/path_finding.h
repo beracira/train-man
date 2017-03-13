@@ -7,6 +7,15 @@
 #define train_71 1
 #define train_64 2
 
+struct Train {
+  int prev_sensor;
+  int cur_sensor;
+  int speed;
+  int direction;
+  int time_current_sensor;
+  int predict_sensors[100];
+};
+
 extern int target_sensor;
 
 extern int path[MAX_PATH_LENGTH];
