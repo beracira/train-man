@@ -3,6 +3,7 @@
 #include "td.h"
 #include "courier.h"
 #include "terminal_input_handler.h"
+#include "train_ui.h"
 #include "path_finding.h"
 #include "track.h"
 #include "clockserver.h"
@@ -41,8 +42,8 @@ void get_sensor_data() {
 
  // int i = -1;
   int d = 0;
-  int y = 5;
-  int k = 0;
+  // int y = 5;
+  // int k = 0;
 
   track_node * k2;
   // printf(2, "\033[s");
@@ -171,7 +172,9 @@ void get_sensor_data() {
       }
 
       /* ---------replace me with something----------- */
-      check_missed_switch(last_sensor2);
+      // predict_path(last_sensor2);
+      update_train_state(last_sensor2);
+      // check_missed_switch(last_sensor2);
 
       if (track[prev_sensor].edge[DIR_AHEAD].dest->type == NODE_BRANCH){
         d = track[prev_sensor].edge[DIR_AHEAD].dest->dir;
@@ -265,13 +268,23 @@ int get_next_sensor_dist(int sensor) {
   return dist;
 }
 
-struct Train train_64_struct = {};
+void train_init() {
+  train_64_struct.prev_sensor = -1;
+  train_64_struct.cur_sensor = -1;
+  train_64_struct.speed = 0;
+  train_64_struct.time_current_sensor = -1;
+  train_64_struct.missed_count = 0;
+  int i;
+  for (i = 0; i < 100; ++i) {
+    train_64_struct.predict_sensors[i] = 0;
+  }
+}
 
 int check_missed_switch(int cur_sensor) {
 
   volatile track_node * track = (track_node *) 0x01700000;
 
-  track_node * current_node = &track[cur_sensor];
+  track_node * current_node = (track_node *) &track[cur_sensor];
   current_node = current_node->reverse;
   track_node * branch_node = current_node->edge[DIR_AHEAD].dest;
   branch_node = branch_node->reverse;
@@ -294,4 +307,76 @@ int check_missed_switch(int cur_sensor) {
 
   // train_64_struct.prev_sensor = train_64_struct.cur_sensor;
   return 0;
+}
+
+void update_train_state(int sensor) {
+  volatile track_node * track = (track_node *) 0x01700000;
+
+  // printf(2, "%d\n\r", train_64_struct.cur_sensor);
+  if (train_64_struct.predict_sensors[sensor] || train_64_struct.cur_sensor == -1) {
+    train_64_struct.cur_sensor = sensor;
+    predict_path(sensor);
+    int queue[100];
+    int level_queue[100];
+    int queue_head = 0;
+    int queue_tail = 1;
+    int i;
+    for (i = 0; i < 100; ++i) {
+      train_64_struct.predict_sensors[i] = 0;
+      queue[i] = 0;
+      level_queue[i] = 0;
+    }
+
+    queue[0] = sensor;
+    level_queue[0] = 0;
+    while (queue_head != queue_tail) {
+      // printf(2, "%s\n\r", track[queue[queue_head]].name);
+      if (level_queue[queue_head] == 2) {
+        queue_head += 1;
+        continue;
+      }
+      track_node * next = get_next_sensor(queue[queue_head]);
+      // printf(2, "%s\n\r", next->name);
+      if (next->type == NODE_SENSOR) {
+        queue[queue_tail] = next->index;
+        level_queue[queue_tail] = level_queue[queue_head] + 1;
+        queue_tail += 1;
+      }
+      queue_head += 1;
+      continue;
+    }
+    for (i = 0; i < queue_head; ++i) {
+      train_64_struct.predict_sensors[queue[i]] = 1;
+    }
+    printf(2, "\033[s\033[13;40H\033[KPredicted Sensors: %d ", queue_head);
+    for (i = 0; i < 100; ++i) {
+      if (train_64_struct.predict_sensors[i] != 0) {
+        printf(2, "%s ", track[i].name);
+      }
+    }
+    printf(2, "\033[u");
+    train_64_struct.missed_count = 0;
+  } else {
+    train_64_struct.missed_count += 1;
+    if (train_64_struct.missed_count == 3) {
+      train_64_struct.cur_sensor = -1;
+    }
+  }
+}
+
+void predict_path(int sensor) {
+
+  volatile track_node * track = (track_node *) 0x01700000;
+
+  int i;
+  track_node * cur_sensor = (track_node *) &track[sensor];
+  printf(2, "\033[s\033[12;40H\033[KPredicted Path: ");
+  for (i = 0; i < 3; ++i) {
+    track_node * next_sensor = get_next_sensor(cur_sensor->index);
+    // int next_sensor = 1;
+    printf(2, "%s ", next_sensor->name);
+    if (next_sensor->type == NODE_EXIT) break;
+    cur_sensor = next_sensor;
+  }
+  printf(2, "\033[u");
 }
