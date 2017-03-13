@@ -17,6 +17,8 @@
 #define PINK   5
 
 
+struct Train * train_64_struct_ptr = 0;
+
 int train_velocity[5][15][80][80] = {};
 double default_speed[5][15] = {};
 int path[MAX_PATH_LENGTH] = {};
@@ -253,6 +255,15 @@ void short_move(int train_number, int dist) {
 }
 
 void train_velocity_init() {
+  struct Train train_64_struct;
+  train_64_struct_ptr = &train_64_struct;
+  // init train 64 struct
+  train_64_struct.prev_sensor = 0;
+  train_64_struct.cur_sensor = 0;
+  train_64_struct.speed = 8;
+  train_64_struct.direction = 1;
+  train_64_struct.time_current_sensor = 0;
+
   path_len = -1;
 
   int i;

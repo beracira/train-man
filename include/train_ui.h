@@ -17,4 +17,6 @@ struct UI_Request{
 
 void UI_Server();
 
+int update_switch(int switch_number, int direction);
+
 #endif // TRAIN_UI_H

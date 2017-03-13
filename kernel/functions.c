@@ -118,9 +118,9 @@ void firsttask(void) {
 
   // // don't want to run the track code until everything is initialized
   // // note that this affect idle usage
-  while (!(io_ready && ui_ready)) {
-    Pass();
-  }
+  // while (!(io_ready && ui_ready)) {
+  //   Pass();
+  // }
 
   // track_test();
   // flip_switch(3, 33);

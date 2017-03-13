@@ -17,6 +17,7 @@ struct Train {
 };
 
 extern int target_sensor;
+extern struct Train * train_64_struct_ptr;
 
 extern int path[MAX_PATH_LENGTH];
 extern int path_len;
@@ -27,5 +28,6 @@ void train_velocity_init();
 void velocity_print(int train_number, int speed);
 int get_sensor_color(int sensor);
 void short_move(int train_number, int dist);
+void update_train_velocity(int train_number, int speed, int start, int end, int new_time);
 
 #endif // PATH_FINDING_H
