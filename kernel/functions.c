@@ -118,12 +118,51 @@ void firsttask(void) {
 
   // // don't want to run the track code until everything is initialized
   // // note that this affect idle usage
-  // while (!(io_ready && ui_ready)) {
-  //   Pass();
-  // }
+  while (!(io_ready && ui_ready)) {
+    Pass();
+  }
 
   // track_test();
-  // set_train_speed(71, 10);
+  // flip_switch(3, 33);
+  // Delay(50);
+  // flip_switch(18, 33);
+  // Delay(50);
+  // flip_switch(5, 33);
+  // Delay(50);
+  // int i;
+  // for (i = 1; i <= 4; ++i) {
+  //   set_train_speed(64, 4);
+  //   Delay(60);
+  //   set_train_speed(64, 0);
+  //   Delay(500);    
+  // }
+
+
+  // set_train_speed(64, 0);
+  // Delay(500);
+  // set_train_speed(64, 4);
+  // Delay(60);
+  // set_train_speed(64, 0);
+  // Delay(1000);
+  // set_train_speed(64, 4);
+  // Delay(60);
+  // set_train_speed(64, 0);
+  // Delay(1000);    
+  // set_train_speed(64, 4);
+  // Delay(60);
+  // set_train_speed(64, 0);
+  // Delay(1000);    
+  // set_train_speed(64, 4);
+  // Delay(60);
+  // set_train_speed(64, 0);
+  // Delay(1000);
+
+  // Delay(1000);
+
+  // set_train_speed(64, 3);
+  // Delay(500);
+  // set_train_speed(64, 0);
+
 
   Exit();
 }

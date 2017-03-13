@@ -23,4 +23,6 @@ void strcpy( char * const origin, char * const dest);
 
 int strcmp( const char * const str1, const char * const str2);
 
+float fast_sqrt(float number);
+
 #endif /* COMMON_H */

@@ -7,7 +7,7 @@
 #include "io.h"
 #include "td.h"
 
-#define LEARNING_FACTOR 0.95
+#define LEARNING_FACTOR 0.8
 
 #define ORANGE 0
 #define RED    1
@@ -226,6 +226,32 @@ void velocity_print(int train_number, int speed) {
   printf(2, "\n\r\033[u");
 }
 
+void short_move(int train_number, int dist) {
+  float temp_dist = (float) (1.0 * dist / 10.0);
+  float a = 8.1929;
+  float b = -4.7666;
+  float c = 1.6872 - temp_dist;
+
+  // float a = 6.9729;
+  // float b = -2.2272;
+  // float c = 0.6139 - 40;
+
+  float x = ((float)(-b) + fast_sqrt((float)(b * b - 4 * a * c))) / (float)(2.0 * a);
+
+  // int ttt = (int) (b * b - 4 * a * c);
+  // printf(2, "%d\n\r", ttt);
+  // ttt = (int)(fast_sqrt(b * b - 4 * a * c) + 0.5);
+  // printf(2, "%d\n\r", ttt);
+  
+  int temp = (int)(((x * (float)100) + 0.5) * 1.03);
+  printf(2, "%d\n\r", temp);
+
+  if (temp < 30) temp = 30; 
+  set_train_speed(train_number, 4);
+  Delay(temp);
+  set_train_speed(train_number, 0);
+}
+
 void train_velocity_init() {
   path_len = -1;
 
@@ -235,6 +261,7 @@ void train_velocity_init() {
     temp[i] = 1;
   }
   default_speed[train_64][6] = 3.3596;
+  default_speed[train_64][8] = 3.50145;
   default_speed[train_64][10] = 4.958;
   default_speed[train_64][14] = 6.175;
 
@@ -249,16 +276,23 @@ void train_velocity_init() {
   train_acc[train_64][6][ORANGE] = 460;
   train_acc[train_64][6][RED] = 460;
   train_acc[train_64][6][BLUE] = 460;
-  train_acc[train_64][6][GREEN] = 460;
-  train_acc[train_64][6][CYAN] = 540;
-  train_acc[train_64][6][PINK] = 460;
+  train_acc[train_64][6][GREEN] = 450;
+  train_acc[train_64][6][CYAN] = 410;
+  train_acc[train_64][6][PINK] = 470;
+
+  train_acc[train_64][8][ORANGE] = 610;
+  train_acc[train_64][8][RED] = 580;
+  train_acc[train_64][8][BLUE] = 635;
+  train_acc[train_64][8][GREEN] = 600;
+  train_acc[train_64][8][CYAN] = 560;
+  train_acc[train_64][8][PINK] = 600;
 
   train_acc[train_64][10][ORANGE] = 770;
   train_acc[train_64][10][RED] = 770;
   train_acc[train_64][10][BLUE] = 770;
-  train_acc[train_64][10][GREEN] = 770;
-  train_acc[train_64][10][CYAN] = 900;
-  train_acc[train_64][10][PINK] = 770;
+  train_acc[train_64][10][GREEN] = 753;
+  train_acc[train_64][10][CYAN] = 686;
+  train_acc[train_64][10][PINK] = 787;
 
   train_velocity[train_64][10][2][42] = 73;
   train_velocity[train_64][10][2][44] = 115;
@@ -372,6 +406,26 @@ void train_velocity_init() {
   train_velocity[train_64][6][75][58] = 94;
   train_velocity[train_64][6][77][72] = 132;
   train_velocity[train_64][6][78][43] = 124;
+
+  train_velocity[train_64][8][17][40] = 90;
+  train_velocity[train_64][8][2][42] = 95;
+  train_velocity[train_64][8][2][44] = 149;
+  train_velocity[train_64][8][20][50] = 102;
+  train_velocity[train_64][8][30][2] = 110;
+  train_velocity[train_64][8][37][30] = 125;
+  train_velocity[train_64][8][40][30] = 98;
+  train_velocity[train_64][8][42][20] = 90;
+  train_velocity[train_64][8][44][70] = 226;
+  train_velocity[train_64][8][50][68] = 75;
+  train_velocity[train_64][8][53][73] = 158;
+  train_velocity[train_64][8][54][56] = 198;
+  train_velocity[train_64][8][56][75] = 98;
+  train_velocity[train_64][8][60][17] = 102;
+  train_velocity[train_64][8][68][53] = 95;
+  train_velocity[train_64][8][70][54] = 98;
+  train_velocity[train_64][8][73][76] = 94;
+  train_velocity[train_64][8][75][37] = 253;
+  train_velocity[train_64][8][76][60] = 74;
 }
 
 

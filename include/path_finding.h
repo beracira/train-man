@@ -17,5 +17,6 @@ int find_path(int train_number, int origin, int dest, int dist_init);
 void train_velocity_init();
 void velocity_print(int train_number, int speed);
 int get_sensor_color(int sensor);
+void short_move(int train_number, int dist);
 
 #endif // PATH_FINDING_H

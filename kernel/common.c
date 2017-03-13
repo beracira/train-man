@@ -62,3 +62,32 @@ int strcmp( const char * const str1, const char * const str2) {
     if (str1[i] != str2[i++]) return 0;
   return 1;
 }
+
+float fast_sqrt( float n )
+{
+  // def mySqrt(n):
+  //     if (n == 0):
+  //         return 0
+  //     if (n < 1):
+  //         return mySqrt(n * 4) / 2
+  //     if (4 <= n):
+  //         return mySqrt(n / 4) * 2
+  //     x = (n + 1.0) / 2.0
+  //     x = (x + n/x) / 2.0
+  //     x = (x + n/x) / 2.0
+  //     x = (x + n/x) / 2.0
+  //     x = (x + n/x) / 2.0
+  //     x = (x + n/x) / 2.0
+  //     return x
+  if (n == 0) return 0;
+  if (n < 1) return fast_sqrt(n * 4) / 2;
+  if (4 <= n) return fast_sqrt(n / 4) * 2;
+  float x;
+  x = (n + 1.0) / 2.0;
+  x = (x + n/x) / 2.0;
+  x = (x + n/x) / 2.0;
+  x = (x + n/x) / 2.0;
+  x = (x + n/x) / 2.0;
+  x = (x + n/x) / 2.0;
+  return x;
+}

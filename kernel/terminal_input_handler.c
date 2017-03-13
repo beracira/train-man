@@ -129,11 +129,22 @@ int command_parser(char * cmd, int cmd_len) {
       } else if (strcmp(item[0], "cal")) {
         if (num_item != 3) {
           printf(2, "\033[A\033[2K\rLast command: not a good cal\033[B");
+          return 1;
         }
         int train_number = stoi(item[1], item_len[1]);
         int speed = stoi(item[2], item_len[2]);
         printf(2, "\033[A\033[2K\rLast command: %s %d %d\033[B", item[0], train_number, speed);
         velocity_print(train_number, speed);
+      } else if (strcmp(item[0], "move")) {
+        if (num_item != 3) {
+          printf(2, "\033[A\033[2K\rLast command: not a good move!\033[B");
+          return 1;
+        }
+        int train_number = stoi(item[1], item_len[1]);
+        int dist = stoi(item[2], item_len[2]);
+        printf(2, "\033[A\033[2K\rLast command: %s %d %d\033[B", item[0], train_number, dist);
+        short_move(train_number, dist);
+        return 0;
       }
     } else {
       printf(2, "\033[A\033[2K\rLast command: ERROR\033[B");
