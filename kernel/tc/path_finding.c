@@ -314,6 +314,7 @@ int find_path(int train_number, int origin, int dest, int dist_init) {
     target_sensor = -1;
     int target_sensor_closer = -1;
     for (i = 0; i < len; ++i) {
+      if (path->err) return 1;
       if (track[path->node[i]].type == NODE_BRANCH) {
         if (path->node[i + 1] != track[path->node[i]].edge[track[path->node[i]].dir].dest->index) {
           if (target_sensor == -1) {

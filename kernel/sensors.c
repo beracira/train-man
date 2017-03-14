@@ -8,6 +8,7 @@
 #include "track.h"
 #include "clockserver.h"
 #include "velocity.h"
+#include "stop.h"
 #include "train_ui.h"
 
 #define SENSOR_ARRAY_SIZE 10
@@ -189,7 +190,7 @@ void get_sensor_data() {
         //////////////////////////// 
 
       /* ---------     missed switches     ----------- */
-      check_missed_switch(last_sensor2, time);
+      // check_missed_switch(last_sensor2, time);
       train_64_struct.prev_sensor = last_sensor2;
       /* --------------------------------------------- */
     }
@@ -482,9 +483,12 @@ int update_train_state(int sensor) {
       }
     }
     if (train_64_path.err) {
+      volatile struct task_descriptor * td = (struct task_descriptor *) TASK_DESCRIPTOR_START;
       cancel_stop(64);
+      if (td[INPUT_TID].state == PATH_SWITCH_BLOCKED) td[INPUT_TID].state = READY;
       train_64_path.in_progress = 0;
       printf(2, "\033[s\033[9;40H\033[K\033[0;31mFind path ended\033[0m\033[u");
+
     } else {
       if (train_64_path.in_progress) {
         if (train_64_path.len == -1) {
