@@ -17,11 +17,21 @@ struct Train {
   int predict_sensors[100];
 };
 
+struct Path {
+  int node[100];
+  int predicted_arrival_time[100];
+  volatile int len;
+  volatile int in_progress;
+  volatile int err;
+};
+
+extern struct Path train_64_path;
 extern int target_sensor;
 
 extern struct Train train_64_struct;
 extern int path[MAX_PATH_LENGTH];
 extern int path_len;
+extern int path_err;
 extern int train_velocity[5][15][80][80];
 extern double default_speed[5][15];
 int find_path(int train_number, int origin, int dest, int dist_init);

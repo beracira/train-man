@@ -71,6 +71,20 @@ void Stop(int train_number, int sensor, unsigned int time_wait) {
   }
 }
 
+void cancel_stop(int train_number) {
+  int i;
+  for (i = 0; i < MAX_QUEUE_SIZE; ++i) {
+    if (queue_ptr->train_number[i] == train_number) {
+      queue_ptr->train_number[i] = 0;
+      queue_ptr->sensor[i] = -1;
+      queue_ptr->sensor_reached[i] = 0;
+      queue_ptr->time_reached[i] = 0;
+      queue_ptr->time_wait[i] = 0;
+      return;
+    }
+  }
+}
+
 void remove_from_stop_queue() {
   int i;
   for (i = 0; i < MAX_QUEUE_SIZE; ++i) {

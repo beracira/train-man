@@ -13,7 +13,7 @@ int get_next_sensor_dist(int sensor);
 
 void predict_path(int sensor);
 
-void update_train_state(int sensor);
+int update_train_state(int sensor);
 
 void train_init();
 

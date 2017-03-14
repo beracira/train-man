@@ -144,7 +144,16 @@ void get_sensor_data() {
 
       /* ---------replace me with something----------- */
       // predict_path(last_sensor2);
-      update_train_state(last_sensor2);
+      /* ---------     missed sensors     ----------- */
+      int result = update_train_state(last_sensor2);
+      // if (result) {
+      //   sensor_requested = 0;
+      //   volatile struct task_descriptor * td = (struct task_descriptor *) TASK_DESCRIPTOR_START;
+      //   if (td[CR_TID].state == SENSOR_BLOCKED) td[CR_TID].state = READY;
+      //   if (target_sensor == last_sensor && td[INPUT_TID].state == PATH_SWITCH_BLOCKED) td[INPUT_TID].state = READY;
+      //   continue;
+      // }
+      /* --------------------------------------------- */
 
 
       if (track[prev_sensor].edge[DIR_AHEAD].dest->type == NODE_BRANCH){
@@ -198,6 +207,17 @@ track_node * get_next_sensor(int sensor) {
    k2 =  track[sensor].edge[DIR_AHEAD].dest;
    while (k2->type == NODE_BRANCH || k2->type == NODE_MERGE) {
      k2 =  k2->edge[k2->dir].dest;
+   }
+   return k2;
+}
+
+track_node * get_next_sensor_or_branch(int sensor) {
+   volatile track_node * track = (track_node *) 0x01700000;
+
+   track_node * k2;
+   k2 =  track[sensor].edge[DIR_AHEAD].dest;
+   while (k2->type == NODE_MERGE) {
+     k2 = k2->edge[k2->dir].dest;
    }
    return k2;
 }
@@ -387,7 +407,7 @@ int check_missed_switch(int cur_sensor, int time) {
   return 0;
 }
 
-void update_train_state(int sensor) {
+int update_train_state(int sensor) {
   volatile track_node * track = (track_node *) 0x01700000;
 
   // printf(2, "%d\n\r", train_64_struct.cur_sensor);
@@ -413,12 +433,25 @@ void update_train_state(int sensor) {
         queue_head += 1;
         continue;
       }
-      track_node * next = get_next_sensor(queue[queue_head]);
+      track_node * next = get_next_sensor_or_branch(queue[queue_head]);
       // printf(2, "%s\n\r", next->name);
       if (next->type == NODE_SENSOR) {
         queue[queue_tail] = next->index;
         level_queue[queue_tail] = level_queue[queue_head] + 1;
         queue_tail += 1;
+      } else if (next->type == NODE_BRANCH) {
+        int next_after_branch = track[next->index].edge[DIR_STRAIGHT].dest->index;
+        if (next_after_branch < 80) {
+          queue[queue_tail] = track[next->index].edge[DIR_STRAIGHT].dest->index;
+          level_queue[queue_tail] = level_queue[queue_head] + 1;
+          queue_tail += 1;          
+        }
+        next_after_branch = track[next->index].edge[DIR_CURVED].dest->index;
+        if (next_after_branch < 80) {
+          queue[queue_tail] = track[next->index].edge[DIR_CURVED].dest->index;
+          level_queue[queue_tail] = level_queue[queue_head] + 1;
+          queue_tail += 1;          
+        }
       }
       queue_head += 1;
       continue;
@@ -432,13 +465,56 @@ void update_train_state(int sensor) {
         printf(2, "%s ", track[i].name);
       }
     }
+    printf(2, "\033[14;40H\033[KPredicted Sensors: %d ", queue_head);
+    for (i = 0; i < queue_head; ++i) {
+      printf(2, "%d ", queue[i]);
+    }
     printf(2, "\033[u");
     train_64_struct.missed_count = 0;
+    if (train_64_path.in_progress) {
+      train_64_path.err = 1;
+      for (i = 0; i < train_64_path.len; ++i) {
+        if (train_64_struct.cur_sensor == train_64_path.node[i]) {
+          train_64_path.err = 0;
+          // printf(2, "asdf");
+          break;
+        }
+      }
+    }
+    if (train_64_path.err) {
+      cancel_stop(64);
+      train_64_path.in_progress = 0;
+      printf(2, "\033[s\033[9;40H\033[K\033[0;31mFind path ended\033[0m\033[u");
+    } else {
+      if (train_64_path.in_progress) {
+        if (train_64_path.len == -1) {
+          printf(2, "\033[s\033[9;40H\033[K\033[0;31mNO PATH\033[0m\033[u");
+        } else if (train_64_path.len >= 2) {
+          int flag = 0;
+          printf(2, "\033[s\033[9;40H\033[K\033[0;31m");
+          for (i = 0; i < train_64_path.len; ++i) {
+            if (track[train_64_path.node[i]].type == NODE_SENSOR) {
+              if (flag) {
+                printf(2, "\033[32m");
+              }
+              if (train_64_path.node[i] == last_sensor) {
+                flag = 1;
+              }
+              printf(2, "%s ", track[train_64_path.node[i]].name);
+            }
+          }
+          // if (flag) path_len = 0;
+          printf(2, "\033[0m\033[u");
+        }
+      }
+    }
+    return 0;
   } else {
     train_64_struct.missed_count += 1;
     if (train_64_struct.missed_count == 3) {
       train_64_struct.cur_sensor = -1;
     }
+    return 1;
   }
 }
 

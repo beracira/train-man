@@ -16,12 +16,17 @@
 #define CYAN   4
 #define PINK   5
 
+
 struct Train train_64_struct = {};
 
 int train_velocity[5][15][80][80] = {};
 double default_speed[5][15] = {};
+
+struct Path train_64_path = {};
+
 int path[MAX_PATH_LENGTH] = {};
 int path_len = 0;
+int path_err = 0;
 
 int train_acc[5][15][10] = {};
 int sensor_type[80] = {};
@@ -100,7 +105,7 @@ int exist(int origin, int * path, int len) {
 
 static int counter = 0;
 
-int find_path_dfs(int origin, int dest, int * path, int len) {
+int find_path_dfs(int origin, int dest, int * path, int * acc_dist, int len) {
   volatile track_node * track = (track_node *) TRACK_ADDR;
   if (origin == dest) {
     int i;
@@ -109,6 +114,22 @@ int find_path_dfs(int origin, int dest, int * path, int len) {
       if (track[path[i]].type == NODE_SENSOR)
         printf(2, "%s ", track[path[i]].name);
     }
+    printf(2, "\033[9;40H\033[K\033[0m");
+    int dist = 0;
+    for (i = 0; i < len; ++i) {
+      if (track[path[i]].type == NODE_SENSOR) {
+        printf(2, "%d  ", dist);
+      }
+      if (track[path[i]].type == NODE_BRANCH) {
+        if (track[path[i]].edge[DIR_STRAIGHT].dest->index == path[i + 1]) {
+          dist += track[path[i]].edge[DIR_STRAIGHT].dist;
+        } else {
+          dist += track[path[i]].edge[DIR_CURVED].dist;
+        }
+      } else {
+        dist += track[path[i]].edge[DIR_AHEAD].dist;
+      }
+    }
     printf(2, "\033[0m\033[u");
     return len;
   }
@@ -116,14 +137,14 @@ int find_path_dfs(int origin, int dest, int * path, int len) {
   int type = track[origin].type;
   if (type == NODE_SENSOR || type == NODE_MERGE || type == NODE_ENTER) {
     path[len] = track[origin].edge[DIR_AHEAD].dest->index;
-    return find_path_dfs(track[origin].edge[DIR_AHEAD].dest->index, dest, path, len + 1);
+    return find_path_dfs(track[origin].edge[DIR_AHEAD].dest->index, dest, path, acc_dist, len + 1);
   } else if (type == NODE_BRANCH) {
     path[len] = track[origin].edge[DIR_STRAIGHT].dest->index;
     int retval = -1;
-    retval = find_path_dfs(track[origin].edge[DIR_STRAIGHT].dest->index, dest, path, len + 1);
+    retval = find_path_dfs(track[origin].edge[DIR_STRAIGHT].dest->index, dest, path, acc_dist, len + 1);
     if (retval > 0) return retval;
     path[len] = track[origin].edge[DIR_CURVED].dest->index;
-    retval = find_path_dfs(track[origin].edge[DIR_CURVED].dest->index, dest, path, len + 1);
+    retval = find_path_dfs(track[origin].edge[DIR_CURVED].dest->index, dest, path, acc_dist, len + 1);
     if (retval > 0) return retval;
     return 0;
   } else {
@@ -132,36 +153,77 @@ int find_path_dfs(int origin, int dest, int * path, int len) {
   }
 }
 
-int find_path_bfs(int origin, int dest, int * path, int len) {
+int find_path_bfs(int origin, int dest, int * path, int * acc_dist, int len) {
   volatile track_node * track = (track_node *) TRACK_ADDR;
-  if (origin == dest) {
-    int i;
-    printf(2, "\033[s\033[10;40H\033[K\033[0;31m");
-    for (i = 0; i < len; ++i) {
-      if (track[path[i]].type == NODE_SENSOR)
-        printf(2, "%s ", track[path[i]].name);
+
+  char visited[200];
+  int i;
+  for (i = 0; i < 200; ++i) {
+    visited[i] = 0;
+  }
+  int queue[1000];
+  int queue_pre[1000];
+  int head = 0;
+  int tail = 1;
+  queue[head] = origin;
+  (void) len;
+  (void) acc_dist;
+
+  while (head != tail) {
+
+    if (queue[head] == dest) {
+      int len = 1;
+      int cur = head;
+      while (cur) {
+        cur = queue_pre[cur];
+        len += 1;
+      }
+      int i;
+      cur = head;
+      for (i = len - 1; i >= 0; --i) {
+        path[i] = queue[cur];
+        cur = queue_pre[cur];
+      }
+      printf(2, "\033[s\033[9;40H\033[K\033[0;31m");
+      for (i = 0; i < len; ++i) {
+        if (track[path[i]].type == NODE_SENSOR)
+          printf(2, "%s ", track[path[i]].name);
+      }
+      printf(2, "\033[0m\033[u");
+      return len;
     }
-    printf(2, "\033[0m\033[u");
-    return len;
+
+    int type = track[queue[head]].type;
+    int next_node;
+    if (type == NODE_SENSOR || type == NODE_MERGE || type == NODE_ENTER) {
+      next_node = track[queue[head]].edge[DIR_AHEAD].dest->index;
+      if (visited[next_node] == 0) {
+        queue[tail] = next_node;
+        queue_pre[tail] = head;
+        tail += 1;
+        visited[next_node] = 1;        
+      }
+    } else if (type == NODE_BRANCH) {
+      next_node = track[queue[head]].edge[DIR_STRAIGHT].dest->index;
+      if (visited[next_node] == 0) {
+        queue[tail] = next_node;
+        queue_pre[tail] = head;
+        tail += 1;        
+        visited[next_node] = 1;
+      }
+      next_node = track[queue[head]].edge[DIR_CURVED].dest->index;
+      if (visited[next_node] == 0) {
+        queue[tail] = next_node;
+        queue_pre[tail] = head;
+        tail += 1;
+        visited[next_node] = 1;
+      }
+    } else {
+      // exit
+    }
+    head += 1;
   }
-  if (exist(origin, path, len)) return 0;
-  int type = track[origin].type;
-  if (type == NODE_SENSOR || type == NODE_MERGE || type == NODE_ENTER) {
-    path[len] = track[origin].edge[DIR_AHEAD].dest->index;
-    return find_path_dfs(track[origin].edge[DIR_AHEAD].dest->index, dest, path, len + 1);
-  } else if (type == NODE_BRANCH) {
-    path[len] = track[origin].edge[DIR_STRAIGHT].dest->index;
-    int retval = -1;
-    retval = find_path_dfs(track[origin].edge[DIR_STRAIGHT].dest->index, dest, path, len + 1);
-    if (retval > 0) return retval;
-    path[len] = track[origin].edge[DIR_CURVED].dest->index;
-    retval = find_path_dfs(track[origin].edge[DIR_CURVED].dest->index, dest, path, len + 1);
-    if (retval > 0) return retval;
-    return 0;
-  } else {
-    // exit
-    return 0;
-  }
+  return 0;
 }
 
 int find_path(int train_number, int origin, int dest, int dist_init) {
@@ -171,40 +233,45 @@ int find_path(int train_number, int origin, int dest, int dist_init) {
     // do something
     return 0;
   } else {
+    struct Path * path = &train_64_path;
     int i;
-    path_len = -1; // prevent get sensor data from print shit
-    for (i = 0; i < MAX_PATH_LENGTH; ++i) path[i] = -1;
-    path[0] = origin;
-    path_len = find_path_dfs(origin, dest, path, 1);
-    int len = path_len;
+    path->len = -1; // prevent get sensor data from print shit
+    for (i = 0; i < MAX_PATH_LENGTH; ++i) path->node[i] = -1;
+    path->node[0] = origin;
+    path->len = find_path_dfs(origin, dest, path->node, path->predicted_arrival_time, 1);
+    path->len = find_path_bfs(origin, dest, path->node, path->predicted_arrival_time, 1);
+    // path_err = 0;
+    int len = path->len;
+    path->in_progress = 1;
+    path->err = 0;
 
     int dist = dist_init;
     if (len >= 2) {
       int now = len - 2;
       while (now >= 0) {
-        if (track[path[now]].type != NODE_SENSOR) {
-          if (track[path[now]].type == NODE_BRANCH) {
-            if (path[now + 1] == track[path[now]].edge[DIR_STRAIGHT].dest->index) {
-              dist += track[path[now]].edge[DIR_STRAIGHT].dist;
+        if (track[path->node[now]].type != NODE_SENSOR) {
+          if (track[path->node[now]].type == NODE_BRANCH) {
+            if (path->node[now + 1] == track[path->node[now]].edge[DIR_STRAIGHT].dest->index) {
+              dist += track[path->node[now]].edge[DIR_STRAIGHT].dist;
             } else {
-              dist += track[path[now]].edge[DIR_CURVED].dist;
+              dist += track[path->node[now]].edge[DIR_CURVED].dist;
             }
           } else {
-            dist += track[path[now]].edge[DIR_AHEAD].dist;
+            dist += track[path->node[now]].edge[DIR_AHEAD].dist;
           }
           now -= 1;
         } else {
           // if (now == len - 1) // stop after a sensor. with long dist;
-          dist += track[path[now]].edge[DIR_AHEAD].dist;
-          // double v_0 = get_vol(train_number, train_list_ptr[train_number], path[now]);
+          dist += track[path->node[now]].edge[DIR_AHEAD].dist;
+          // double v_0 = get_vol(train_number, train_list_ptr[train_number], path->node[now]);
           int end = now + 1;
-          int dist_sensor_to_sensor = track[path[now]].edge[0].dist; //***
-          while (track[path[end]].type != NODE_SENSOR) { // maybe include exit?
+          int dist_sensor_to_sensor = track[path->node[now]].edge[0].dist; //***
+          while (track[path->node[end]].type != NODE_SENSOR) { // maybe include exit?
             int temp = 0;
-            if (track[path[end]].edge[DIR_STRAIGHT].dest->index == path[end + 1]) {
-              temp = track[path[end]].edge[DIR_STRAIGHT].dist;
+            if (track[path->node[end]].edge[DIR_STRAIGHT].dest->index == path->node[end + 1]) {
+              temp = track[path->node[end]].edge[DIR_STRAIGHT].dist;
             } else {
-              temp = track[path[end]].edge[DIR_CURVED].dist;
+              temp = track[path->node[end]].edge[DIR_CURVED].dist;
             }
             dist_sensor_to_sensor += temp;
             end += 1;
@@ -212,31 +279,33 @@ int find_path(int train_number, int origin, int dest, int dist_init) {
           int train_index = train_number_to_index(train_number);
           int speed = train_list_ptr[train_number];
 
-          double v_0 = get_velocity(train_index, speed, path[now], path[end], dist_sensor_to_sensor);
+          double v_0 = get_velocity(train_index, speed, path->node[now], path->node[end], dist_sensor_to_sensor);
 
-          // printf(2, "\n\rstarting %s, ending %s, v: %d d: %d\n\r", track[path[now]].name, track[path[end]].name, (int)(v_0 * 100), dist_sensor_to_sensor);
-          // double acc = train_acc[train_index][speed][get_sensor_color(path[now])];
-          int stopping_dist = train_acc[train_index][speed][get_sensor_color(path[now])];
+          // printf(2, "\n\rstarting %s, ending %s, v: %d d: %d\n\r", track[path->node[now]].name, track[path->node[end]].name, (int)(v_0 * 100), dist_sensor_to_sensor);
+          // double acc = train_acc[train_index][speed][get_sensor_color(path->node[now])];
+          int stopping_dist = train_acc[train_index][speed][get_sensor_color(path->node[now])];
           // double temp = v_0 * v_0 / 2 / acc;
           // printf(2, "temp %d, dist %d\n\r", (int)temp, (int)dist);
           if (stopping_dist <= dist) {
             double d_stop = dist - stopping_dist;
             int t_stop = d_stop / v_0;
             if (t_stop < 0) t_stop = 0;
-            Stop(train_number, path[now], t_stop);
-            printf(2, "\033[s\033[13;40H\033[Kcall stop at %s %d %d %d ss: %d dist: %d\033[u", track[path[now]].name, (int)(d_stop), (int)(t_stop), (int) (v_0 * 100), dist_sensor_to_sensor, dist);
+            Stop(train_number, path->node[now], t_stop);
+            printf(2, "\033[s\033[13;40H\033[Kcall stop at %s %d %d %d ss: %d dist: %d\033[u", track[path->node[now]].name, (int)(d_stop), (int)(t_stop), (int) (v_0 * 100), dist_sensor_to_sensor, dist);
             break;
           } else if (stopping_dist > dist && now != 0) {
             now -= 1;
           } else {
             // cannot stop GG
-            path_len = -1;
+            path->len = -1;
+            path->in_progress = 0;
             return -1;
           }
         }
       }
     } else {
-      path_len = -1;
+      path->len = -1;
+      path->in_progress = 0;
       return -1;
     }
 
@@ -245,39 +314,50 @@ int find_path(int train_number, int origin, int dest, int dist_init) {
     target_sensor = -1;
     int target_sensor_closer = -1;
     for (i = 0; i < len; ++i) {
-      if (track[path[i]].type == NODE_BRANCH) {
-        if (path[i + 1] != track[path[i]].edge[track[path[i]].dir].dest->index) {
+      if (track[path->node[i]].type == NODE_BRANCH) {
+        if (path->node[i + 1] != track[path->node[i]].edge[track[path->node[i]].dir].dest->index) {
           if (target_sensor == -1) {
-            int temp = 1 - track[path[i]].dir;
-            flip_switch(track[path[i]].num, 33 + temp);
+            int temp = 1 - track[path->node[i]].dir;
+            flip_switch(track[path->node[i]].num, 33 + temp);
             Delay(10);
-            flip_switch(track[path[i]].num, 33 + temp);
+            flip_switch(track[path->node[i]].num, 33 + temp);
             Delay(10);
           } else {
             // printf(2, "\n\rblocked");
             td[ks->tid].state = PATH_SWITCH_BLOCKED;
             Pass();
             // printf(2, "\n\runblocked");
-            int temp = 1 - track[path[i]].dir;
-            flip_switch(track[path[i]].num, 33 + temp);
+            int temp = 1 - track[path->node[i]].dir;
+            flip_switch(track[path->node[i]].num, 33 + temp);
             Delay(10);
-            flip_switch(track[path[i]].num, 33 + temp);
+            flip_switch(track[path->node[i]].num, 33 + temp);
             Delay(10);
           }
         }
-      } else if (track[path[i]].type == NODE_SENSOR) {
-        // if (path_err) {
-          // printf(2, "\n\rtarget: %d", target_sensor);
-          // Delay(5);
-          // int * i = 1;2
-          // *i = 1;
-          // return 1;
+      } else if (track[path->node[i]].type == NODE_SENSOR) {
+        // if (path->node_err) {
+        //   printf(2, "\n\rtarget: %d", target_sensor);
+        //   // Delay(5);2
+        //   // int * i = 1;
+        //   // *i = 1;
+        //   return 1;
+        // }
+
+        // if (target_sensor != -1) {
+        //   td[ks->tid].state = PATH_SWITCH_BLOCKED;
+        //   printf(2, "\033[s\033[8;40H\033[Kwait on %s\033[u", track[target_sensor].name);
+        //   Pass();
+        //   if (path->err) {
+        //     path->in_progress = 0;
+        //     return 1;
+        //   }
         // }
         target_sensor = target_sensor_closer;
-        target_sensor_closer = path[i];
+        target_sensor_closer = path->node[i];
       }
     }
     // path_len = 0;
+    // path->in_progress = 0;
     return 0;
   }
 }
@@ -335,13 +415,6 @@ void short_move(int train_number, int dist) {
 }
 
 void train_velocity_init() {
-  // init train 64 struct
-  train_64_struct.prev_sensor = 0;
-  train_64_struct.cur_sensor = 0;
-  train_64_struct.speed = 8;
-  train_64_struct.direction = 1;
-  train_64_struct.time_current_sensor = 0;
-
   path_len = -1;
 
   int i;
@@ -352,6 +425,7 @@ void train_velocity_init() {
   default_speed[train_64][6] = 3.3596;
   default_speed[train_64][8] = 3.50145;
   default_speed[train_64][10] = 4.958;
+  default_speed[train_64][12] = 5.9843;
   default_speed[train_64][14] = 6.175;
 
   // train_acc[train_64][6][ORANGE] = 0.00832;
@@ -382,6 +456,13 @@ void train_velocity_init() {
   train_acc[train_64][10][GREEN] = 753;
   train_acc[train_64][10][CYAN] = 686;
   train_acc[train_64][10][PINK] = 787;
+
+  train_acc[train_64][12][BLUE] = 995;
+  train_acc[train_64][12][GREEN] = 975;
+  train_acc[train_64][12][RED] = 930;
+  train_acc[train_64][12][CYAN] = 1000;
+  train_acc[train_64][12][PINK] = 1030;
+  train_acc[train_64][12][ORANGE] = 1000;
 
   train_velocity[train_64][10][2][42] = 73;
   train_velocity[train_64][10][2][44] = 115;
@@ -515,6 +596,31 @@ void train_velocity_init() {
   train_velocity[train_64][8][73][76] = 94;
   train_velocity[train_64][8][75][37] = 253;
   train_velocity[train_64][8][76][60] = 74;
+
+  train_velocity[train_64][12][16][61] = 66;
+  train_velocity[train_64][12][18][33] = 37;
+  train_velocity[train_64][12][21][43] = 56;
+  train_velocity[train_64][12][3][31] = 70;
+  train_velocity[train_64][12][31][36] = 80;
+  train_velocity[train_64][12][31][41] = 61;
+  train_velocity[train_64][12][33][65] = 80;
+  train_velocity[train_64][12][36][74] = 166;
+  train_velocity[train_64][12][41][16] = 60;
+  train_velocity[train_64][12][41][18] = 60;
+  train_velocity[train_64][12][43][3] = 64;
+  train_velocity[train_64][12][45][3] = 95;
+  train_velocity[train_64][12][51][21] = 65;
+  train_velocity[train_64][12][52][69] = 72;
+  train_velocity[train_64][12][55][71] = 65;
+  train_velocity[train_64][12][57][55] = 127;
+  train_velocity[train_64][12][61][77] = 50;
+  train_velocity[train_64][12][65][78] = 35;
+  train_velocity[train_64][12][69][51] = 52;
+  train_velocity[train_64][12][71][45] = 141;
+  train_velocity[train_64][12][72][52] = 111;
+  train_velocity[train_64][12][74][57] = 60;
+  train_velocity[train_64][12][77][72] = 60;
+  train_velocity[train_64][12][78][43] = 60;
 }
 
 
