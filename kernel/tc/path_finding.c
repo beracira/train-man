@@ -91,6 +91,7 @@ int train_number_to_index(int x) {
   if(x == 76) return train_76; 
   if(x == 71) return train_71;
   if(x == 64) return train_64;
+  if(x == 63) return train_63;
   return -1;
 }
 
@@ -378,7 +379,7 @@ void update_train_velocity(int train_number, int speed, int start, int end, int 
 void velocity_print(int train_number, int speed) {
   int train_index = train_number_to_index(train_number);
   int i, j;
-  printf(2, "\033[s\n\r\033[K");
+  printf(2, "\033[s\n\r\033[K%d", train_index);
   for (i = 0; i < 80; ++i) {
     for (j = 0; j < 80; ++j) {
       if (train_velocity[train_index][speed][i][j] != 1) {

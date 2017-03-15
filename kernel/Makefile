@@ -43,7 +43,4 @@ O0:
 	make kernel.elf CFLAGSO2="-c -fPIC -Wall -O0 -Wextra -fno-builtin -I. -I../include -mcpu=arm920t -msoft-float"
 
 clean:
-	-rm -f kernel.elf *.s *.o kernel.map *.d
-	cd tc
-	-rm -f kernel.elf *.s *.o kernel.map *.d
-	cd ..
+	rm -f kernel.elf *.s *.o kernel.map *.d && cd tc && rm -f kernel.elf *.s *.o kernel.map *.d && cd ..

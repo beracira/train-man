@@ -6,6 +6,7 @@
 #define train_76 0
 #define train_71 1
 #define train_64 2
+#define train_63 3
 
 struct Train {
   int prev_sensor;
