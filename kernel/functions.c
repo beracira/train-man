@@ -15,6 +15,7 @@
 #include "track.h"
 #include "stop.h"
 #include "path_finding.h"
+#include "dijkstra.h"
 
 #include "../io/include/bwio.h"
 #include "../io/include/ts7200.h"
@@ -118,9 +119,40 @@ void firsttask(void) {
 
   // // don't want to run the track code until everything is initialized
   // // note that this affect idle usage
-  // while (!(io_ready && ui_ready)) {
-  //   Pass();
-  // }
+  while (!(io_ready && ui_ready)) {
+    Pass();
+  }
+
+
+  printf(2, "inti");
+
+  track_node * track = (track_node *) 0x01700000;
+
+  int path[TRACK_MAX];
+  int i;
+  for (i = 0; i < TRACK_MAX; i++) {
+    path[i] = -1;
+  }
+
+  int origin = 44; // C13
+  int dest = 67; // E4
+
+  int len = dijkstra(path, origin, dest);
+  i = 0;
+
+  if (len == -1) {
+    printf(2, "no path \n\r");
+  } else {
+    printf(2, "len: %d \n\r", len);
+    printf(2, "path: ");
+    while (path[i] != -1) {
+      printf(2, "%s ", track[path[i++]].name);
+    }
+    printf(2, "\n\r");
+  }
+
+
+
 
   // track_test();
   // flip_switch(3, 33);
