@@ -86,6 +86,7 @@ int train_number_to_index(int x) {
   if(x == 76) return train_76; 
   if(x == 71) return train_71;
   if(x == 64) return train_64;
+  if(x == 63) return train_63;
   return -1;
 }
 
@@ -336,9 +337,9 @@ void short_move(int train_number, int dist) {
 
 void train_velocity_init() {
   // init train 64 struct
-  train_64_struct.prev_sensor = 0;
+  train_64_struct.prev_sensor = -1;
   train_64_struct.cur_sensor = 0;
-  train_64_struct.speed = 8;
+  train_64_struct.speed = 0;
   train_64_struct.direction = 1;
   train_64_struct.time_current_sensor = 0;
 
@@ -353,6 +354,9 @@ void train_velocity_init() {
   default_speed[train_64][8] = 3.50145;
   default_speed[train_64][10] = 4.958;
   default_speed[train_64][14] = 6.175;
+
+
+  default_speed[train_63][10] = 4.958;
 
   // train_acc[train_64][6][ORANGE] = 0.00832;
   // train_acc[train_64][6][RED] = 0.0094769;
@@ -515,6 +519,76 @@ void train_velocity_init() {
   train_velocity[train_64][8][73][76] = 94;
   train_velocity[train_64][8][75][37] = 253;
   train_velocity[train_64][8][76][60] = 74;
+
+  train_velocity[train_63][10][2][42] = 73;
+  train_velocity[train_63][10][2][44] = 115;
+  train_velocity[train_63][14][3][31] = 68;
+  train_velocity[train_63][10][3][31] = 88;
+  train_velocity[train_63][10][16][61] = 80;
+  train_velocity[train_63][14][16][61] = 60;
+  train_velocity[train_63][10][29][63] = 41;
+  train_velocity[train_63][10][30][2] = 85;
+  train_velocity[train_63][10][31][41] = 72;
+  train_velocity[train_63][14][31][41] = 58;
+  train_velocity[train_63][10][31][36] = 95;
+  train_velocity[train_63][10][17][40] = 69;
+  train_velocity[train_63][10][20][50] = 80;
+  train_velocity[train_63][14][21][43] = 60;
+  train_velocity[train_63][10][21][43] = 72;
+  train_velocity[train_63][10][41][16] = 73;
+  train_velocity[train_63][14][41][16] = 60;
+  train_velocity[train_63][10][42][20] = 66;
+  train_velocity[train_63][10][43][3] = 72;
+  train_velocity[train_63][14][43][3] = 57;
+  train_velocity[train_63][10][44][70] = 175;
+  train_velocity[train_63][10][45][3] = 120;
+  train_velocity[train_63][10][46][59] = 83;
+  train_velocity[train_63][10][47][37] = 53;
+  train_velocity[train_63][10][36][46] = 60;
+  train_velocity[train_63][10][36][74] = 206;
+  train_velocity[train_63][10][37][30] = 94;
+  train_velocity[train_63][10][40][30] = 75;
+  train_velocity[train_63][10][48][29] = 91;
+  train_velocity[train_63][10][57][52] = 140;
+  train_velocity[train_63][10][57][55] = 160;
+  train_velocity[train_63][10][58][47] = 80;
+  train_velocity[train_63][10][59][74] = 52;
+  train_velocity[train_63][10][60][17] = 80;
+  train_velocity[train_63][10][61][77] = 56;
+  train_velocity[train_63][14][61][77] = 41;
+  train_velocity[train_63][10][63][77] = 60;
+  train_velocity[train_63][10][50][68] = 55;
+  train_velocity[train_63][10][51][21] = 81;
+  train_velocity[train_63][14][51][21] = 60;
+  train_velocity[train_63][14][52][69] = 57;
+  train_velocity[train_63][10][52][69] = 73;
+  train_velocity[train_63][10][53][56] = 137;
+  train_velocity[train_63][10][53][73] = 125;
+  train_velocity[train_63][10][54][56] = 153;
+  train_velocity[train_63][10][55][71] = 80;
+  train_velocity[train_63][10][56][75] = 73;
+  train_velocity[train_63][10][73][76] = 71;
+  train_velocity[train_63][10][74][57] = 71;
+  train_velocity[train_63][10][75][37] = 200;
+  train_velocity[train_63][10][75][58] = 51;
+  train_velocity[train_63][10][76][60] = 55;
+  train_velocity[train_63][14][77][72] = 60;
+  train_velocity[train_63][10][77][72] = 73;
+  train_velocity[train_63][10][66][48] = 33;
+  train_velocity[train_63][10][68][53] = 107;
+  train_velocity[train_63][10][69][51] = 106;
+  train_velocity[train_63][14][69][51] = 90;
+  train_velocity[train_63][10][69][66] = 57;
+  train_velocity[train_63][10][70][54] = 124;
+  train_velocity[train_63][10][71][45] = 228;
+  train_velocity[train_63][14][72][52] = 104;
+  train_velocity[train_63][10][72][52] = 123;
+
+  train_velocity[train_63][10][62][28] = 41;
+  train_velocity[train_63][10][28][49] = 91;
+  train_velocity[train_63][10][76][62] = 60;
+  train_velocity[train_63][10][49][67] = 33;
+  train_velocity[train_63][10][67][68] = 57;
 }
 
 

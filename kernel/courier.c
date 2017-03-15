@@ -6,6 +6,7 @@
 #include "track.h"
 #include "sensors.h"
 #include "td.h"
+#include "path_finding.h"
 
 int CR_TID = 0;
 int courier_ready = 0;
@@ -22,6 +23,10 @@ void set_train_speed(int train, int speed) {
   input.type = CR_SET_SPEED;
   input.arg1 = train;
   input.arg2 = speed;
+  
+  if (train == 64) {
+    train_64_struct.speed = speed;
+  }
 
   Send(CR_TID, &input, sizeof(struct cr_request), &output, sizeof(struct cr_request));
 }
@@ -33,6 +38,10 @@ void reverse_train(int train) {
   input.type = CR_REVERSE_WAIT;
   input.arg1 = train;
   input.arg2 = 0;
+
+  if (train == 64) {
+    train_64_struct.direction ^= 1;
+  }
 
   Send(CR_TID, &input, sizeof(struct cr_request), &output, sizeof(struct cr_request));
 }

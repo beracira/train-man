@@ -98,13 +98,13 @@ void UI_init() {
   switches[6] = 'C';
   switches[7] = 'C';
   switches[8] = 'C';
-  switches[9] = 'C';
+  switches[9] = 'S';
   switches[10] = 'S';
   switches[11] = 'C';
   switches[12] = 'C';
   switches[13] = 'S';
   switches[14] = 'C';
-  switches[15] = 'C';
+  switches[15] = 'S';
   switches[16] = 'S';
   switches[17] = 'S';
   switches[18] = 'C';
