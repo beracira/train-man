@@ -20,6 +20,10 @@ int sensor_requested = 0;
 int switch_path[100] = {};
 int switch_path_len = 0;
 
+int prev_time = 0;
+
+int time_to_next_sensor = 0;
+
 int sensor_is_valid(int train, int cur_sensor, int time);
 int check_missed_switch(int len, int cur_sensor, int train);
 
@@ -39,7 +43,7 @@ void get_sensor_data() {
   //////////////////////////// 
   // velocity calibration
 
-  int prev_time = 0;
+  prev_time = 0;
 
   int time = 0;
 
@@ -283,7 +287,7 @@ void train_init() {
   train_64_struct.prev_sensor = -1;
   train_64_struct.speed = 0;
   train_64_struct.time_current_sensor = -1;
-  
+
   int i;
   for (i = 0; i < 100; ++i) {
     train_64_struct.predict_sensors[i] = 0;
@@ -504,7 +508,12 @@ int update_train_state(int sensor) {
         printf(2, "%s ", track[i].name);
       }
     }
-    // printf(2, "\033[14;40H\033[KPredicted Sensors: %d ", queue_head);
+    int next_sensor = get_next_sensor(train_64_struct.cur_sensor)->index;
+    // int dist_to_next_sensor = get_next_sensor_dist(train_64_struct.cur_sensor);
+    time_to_next_sensor = 
+    train_velocity[train_64][train_list_ptr[RUNNING_TRAIN]][train_64_struct.cur_sensor][next_sensor];
+    time_to_next_sensor /= 10;
+    // printf(2, "\033[14;40H\033[KTime to next sensor: %d ", queue_head);
     // for (i = 0; i < queue_head; ++i) {
     //   printf(2, "%d ", queue[i]);
     // }

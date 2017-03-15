@@ -61,6 +61,7 @@ void initialize(void) {
   stop = 0;
   stop_time = 0;
   sensor_requested = 0;
+  time_to_next_sensor = 0;
   // int i = 0;
   // while (i++ < 100000);
   // bwsetfifo(COM1, OFF);
@@ -170,6 +171,8 @@ int handle(int num) {
         irq_clear_timer();
         if (io_ready && time_ticks % 10 == 0) {
           update_time();
+          time_to_next_sensor -= 1;
+          if (time_to_next_sensor < 0) time_to_next_sensor = 0;
         }
         if (courier_ready) {
           wake_train();

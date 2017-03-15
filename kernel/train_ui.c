@@ -5,6 +5,7 @@
 #include "io.h"
 #include "functions.h"
 #include "kernel.h"
+#include "sensors.h"
 #include "clockserver.h"
 
 int UI_TID = 0;
@@ -61,7 +62,9 @@ void update_time() {
   printf(2, "%d:", m);
   int s = (time / 10) % 60;
   if (s < 10) Putc(2, '0');
-  printf(2, "%d.%d  Idle usage: %u%%\033[K\033[u", s, time % 10, idle_percent);
+  printf(2, "%d.%d  Idle usage: %u%%\033[K", s, time % 10, idle_percent);
+  printf(2, "\033[5;60H\033[KTime to next sensor: %d.%ds", time_to_next_sensor / 10, time_to_next_sensor % 10);
+  printf(2, "\033[u");
 }
 
 int update_switch(int switch_number, int direction) {
@@ -98,13 +101,13 @@ void UI_init() {
   switches[6] = 'C';
   switches[7] = 'C';
   switches[8] = 'C';
-  switches[9] = 'S';
+  switches[9] = 'C';
   switches[10] = 'S';
   switches[11] = 'C';
   switches[12] = 'C';
   switches[13] = 'S';
   switches[14] = 'C';
-  switches[15] = 'S';
+  switches[15] = 'C';
   switches[16] = 'S';
   switches[17] = 'S';
   switches[18] = 'C';
