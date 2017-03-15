@@ -408,7 +408,7 @@ void short_move(int train_number, int dist) {
   // printf(2, "%d\n\r", ttt);
   
   int temp = (int)(((x * (float)100) + 0.5) * 1.03);
-  printf(2, "%d\n\r", temp);
+  // printf(2, "%d\n\r", temp);
 
   if (temp < 30) temp = 30; 
   set_train_speed(train_number, 4);
@@ -417,6 +417,7 @@ void short_move(int train_number, int dist) {
 }
 
 void train_velocity_init() {
+
   path_len = -1;
 
   int i;
@@ -623,6 +624,7 @@ void train_velocity_init() {
   train_velocity[train_64][12][74][57] = 60;
   train_velocity[train_64][12][77][72] = 60;
   train_velocity[train_64][12][78][43] = 60;
+
 }
 
 
