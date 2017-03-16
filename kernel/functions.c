@@ -117,12 +117,12 @@ void firsttask(void) {
   Create(P_MEDIUM, get_sensor_data);
   Create(P_IDLE, &idle_task);
 
+  /*
   // // don't want to run the track code until everything is initialized
   // // note that this affect idle usage
   while (!(io_ready && ui_ready)) {
     Pass();
   }
-
 
   printf(2, "inti");
 
@@ -150,7 +150,7 @@ void firsttask(void) {
     }
     printf(2, "\n\r");
   }
-
+ */
 
 
 
