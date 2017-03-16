@@ -41,5 +41,6 @@ void velocity_print(int train_number, int speed);
 int get_sensor_color(int sensor);
 void short_move(int train_number, int dist);
 void update_train_velocity(int train_number, int speed, int start, int end, int new_time);
+int train_number_to_index(int x);
 
 #endif // PATH_FINDING_H

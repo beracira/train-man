@@ -5,6 +5,7 @@
 extern int last_sensor;
 extern int sensor_requested;
 extern int time_to_next_sensor;
+extern int RUNNING_TRAIN;
 
 void get_sensor_data();
 

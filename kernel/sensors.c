@@ -12,7 +12,7 @@
 #include "train_ui.h"
 
 #define SENSOR_ARRAY_SIZE 10
-#define RUNNING_TRAIN 64
+int RUNNING_TRAIN = 0;
 
 int last_sensor = 0;
 int sensor_requested = 0;
@@ -179,7 +179,7 @@ void get_sensor_data() {
 
       // }
       int len_valid = sensor_is_valid(64, last_sensor2, time_ticks - prev_time);
-
+      // int len_valid = 10;
 
       // printf(2, "------prev sensor: %d, last_sensor2: %d, time: %d ticks: %d prev_time: %d len: %d \n\r" , prev_sensor, 
         // last_sensor2, time_ticks - prev_time, time_ticks, prev_time, len_valid);
@@ -215,11 +215,11 @@ void get_sensor_data() {
       int predict_time = 0;
       int predict_dist = get_next_sensor_dist(prev_sensor);
       if (prev_sensor != -1) {
-        predict_time = train_velocity[train_64][train_list_ptr[RUNNING_TRAIN]][prev_sensor][last_sensor2];
+        predict_time = train_velocity[train_number_to_index(RUNNING_TRAIN)][train_list_ptr[RUNNING_TRAIN]][prev_sensor][last_sensor2];
         if (predict_time == 1) {
-          int temp = default_speed[train_64][train_list_ptr[RUNNING_TRAIN]];
+          int temp = default_speed[train_number_to_index(RUNNING_TRAIN)][train_list_ptr[RUNNING_TRAIN]];
           if (temp == -1 || temp == 0) predict_time = 0;
-          else predict_time = predict_dist / default_speed[train_64][train_list_ptr[RUNNING_TRAIN]];
+          else predict_time = predict_dist / default_speed[train_number_to_index(RUNNING_TRAIN)][train_list_ptr[RUNNING_TRAIN]];
         }
       }
 
@@ -302,7 +302,8 @@ int find_path_by_sensor(int train, int speed, int origin, int dest, int trackid,
   volatile track_node * track = (track_node *) TRACK_ADDR;
 
   int train_num = train;
-  if (train == 64) train = train_64;
+  if (train == 64) train = train_64; // make it dynamic
+  else if (train == 63) train = train_63;
 
   track_node * this = (track_node *) &track[trackid];
   track_node * next = track[trackid].edge[DIR_AHEAD].dest;
@@ -428,7 +429,7 @@ int find_path_by_sensor(int train, int speed, int origin, int dest, int trackid,
       if (straight_time < 0) straight_abs = -straight_time;
       if (curved_time < 0) curved_abs = -curved_time;
 
-      if (straight_abs < curved_time) {
+      if (straight_abs < curved_abs) {
         for (i = 0; i < 100; i++) {
           switch_path[i] = temp_path[i];
         }
@@ -511,7 +512,7 @@ int update_train_state(int sensor) {
     int next_sensor = get_next_sensor(train_64_struct.cur_sensor)->index;
     // int dist_to_next_sensor = get_next_sensor_dist(train_64_struct.cur_sensor);
     time_to_next_sensor = 
-    train_velocity[train_64][train_list_ptr[RUNNING_TRAIN]][train_64_struct.cur_sensor][next_sensor];
+    train_velocity[train_number_to_index(RUNNING_TRAIN)][train_list_ptr[RUNNING_TRAIN]][train_64_struct.cur_sensor][next_sensor];
     time_to_next_sensor /= 10;
     // printf(2, "\033[14;40H\033[KTime to next sensor: %d ", queue_head);
     // for (i = 0; i < queue_head; ++i) {
@@ -531,7 +532,7 @@ int update_train_state(int sensor) {
     }
     if (train_64_path.err) {
       volatile struct task_descriptor * td = (struct task_descriptor *) TASK_DESCRIPTOR_START;
-      cancel_stop(64);
+      cancel_stop(RUNNING_TRAIN);
       if (td[INPUT_TID].state == PATH_SWITCH_BLOCKED) td[INPUT_TID].state = READY;
       train_64_path.in_progress = 0;
       printf(2, "\033[s\033[9;40H\033[K\033[0;31mFind path ended\033[0m\033[u");
@@ -592,10 +593,10 @@ int sensor_is_valid(int train, int cur_sensor, int time) {
   int prev_sensor = -1;
   int speed = -1; 
 
-  if (train == 64) {
+  // if (train == 64) {
     prev_sensor = train_64_struct.prev_sensor;
     speed = train_64_struct.speed;
-  }
+  // }
 
   if (prev_sensor < 0 || prev_sensor > 80) {
     return -1;
@@ -620,7 +621,7 @@ int sensor_is_valid(int train, int cur_sensor, int time) {
 
   // printf(2, "before findpath - tr: %d sp: %d p_sensor: %s c_sensor: %s time: %d\n\r", 
       // train, speed, track[prev_sensor].name, track[cur_sensor].name, time);
-  int t = find_path_by_sensor(train, speed, prev_sensor, cur_sensor, prev_sensor, 
+  int t = find_path_by_sensor(RUNNING_TRAIN, speed, prev_sensor, cur_sensor, prev_sensor, 
                                         switch_path, 0, time, 0);  
 
   // printf(2, "len: %d path: ", switch_path_len);
@@ -642,9 +643,9 @@ int check_missed_switch(int len, int cur_sensor, int train) {
 
   int origin = -1;
 
-  if (train == 64) {
+  // if (train == 64) {
     origin = train_64_struct.prev_sensor;
-  }
+  // }
 
   int i = 0;
   while (i < switch_path_len) {

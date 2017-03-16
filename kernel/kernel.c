@@ -62,6 +62,7 @@ void initialize(void) {
   stop_time = 0;
   sensor_requested = 0;
   time_to_next_sensor = 0;
+  RUNNING_TRAIN = 64;
   // int i = 0;
   // while (i++ < 100000);
   // bwsetfifo(COM1, OFF);

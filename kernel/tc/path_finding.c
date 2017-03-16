@@ -391,29 +391,53 @@ void velocity_print(int train_number, int speed) {
 }
 
 void short_move(int train_number, int dist) {
-  float temp_dist = (float) (1.0 * dist / 10.0);
-  float a = 8.1929;
-  float b = -4.7666;
-  float c = 1.6872 - temp_dist;
+  if (train_number == 64) {
+    float temp_dist = (float) (1.0 * dist / 10.0);
+    float a = 8.1929;
+    float b = -4.7666;
+    float c = 1.6872 - temp_dist;
 
-  // float a = 6.9729;
-  // float b = -2.2272;
-  // float c = 0.6139 - 40;
+    // float a = 6.9729;
+    // float b = -2.2272;
+    // float c = 0.6139 - 40;
 
-  float x = ((float)(-b) + fast_sqrt((float)(b * b - 4 * a * c))) / (float)(2.0 * a);
+    float x = ((float)(-b) + fast_sqrt((float)(b * b - 4 * a * c))) / (float)(2.0 * a);
 
-  // int ttt = (int) (b * b - 4 * a * c);
-  // printf(2, "%d\n\r", ttt);
-  // ttt = (int)(fast_sqrt(b * b - 4 * a * c) + 0.5);
-  // printf(2, "%d\n\r", ttt);
-  
-  int temp = (int)(((x * (float)100) + 0.5) * 1.03);
-  // printf(2, "%d\n\r", temp);
+    // int ttt = (int) (b * b - 4 * a * c);
+    // printf(2, "%d\n\r", ttt);
+    // ttt = (int)(fast_sqrt(b * b - 4 * a * c) + 0.5);
+    // printf(2, "%d\n\r", ttt);
+    
+    int temp = (int)(((x * (float)100) + 0.5) * 1.03);
+    // printf(2, "%d\n\r", temp);
 
-  if (temp < 30) temp = 30; 
-  set_train_speed(train_number, 4);
-  Delay(temp);
-  set_train_speed(train_number, 0);
+    if (temp < 30) temp = 30; 
+    set_train_speed(train_number, 4);
+    Delay(temp);
+    set_train_speed(train_number, 0);    
+  } else {
+    // *&^%&#@$^#@$^%#$^&* dist in MM!!!
+    float temp_dist = (float) (1.0 * dist / 10.0);
+    float a = 7.63694;
+    float b = -5.6789;
+    float c = 2.4090909 - temp_dist;
+
+    float x = ((float)(-b) + fast_sqrt((float)(b * b - 4 * a * c))) / (float)(2.0 * a);
+    // int temp = fast_sqrt((float)(b * b - 4 * a * c)) * 100;
+    // printf(2, "%d\n\r", temp);
+    // temp = x;
+    // printf(2, "%d\n\r", temp);
+    
+
+    int temp = (int)(((x * (float)100) + 0.5));
+    // printf(2, "%d\n\r", temp);
+
+    if (temp < 30) temp = 30; 
+    set_train_speed(train_number, 4);
+    Delay(temp);
+    set_train_speed(train_number, 0);    
+
+  }
 }
 
 void train_velocity_init() {
@@ -430,6 +454,19 @@ void train_velocity_init() {
   default_speed[train_64][10] = 4.958;
   default_speed[train_64][12] = 5.9843;
   default_speed[train_64][14] = 6.175;
+
+  default_speed[train_63][6] = 3.3596;
+  default_speed[train_63][8] = 3.50145;
+  default_speed[train_63][10] = 4.958;
+  default_speed[train_63][12] = 5.9843;
+  default_speed[train_63][14] = 6.175;
+
+  train_acc[train_63][10][ORANGE] = 770;
+  train_acc[train_63][10][RED] = 770;
+  train_acc[train_63][10][BLUE] = 770;
+  train_acc[train_63][10][GREEN] = 753;
+  train_acc[train_63][10][CYAN] = 686;
+  train_acc[train_63][10][PINK] = 787;
 
   // train_acc[train_64][6][ORANGE] = 0.00832;
   // train_acc[train_64][6][RED] = 0.0094769;

@@ -62,6 +62,7 @@ int command_parser(char * cmd, int cmd_len) {
           printf(2, "\033[A\033[2K\rLast command: Invalid Command\033[B");
         else {
           set_train_speed(train_number, train_speed);
+          RUNNING_TRAIN = train_number;
           printf(2, "\033[A\033[2K\rLast command: %s %d %d\033[B", item[0], train_number, train_speed);
         }
       } else if (strcmp(item[0], "rv")) {
@@ -148,6 +149,18 @@ int command_parser(char * cmd, int cmd_len) {
         int dist = stoi(item[2], item_len[2]);
         printf(2, "\033[A\033[2K\rLast command: %s %d %d\033[B", item[0], train_number, dist);
         short_move(train_number, dist);
+        return 0;
+      } else if (strcmp(item[0], "mot")) {
+        if (num_item != 3) {
+          printf(2, "\033[A\033[2K\rLast command: not a good mot!\033[B");
+          return 1;
+        }
+        int train_number = stoi(item[1], item_len[1]);
+        int delay_time = stoi(item[2], item_len[2]);
+        set_train_speed(train_number, 4);
+        Delay(delay_time);
+        set_train_speed(train_number, 0);
+        printf(2, "\033[A\033[2K\rLast command: %s %d %d\033[B", item[0], train_number, delay_time);
         return 0;
       }
     } else {
