@@ -83,6 +83,8 @@ int command_parser(char * cmd, int cmd_len) {
             printf(2, "\033[A\033[2K\rLast command: Invalid Command\033[B");
           } else {
             flip_switch(switch_number, direction);
+            Delay(10);
+            flip_switch(switch_number, direction);
             printf(2, "\033[A\033[2K\rLast command: %s %d %c\033[B", item[0], switch_number, item[2][0]);
           }
         } else if (strcmp(item[0], "stex")) {
