@@ -166,16 +166,23 @@ int find_path_bfs(int origin, int dest, int * path, int * acc_dist, int len) {
   int queue_pre[1000];
   int head = 0;
   int tail = 1;
-  queue[head] = origin;
+  queue[0] = origin & 0xfffffffe;
+  queue[1] = (origin & 0xfffffffe) + 1;
+  tail = 2;
   (void) len;
   (void) acc_dist;
 
   while (head != tail) {
-
-    if (queue[head] == dest) {
+    int dest_round_down = dest & 0xfffffffe;
+    if (queue[head] == dest_round_down || queue[head] == dest_round_down + 1) {
       int len = 1;
       int cur = head;
-      while (cur) {
+      // int temp = 0;
+      // while (temp <= head) {
+      //   printf(2, "%s ", track[queue[temp]].name);
+      //   temp += 1;
+      // }
+      while (cur != 0 && cur != 1) {
         cur = queue_pre[cur];
         len += 1;
       }
