@@ -42,5 +42,6 @@ int get_sensor_color(int sensor);
 void short_move(int train_number, int dist);
 void update_train_velocity(int train_number, int speed, int start, int end, int new_time);
 int train_number_to_index(int x);
+int find_path_bfs(int origin, int dest, int * path, int * acc_dist, int len);
 
 #endif // PATH_FINDING_H
