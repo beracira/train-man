@@ -15,8 +15,10 @@ int get_next_sensor_dist(int sensor);
 
 void predict_path(int sensor);
 
-int update_train_state(int sensor);
+int update_train_state(int client, int sensor);
 
 void train_init();
+
+void the_evil_guy();
 
 #endif // SENSORS_H

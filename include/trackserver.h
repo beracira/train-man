@@ -23,7 +23,7 @@ struct track_request {
   int dest;
 };
 
-
+void track_server();
 int request_new_path(int origin, int dest, int * path, int train);
 int reserve_section(int next_section, int prev_section, int train);
 #endif /* TRACKSERVER_H */

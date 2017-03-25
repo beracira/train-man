@@ -15,6 +15,7 @@
 #include "track.h"
 #include "stop.h"
 #include "path_finding.h"
+#include "trackserver.h"
 #include "dijkstra.h"
 
 #include "../io/include/bwio.h"
@@ -113,6 +114,8 @@ void firsttask(void) {
   Create(P_OTHER_SERVERS, courier_server);
   Create(P_OTHER_SERVERS, stop_worker);
   Create(P_OTHER_SERVERS, UI_Server);
+  Create(P_OTHER_SERVERS, track_server);
+  Create(P_MEDIUM, the_evil_guy);
   Create(P_MEDIUM, input_handle);
   Create(P_MEDIUM, get_sensor_data);
   Create(P_IDLE, &idle_task);

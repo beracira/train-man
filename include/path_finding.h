@@ -7,6 +7,7 @@
 #define train_71 1
 #define train_64 2
 #define train_63 3
+#define train_58 4
 
 struct Train {
   int prev_sensor;
@@ -16,6 +17,7 @@ struct Train {
   int direction;
   int time_current_sensor;
   int predict_sensors[100];
+  int train_number;
 };
 
 struct Path {

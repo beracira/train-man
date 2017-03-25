@@ -18,6 +18,7 @@
 
 
 struct Train train_64_struct = {};
+struct Train officer_struct = {};
 
 int train_velocity[5][15][80][80] = {};
 double default_speed[5][15] = {};
@@ -92,7 +93,8 @@ int train_number_to_index(int x) {
   if(x == 71) return train_71;
   if(x == 64) return train_64;
   if(x == 63) return train_63;
-  return -1;
+  if(x == 58) return train_58;
+  return 0; // use the default spot
 }
 
 int exist(int origin, int * path, int len) {

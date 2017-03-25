@@ -10,6 +10,10 @@
 #include "velocity.h"
 #include "stop.h"
 #include "train_ui.h"
+#include "user_syscall.h"
+
+#define THE_EVIL_GUY 100
+#define THE_OFFICER  200
 
 #define SENSOR_ARRAY_SIZE 10
 int RUNNING_TRAIN = 0;
@@ -20,12 +24,20 @@ int sensor_requested = 0;
 int switch_path[100] = {};
 int switch_path_len = 0;
 
-int prev_time = 0;
-
 int time_to_next_sensor = 0;
+
+int new_sensors[10] = {};
+int new_sensors_len = 0;
+
+int evil_sensor = 0;
+int officer_sensor = 0;
 
 int sensor_is_valid(int train, int cur_sensor, int time);
 int check_missed_switch(int len, int cur_sensor, int train);
+int sensor_attr();
+
+int EVIL_TID = 0;
+int OFFICER_TID = 0;
 
 void get_sensor_data() {
   int sensors[10];
@@ -36,28 +48,15 @@ void get_sensor_data() {
   for (i = 0; i < SENSOR_ARRAY_SIZE; ++i) {
     sensor_letter[i] = 0;
     sensor_digit[i] = 0;
+    new_sensors[i] = -1;
   }
   int tail = 0;
   sensor_requested = 0;
 
-  //////////////////////////// 
-  // velocity calibration
-
-  prev_time = 0;
-
-  int time = 0;
-
-  int prev_sensor = -1;
-  volatile track_node * track = (track_node *) 0x01700000;
-
- // int i = -1;
-  int d = 0;
-
-  //////////////////////////// 
+  evil_sensor = -1;
+  officer_sensor = -1;
 
   while (1 + 2 == 3) {
-
-
     int c = Getc(1);
     sensors[sensor_len++] = c;
 
@@ -69,13 +68,11 @@ void get_sensor_data() {
         int radix = 16;
         while (low) {
           if (low & 1) {
-            // putchar_terminal('A' + k);
             sensor_letter[tail] = 'A' + k;
-            // put_int(radix);
             sensor_digit[tail] = radix;
+            new_sensors[new_sensors_len++] = k * 16 + radix - 1;
             tail += 1;
             tail %= SENSOR_ARRAY_SIZE;
-            // putchar_terminal(' ');
           }
           low >>= 1;
           radix--;
@@ -83,13 +80,11 @@ void get_sensor_data() {
         radix = 8;
         while (high) {
           if (high & 1) {
-            // putchar_terminal('A' + k);
             sensor_letter[tail] = 'A' + k;
-            // put_int(radix);
             sensor_digit[tail] = radix;
+            new_sensors[new_sensors_len++] = k * 16 + radix - 1;
             tail += 1;
             tail %= SENSOR_ARRAY_SIZE;
-            // putchar_terminal(' ');
           }
           high >>= 1;
           radix--;
@@ -115,126 +110,7 @@ void get_sensor_data() {
       printf(2, "\033[u");
       sensor_len = 0;
 
-      // if (path_len == -1) {
-      //   printf(2, "\033[s\033[10;40H\033[K\033[0;31mNO PATH\033[0m\033[u");
-      // } else if (path_len >= 2) {
-      //   int flag = 0;
-      //   printf(2, "\033[s\033[10;40H\033[K\033[0;31m");
-      //   for (i = 0; i < path_len; ++i) {
-      //     if (track[path[i]].type == NODE_SENSOR) {
-      //       if (flag) {
-      //         printf(2, "\033[32m");
-      //       }
-      //       if (path[i] == last_sensor) {
-      //         flag = 1;
-      //       }
-      //       printf(2, "%s ", track[path[i]].name);
-      //     }
-      //   }
-      //   // if (flag) path_len = 0;
-      //   printf(2, "\033[0m\033[u");
-      // }
-
-      //////////////////////////// 
-      // velocity calibration
-    
-      if (train_list_ptr[RUNNING_TRAIN] == 0) {
-        prev_time = time_ticks;
-      }
-      if (prev_sensor == -1) {
-        prev_sensor = last_sensor2;
-        train_64_struct.prev_sensor = last_sensor2;
-        sensor_requested = 0;
-        prev_time = time_ticks;
-        volatile struct task_descriptor * td = (struct task_descriptor *) TASK_DESCRIPTOR_START;
-        if (td[CR_TID].state == SENSOR_BLOCKED) td[CR_TID].state = READY;
-        if (target_sensor == last_sensor && td[INPUT_TID].state == PATH_SWITCH_BLOCKED) td[INPUT_TID].state = READY;
-        continue;
-      } else if (prev_sensor == last_sensor2) {
-        sensor_requested = 0;
-        volatile struct task_descriptor * td = (struct task_descriptor *) TASK_DESCRIPTOR_START;
-        if (td[CR_TID].state == SENSOR_BLOCKED) td[CR_TID].state = READY;
-        if (target_sensor == last_sensor && td[INPUT_TID].state == PATH_SWITCH_BLOCKED) td[INPUT_TID].state = READY;
-        continue;
-      }
-
-      /* ---------replace me with something----------- */
-      // predict_path(last_sensor2);
-      /* ---------    noisy sensors     ----------- */
-      int result = update_train_state(last_sensor2);
-
-      // if (result) {
-      //   sensor_requested = 0;
-      //   volatile struct task_descriptor * td = (struct task_descriptor *) TASK_DESCRIPTOR_START;
-      //   if (td[CR_TID].state == SENSOR_BLOCKED) td[CR_TID].state = READY;
-      //   if (target_sensor == last_sensor && td[INPUT_TID].state == PATH_SWITCH_BLOCKED) td[INPUT_TID].state = READY;
-      //   continue;
-      // }
-      /* --------------------------------------------- */
-      // update_train_state(last_sensor2);
-
-      // HARDCODED
-      // printf(2, "before len_valid, prev_time: %d\n\r", prev_time);
-      // if (wrong_sensor(prev_sensor, last_sensor2)) {
-
-      // }
-      int len_valid = sensor_is_valid(64, last_sensor2, time_ticks - prev_time);
-      // int len_valid = 10;
-
-      // printf(2, "------prev sensor: %d, last_sensor2: %d, time: %d ticks: %d prev_time: %d len: %d \n\r" , prev_sensor, 
-        // last_sensor2, time_ticks - prev_time, time_ticks, prev_time, len_valid);
-      // Delay(1);
-
-      if (len_valid == -1) {
-        prev_sensor = last_sensor2;
-        prev_time = time_ticks;
-        train_64_struct.prev_sensor = last_sensor2;
-        sensor_requested = 0;
-        volatile struct task_descriptor * td = (struct task_descriptor *) TASK_DESCRIPTOR_START;
-        if (td[CR_TID].state == SENSOR_BLOCKED) td[CR_TID].state = READY;
-        if (target_sensor == last_sensor && td[INPUT_TID].state == PATH_SWITCH_BLOCKED) td[INPUT_TID].state = READY;
-        continue;
-      } else if (len_valid > 0) {
-        /* ---------     missed switches     ----------- */
-        check_missed_switch(len_valid, last_sensor2, 64);
-        /* --------------------------------------------- */
-      } 
-
-      train_64_struct.prev_sensor = last_sensor2;
-
-      if (track[prev_sensor].edge[DIR_AHEAD].dest->type == NODE_BRANCH){
-        d = track[prev_sensor].edge[DIR_AHEAD].dest->dir;
-      } else {
-        d = DIR_AHEAD;
-      }
-
-      time = time_ticks - prev_time;
-      prev_time = time_ticks;
-
-
-      int predict_time = 0;
-      int predict_dist = get_next_sensor_dist(prev_sensor);
-      if (prev_sensor != -1) {
-        predict_time = train_velocity[train_number_to_index(RUNNING_TRAIN)][train_list_ptr[RUNNING_TRAIN]][prev_sensor][last_sensor2];
-        if (predict_time == 1) {
-          int temp = default_speed[train_number_to_index(RUNNING_TRAIN)][train_list_ptr[RUNNING_TRAIN]];
-          if (temp == -1 || temp == 0) predict_time = 0;
-          else predict_time = predict_dist / default_speed[train_number_to_index(RUNNING_TRAIN)][train_list_ptr[RUNNING_TRAIN]];
-        }
-      }
-
-      if (predict_time > 1200 || predict_time < 0) predict_time = 0;
-
-      printf(2, "\033[s\033[3;40H\033[K From %s to %s Predicted dist: %d\033[u",
-        track[prev_sensor].name, track[last_sensor2].name, predict_dist);
-      printf(2, "\033[s\033[4;40H\033[K Predicted time: %d Actual time: %d Delta: %d Dist: %d\033[u", 
-        predict_time, time, time - predict_time, (time / predict_dist) * (time - predict_time));
-      track_node * temp = get_next_sensor(last_sensor2);
-      printf(2, "\033[s\033[5;40H\033[K Next Sensor: %s\033[u", temp != 0 ? temp->name : "NULL");
-      update_train_velocity(RUNNING_TRAIN, train_list_ptr[RUNNING_TRAIN], prev_sensor, last_sensor, time);
-      prev_sensor = last_sensor2;
-        //////////////////////////// 
-
+      sensor_attr();
       /* ---------     missed switches     ----------- */
       // check_missed_switch(last_sensor2, time);
       /* --------------------------------------------- */
@@ -242,7 +118,72 @@ void get_sensor_data() {
     sensor_requested = 0;
     volatile struct task_descriptor * td = (struct task_descriptor *) TASK_DESCRIPTOR_START;
     if (td[CR_TID].state == SENSOR_BLOCKED) td[CR_TID].state = READY;
+    if (td[EVIL_TID].state == GET_NEW_SENSOR_BLOCKED) td[EVIL_TID].state = READY;
     if (target_sensor == last_sensor && td[INPUT_TID].state == PATH_SWITCH_BLOCKED) td[INPUT_TID].state = READY;
+  }
+}
+
+void the_evil_guy() {
+  volatile struct task_descriptor * td = (struct task_descriptor *) TASK_DESCRIPTOR_START;
+  volatile struct kernel_stack * ks = (struct kernel_stack *) KERNEL_STACK_START;
+  volatile track_node * track = (track_node *) 0x01700000;
+  int RUNNING_EVIL = train_64_struct.train_number;
+  EVIL_TID = ks->tid;
+
+  int prev_sensor = -1;
+  int prev_time = 0;
+  int time = 0;
+
+  while (3 * 3 == 9) {
+    td[ks->tid].state = GET_NEW_SENSOR_BLOCKED;
+    Pass();
+    if (train_list_ptr[RUNNING_EVIL] == 0) {
+      prev_time = time_ticks;
+      continue;
+    }
+
+    if (evil_sensor == -1) continue;
+
+    if (prev_sensor == -1) {
+      if (evil_sensor != -1) {
+        prev_sensor = new_sensors[0];
+        train_64_struct.prev_sensor = prev_sensor;
+      }
+      prev_time = time_ticks;
+      continue;
+    } else if (prev_sensor == evil_sensor) {
+      continue;
+    }
+
+    int result = update_train_state(THE_EVIL_GUY, evil_sensor);
+    (void) result;
+
+    train_64_struct.prev_sensor = evil_sensor;
+
+    time = time_ticks - prev_time;
+    prev_time = time_ticks;
+
+    int predict_time = 0;
+    int predict_dist = get_next_sensor_dist(prev_sensor);
+    if (prev_sensor != -1) {
+      predict_time = train_velocity[train_number_to_index(RUNNING_EVIL)][train_list_ptr[RUNNING_EVIL]][prev_sensor][evil_sensor];
+      if (predict_time == 1) {
+        int temp = default_speed[train_number_to_index(RUNNING_EVIL)][train_list_ptr[RUNNING_EVIL]];
+        if (temp == -1 || temp == 0) predict_time = 0;
+        else predict_time = predict_dist / default_speed[train_number_to_index(RUNNING_EVIL)][train_list_ptr[RUNNING_EVIL]];
+      }
+    }
+
+    if (predict_time > 1200 || predict_time < 0) predict_time = 0;
+
+    printf(2, "\033[s\033[3;40H\033[K From %s to %s Predicted dist: %d\033[u",
+      track[prev_sensor].name, track[evil_sensor].name, predict_dist);
+    printf(2, "\033[s\033[4;40H\033[K Predicted time: %d Actual time: %d Delta: %d Dist: %d\033[u", 
+      predict_time, time, time - predict_time, (time / predict_dist) * (time - predict_time));
+    track_node * temp = get_next_sensor(evil_sensor);
+    printf(2, "\033[s\033[5;40H\033[K Next Sensor: %s\033[u", temp != 0 ? temp->name : "NULL");
+    update_train_velocity(RUNNING_EVIL, train_list_ptr[RUNNING_EVIL], prev_sensor, evil_sensor, time);
+    prev_sensor = evil_sensor;
   }
 }
 
@@ -298,165 +239,63 @@ int switch_time_index = 0;
 int switch_path_time_diff = 0;
 int path_found = 0;
 
-int find_path_by_sensor(int train, int speed, int origin, int dest, int trackid, int * path, int len, int time, int total_time) {
-  volatile track_node * track = (track_node *) TRACK_ADDR;
-
-  int train_num = train;
-  if (train == 64) train = train_64; // make it dynamic
-  else if (train == 63) train = train_63;
-
-  track_node * this = (track_node *) &track[trackid];
-  track_node * next = track[trackid].edge[DIR_AHEAD].dest;
-
-  if (this->type == NODE_EXIT) {
-    // printf(2, "base case 2\n\r");
-    switch_path_len = 0;
-    return -1;
-  }
-
-  // base case
-  if (trackid == dest) {
-    path[len] = trackid;
-
-    int t1 = train_velocity[train][speed][origin][trackid];
-    int t2 = train_velocity[train][speed][this->reverse->index][track[origin].reverse->index];
-    // printf(2, "at dest, trackid: %s, origin: %s, dest: %s, t1: %d, t2: %d \n\r", 
-    //   track[trackid].name, track[origin].name, track[dest].name, t1, t2);
-
-    if (t1 == 1) {
-      if (t2 == 1) {
-        // printf(2, "impossible edge - base case\n\r");
-        switch_path_len = 0;
-        return -1;
-      } else {
-        time = time - t2;
-      }
-    } else {
-      time = time - t1;
+int sensor_attr() {
+  if (new_sensors_len == 0) {
+    return 1;
+  } else if (new_sensors_len == 1) {
+    if (train_64_struct.speed != 0) {
+      evil_sensor = new_sensors[0];
     }
-
-
-    if (time < -20 || time > 20) {
-      // printf(2, "at dest, time not met but path found - time diff: %d\n\r", time);
-      
-        switch_path_len = 0;
-        return -1;
-      // }
-    } else {
-      // printf(2, "good path found\n\r");
-      path_found = 1;
-      switch_path_len = len + 1;
-      return time;
-    }
-  }
-  if (time < -20) {
-      switch_path_len = 0;
-      return -1;
-    }
-
-  if (this->type == NODE_SENSOR && trackid != origin && trackid != dest) {
-    int t1 = train_velocity[train][speed][origin][trackid];
-    int t2 = train_velocity[train][speed][this->reverse->index][track[origin].reverse->index];
-    // printf(2, "trackid: %s, origin: %s, dest: %s, t1: %d, t2: %d \n\r", 
-      // track[trackid].name, track[origin].name, track[dest].name, t1, t2);
-
-    if (t1 == 1) {
-      if (t2 == 1) {
-        // printf(2, "impossible edge\n\r");
-        switch_path_len = 0;
-        return -1;
-      } else {
-        time = time - t2;
-      }
-    } else {
-      time = time - t1;
-    }
-
-    path[len] = trackid;
-    return find_path_by_sensor(train, speed, trackid, dest, 
-                               track[trackid].edge[DIR_AHEAD].dest->index,
-                               path, len + 1, time, total_time);
-
-  } else if (this->type == NODE_BRANCH) {
-    path[len] = trackid;
-
-    int temp_len = switch_path_len;
-
-    int straight_time = find_path_by_sensor(train, speed, origin, dest, 
-                                       track[trackid].edge[DIR_STRAIGHT].dest->index, 
-                                       path, len + 1, time, total_time);
-
-    int temp_len_straight = switch_path_len;
-    int size_straight = temp_len_straight - len - 1; 
-    int temp_path[100];
-
-    // if (path_found == 1) {
-    //   return straight_time;
-    // } 
-
-    int i;
-    for (i = 0; i < 100; i++) {
-      temp_path[i] = switch_path[i];
-    }
-
-    switch_path_len = temp_len;
-    int curved_time = find_path_by_sensor(train, speed, origin, dest, 
-                                     track[trackid].edge[DIR_CURVED].dest->index, 
-                                     path, len + 1, time, total_time);
-
-    int temp_len_curved = switch_path_len;
-    int size_curved = switch_path_len - len - 1;
-
-    // printf(2, "branch, straight time: %d len: %d temp: %d size: %d, curved time: %d len: %d temp: %d size: %d\n\r", 
-    //   straight_time, temp_len_straight, temp_len_straight, size_straight, curved_time, switch_path_len, temp_len_curved, size_curved);
-
-
-    if (temp_len_straight == 0 && temp_len_curved == 0) {
-      switch_path_len = 0;
-      return -1;
-    } else if (temp_len_straight == 0) {
-      return curved_time;
-    } else if (temp_len_curved == 0) {
-      for (i = 0; i < 100; i++) {
-        switch_path[i] = temp_path[i];
-      }
-      switch_path_time_diff = straight_time;
-      switch_path_len = temp_len_straight;
-      return straight_time;
-    } else {
-      int straight_abs = straight_time;
-      int curved_abs = curved_time;
-      if (straight_time < 0) straight_abs = -straight_time;
-      if (curved_time < 0) curved_abs = -curved_time;
-
-      if (straight_abs < curved_abs) {
-        for (i = 0; i < 100; i++) {
-          switch_path[i] = temp_path[i];
-        }
-        switch_path_time_diff = straight_time;
-        switch_path_len = temp_len_straight;
-        return straight_time;
-      } else {
-        return curved_time;
-      }
-    }
-    
   } else {
-    // printf(2, "else trackid: %s, origin: %s, dest: %s\n\r", 
-    //   track[trackid].name, track[origin].name, track[dest].name);
-    path[len] = trackid;
-    return find_path_by_sensor(train, speed, origin, dest, 
-                               track[trackid].edge[DIR_AHEAD].dest->index, 
-                               path, len + 1, time, total_time);
-  } 
+    if (train_64_struct.speed != 0) {
+      int i;
+      for (i = 0; i < SENSOR_ARRAY_SIZE; ++i) {
+        if (new_sensors[i] != -1 && train_64_struct.predict_sensors[new_sensors[i]]) {
+          evil_sensor = new_sensors[i];
+          new_sensors[i] = -1;
+          break;
+        }
+      }
+    }
+  }
+  return 0;
 }
 
-int update_train_state(int sensor) {
-  volatile track_node * track = (track_node *) 0x01700000;
+int find_valid_sensor(int client) {
+  struct Train * client_ptr;
+  if (client == THE_EVIL_GUY) {
+    client_ptr = &train_64_struct;
+  } else {
+    client_ptr = 1; // should produce error
+  }
 
+  if (client_ptr->cur_sensor == -1) {
+    return new_sensors[0];
+  }
+  int i;
+  for (i = 0; i < SENSOR_ARRAY_SIZE; ++i) {
+    if (new_sensors[i] != -1 && client_ptr->predict_sensors[new_sensors[i]]) {
+      return new_sensors[i];
+    }
+  }
+  client_ptr->missed_count += 1;
+  if (client_ptr->missed_count == 3) {
+    client_ptr->cur_sensor = -1;
+  }
+  return -1;
+}
+
+int update_train_state(int client, int sensor) {
+  volatile track_node * track = (track_node *) 0x01700000;
+  struct Train * client_ptr = 0;
+  if (client == THE_EVIL_GUY) {
+    client_ptr = &train_64_struct;
+  } else {
+    client_ptr = -1;
+  }
   // printf(2, "%d\n\r", train_64_struct.cur_sensor);
-  if (train_64_struct.predict_sensors[sensor] || train_64_struct.cur_sensor == -1) {
-    train_64_struct.cur_sensor = sensor;
+  if (client_ptr->predict_sensors[sensor] || client_ptr->cur_sensor == -1) {
+    client_ptr->cur_sensor = sensor;
     predict_path(sensor);
     int queue[100];
     int level_queue[100];
@@ -464,7 +303,7 @@ int update_train_state(int sensor) {
     int queue_tail = 1;
     int i;
     for (i = 0; i < 100; ++i) {
-      train_64_struct.predict_sensors[i] = 0;
+      client_ptr->predict_sensors[i] = 0;
       queue[i] = 0;
       level_queue[i] = 0;
     }
@@ -501,29 +340,29 @@ int update_train_state(int sensor) {
       continue;
     }
     for (i = 0; i < queue_head; ++i) {
-      train_64_struct.predict_sensors[queue[i]] = 1;
+      client_ptr->predict_sensors[queue[i]] = 1;
     }
     printf(2, "\033[s\033[13;40H\033[KPredicted Sensors: %d ", queue_head);
     for (i = 0; i < 100; ++i) {
-      if (train_64_struct.predict_sensors[i] != 0) {
+      if (client_ptr->predict_sensors[i] != 0) {
         printf(2, "%s ", track[i].name);
       }
     }
-    int next_sensor = get_next_sensor(train_64_struct.cur_sensor)->index;
-    // int dist_to_next_sensor = get_next_sensor_dist(train_64_struct.cur_sensor);
+    int next_sensor = get_next_sensor(client_ptr->cur_sensor)->index;
+    // int dist_to_next_sensor = get_next_sensor_dist(client_ptr->cur_sensor);
     time_to_next_sensor = 
-    train_velocity[train_number_to_index(RUNNING_TRAIN)][train_list_ptr[RUNNING_TRAIN]][train_64_struct.cur_sensor][next_sensor];
+    train_velocity[train_number_to_index(client_ptr->train_number)][client_ptr->speed][client_ptr->cur_sensor][next_sensor];
     time_to_next_sensor /= 10;
     // printf(2, "\033[14;40H\033[KTime to next sensor: %d ", queue_head);
     // for (i = 0; i < queue_head; ++i) {
     //   printf(2, "%d ", queue[i]);
     // }
     printf(2, "\033[u");
-    train_64_struct.missed_count = 0;
+    client_ptr->missed_count = 0;
     if (train_64_path.in_progress) {
       train_64_path.err = 1;
       for (i = 0; i < train_64_path.len; ++i) {
-        if (train_64_struct.cur_sensor == train_64_path.node[i]) {
+        if (client_ptr->cur_sensor == train_64_path.node[i]) {
           train_64_path.err = 0;
           // printf(2, "asdf");
           break;
@@ -562,10 +401,11 @@ int update_train_state(int sensor) {
     }
     return 0;
   } else {
-    train_64_struct.missed_count += 1;
-    if (train_64_struct.missed_count == 3) {
-      train_64_struct.cur_sensor = -1;
-    }
+    // client_ptr->missed_count += 1;
+    // if (train_64_struct.missed_count == 3) {
+    //   train_64_struct.cur_sensor = -1;
+    // }
+    printf(2, "\n\rerror something else");
     return 1;
   }
 }
@@ -588,108 +428,5 @@ void predict_path(int sensor) {
 }
 
 
-int sensor_is_valid(int train, int cur_sensor, int time) {
 
-  int prev_sensor = -1;
-  int speed = -1; 
-
-  // if (train == 64) {
-    prev_sensor = train_64_struct.prev_sensor;
-    speed = train_64_struct.speed;
-  // }
-
-  if (prev_sensor < 0 || prev_sensor > 80) {
-    return -1;
-  }
-
-  track_node * next = get_next_sensor(prev_sensor);
-  if (next->index == cur_sensor) {
-    return 0;
-  }
-
-  int i;
-  for (i = 0; i < 100; i++) {
-    switch_path[i] = -1;
-  }
-
-  switch_path_time_diff = time;
-  switch_path_len = 0;
-  switch_time_index = 0;
-  path_found = 0;
-
-  volatile track_node * track = (track_node *) 0x01700000;
-
-  // printf(2, "before findpath - tr: %d sp: %d p_sensor: %s c_sensor: %s time: %d\n\r", 
-      // train, speed, track[prev_sensor].name, track[cur_sensor].name, time);
-  int t = find_path_by_sensor(RUNNING_TRAIN, speed, prev_sensor, cur_sensor, prev_sensor, 
-                                        switch_path, 0, time, 0);  
-
-  // printf(2, "len: %d path: ", switch_path_len);
-  // for (i = 0; i < switch_path_len; i++) {
-  //   if (switch_path[i] == -1) {
-  //     break;
-  //   }
-  //   printf(2, "%s ", track[switch_path[i]].name);
-  // }
-  // printf(2, "\n\r");
-
-  return switch_path_len;
-}
-
-// this works as long as switch_path is valid
-int check_missed_switch(int len, int cur_sensor, int train) {
-
-  volatile track_node * track = (track_node *) 0x01700000;
-
-  int origin = -1;
-
-  // if (train == 64) {
-    origin = train_64_struct.prev_sensor;
-  // }
-
-  int i = 0;
-  while (i < switch_path_len) {
-    // printf(2, "i: %d ", i);
-    if (switch_path[i] == -1) break;
-    if (track[switch_path[i]].index == track[origin].index) {
-      i++;
-      continue;
-    }
-
-    while(track[switch_path[i]].type != NODE_SENSOR) {
-      if (track[switch_path[i]].type == NODE_BRANCH) {
-        int dir;
-        int this = switch_path[i];
-        int next = switch_path[i + 1];
-        if (track[this].edge[DIR_STRAIGHT].dest->index == track[next].index) {
-          dir = DIR_STRAIGHT;
-        } else {
-          dir = DIR_CURVED;
-        }
-        
-        if (track[this].dir != dir) {
-          track[this].dir = dir;
-          printf(2, "\033[s\033[11;40H\033[K\033[0;31mWrong Switch! %s\033[0m\033[u",
-             track[this].name);
-          printf(2, "\033[0;35m");
-          update_switch(track[this].num, 33 + dir);
-          printf(2, "\033[0m");
-        }
-      }
-      i++;
-    }
-
-    if (track[switch_path[i]].type == NODE_SENSOR) {
-      if (track[switch_path[i]].index != track[origin].index && 
-          track[switch_path[i]].index != track[cur_sensor].index) {
-        //s2 = i; 
-        // missed sensor;
-        printf(2, "\033[s\033[15;40H\033[K\033[0;31mMissed sensor: %s\033[0m\033[u",
-           track[switch_path[i]].name);
-      }
-    }
-    i++;    
-  }
-  return 0;
-}
 
