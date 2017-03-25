@@ -18,6 +18,7 @@ struct Train {
   int time_current_sensor;
   int predict_sensors[100];
   int train_number;
+  int dest;
 };
 
 struct Path {

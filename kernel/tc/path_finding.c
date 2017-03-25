@@ -346,29 +346,10 @@ int find_path(int train_number, int origin, int dest, int dist_init) {
           }
         }
       } else if (track[path->node[i]].type == NODE_SENSOR) {
-        // if (path->node_err) {
-        //   printf(2, "\n\rtarget: %d", target_sensor);
-        //   // Delay(5);2
-        //   // int * i = 1;
-        //   // *i = 1;
-        //   return 1;
-        // }
-
-        // if (target_sensor != -1) {
-        //   td[ks->tid].state = PATH_SWITCH_BLOCKED;
-        //   printf(2, "\033[s\033[8;40H\033[Kwait on %s\033[u", track[target_sensor].name);
-        //   Pass();
-        //   if (path->err) {
-        //     path->in_progress = 0;
-        //     return 1;
-        //   }
-        // }
         target_sensor = target_sensor_closer;
         target_sensor_closer = path->node[i];
       }
     }
-    // path_len = 0;
-    // path->in_progress = 0;
     return 0;
   }
 }

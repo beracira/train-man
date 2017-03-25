@@ -318,7 +318,7 @@ void init_tracka(track_node *track) {
   track[29].edge[DIR_AHEAD].dest = &track[63];
   track[29].edge[DIR_AHEAD].dist = 202;
   track[30].name = "B15";
-  track[20].section = 10;
+  track[30].section = 10;
   track[30].type = NODE_SENSOR;
   track[30].num = 30;
   track[30].reverse = &track[31];

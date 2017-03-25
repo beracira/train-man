@@ -116,6 +116,8 @@ int command_parser(char * cmd, int cmd_len) {
         Stop(train_number, sensor, delay);
         printf(2, "\033[A\033[2K\rLast command: %s %d %s %d\033[B", item[0], train_number, item[2], delay);
       } else if (strcmp(item[0], "stat")) {
+        printf(2, "\033[A\033[2K\rLast command: stat is deprecated.\033[B");
+        return 0;
         int train_number = stoi(item[1], item_len[1]);
         int sensor = (item[2][0] - 'A') * 16 + stoi(item[2] + 1, item_len[2] - 1) - 1;
         int dist_init = 0;

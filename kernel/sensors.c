@@ -11,6 +11,7 @@
 #include "stop.h"
 #include "train_ui.h"
 #include "user_syscall.h"
+#include "trackserver.h"
 
 #define THE_EVIL_GUY 100
 #define THE_OFFICER  200
@@ -56,12 +57,26 @@ void get_sensor_data() {
   evil_sensor = -1;
   officer_sensor = -1;
 
+  //////////////////////////// 
+  // velocity calibration
+
+  // volatile track_node * track = (track_node *) 0x01700000;
+
+ // int i = -1;
+  // int d = 0;
+
+  //////////////////////////// 
+
   while (1 + 2 == 3) {
     int c = Getc(1);
     sensors[sensor_len++] = c;
 
     if (sensor_len == 10) {
       int k;
+      for (k = 0; k < SENSOR_ARRAY_SIZE; ++k) {
+        new_sensors[k] = -1;
+      }
+      new_sensors_len = 0;
       for (k = 0; k < 5; ++k) {
         int high = sensors[k * 2];
         int low = sensors[k * 2 + 1];
@@ -111,6 +126,7 @@ void get_sensor_data() {
       sensor_len = 0;
 
       sensor_attr();
+      // printf(2, "%d %d\n\r", evil_sensor, new_sensors_len);
       /* ---------     missed switches     ----------- */
       // check_missed_switch(last_sensor2, time);
       /* --------------------------------------------- */
@@ -146,8 +162,9 @@ void the_evil_guy() {
 
     if (prev_sensor == -1) {
       if (evil_sensor != -1) {
-        prev_sensor = new_sensors[0];
+        prev_sensor = evil_sensor;
         train_64_struct.prev_sensor = prev_sensor;
+        reserve_section(track[evil_sensor].section, 0, RUNNING_EVIL);
       }
       prev_time = time_ticks;
       continue;
@@ -183,6 +200,14 @@ void the_evil_guy() {
     track_node * temp = get_next_sensor(evil_sensor);
     printf(2, "\033[s\033[5;40H\033[K Next Sensor: %s\033[u", temp != 0 ? temp->name : "NULL");
     update_train_velocity(RUNNING_EVIL, train_list_ptr[RUNNING_EVIL], prev_sensor, evil_sensor, time);
+    if (track[prev_sensor].section != track[evil_sensor].section) {
+      reserve_section(track[evil_sensor].section, track[prev_sensor].section, RUNNING_EVIL);
+    }
+    // printf(2, "\033[s\033[19;40H\033[Kprev section: %d evil section: %d\033[u", track[prev_sensor].section, track[evil_sensor].section);
+    // printf(2, "\033[s\033[20;40H\033[Kprev : %s evil : %s\033[u", track[prev_sensor].name, track[evil_sensor].name);
+    // printf(2, "\033[s\033[21;40H\033[Ka : %s b : %d\033[u", track[20].name, track[20].section);
+    // printf(2, "\033[s\033[22;40H\033[Kprev : %d evil : %d\033[u", prev_sensor, evil_sensor);
+    print_sections();
     prev_sensor = evil_sensor;
   }
 }
@@ -401,11 +426,10 @@ int update_train_state(int client, int sensor) {
     }
     return 0;
   } else {
-    // client_ptr->missed_count += 1;
-    // if (train_64_struct.missed_count == 3) {
-    //   train_64_struct.cur_sensor = -1;
-    // }
-    printf(2, "\n\rerror something else");
+    client_ptr->missed_count += 1;
+    if (train_64_struct.missed_count == 3) {
+      train_64_struct.cur_sensor = -1;
+    }
     return 1;
   }
 }
@@ -426,7 +450,4 @@ void predict_path(int sensor) {
   }
   printf(2, "\033[u");
 }
-
-
-
 

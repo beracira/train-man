@@ -107,3 +107,15 @@ void track_server() {
     Reply(sender_tid, &result, sizeof(struct track_request));
   }
 }
+
+
+void print_sections() {
+  printf(2, "\033[s\033[18;40H\033[KUsed Section: ");
+  int i;
+  for (i = 1; i <= 31; ++i) {
+    if (sections[i] != 0) {
+      printf(2, "%d ", i);
+    }
+  }
+  printf(2, "\033[u");
+}
