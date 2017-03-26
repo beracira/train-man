@@ -418,7 +418,7 @@ void predict_sensors(int client, int sensor) {
   level_queue[0] = 0;
   while (queue_head != queue_tail) {
     // printf(2, "%s\n\r", track[queue[queue_head]].name);
-    if (level_queue[queue_head] == 2) {
+    if (level_queue[queue_head] == 1) {
       queue_head += 1;
       continue;
     }
@@ -430,17 +430,23 @@ void predict_sensors(int client, int sensor) {
       queue_tail += 1;
     } else if (next->type == NODE_BRANCH) {
       int next_after_branch = track[next->index].edge[DIR_STRAIGHT].dest->index;
-      if (next_after_branch < 80) {
+      // if (next_after_branch < 80) {
         queue[queue_tail] = track[next->index].edge[DIR_STRAIGHT].dest->index;
-        level_queue[queue_tail] = level_queue[queue_head] + 1;
+        level_queue[queue_tail] = level_queue[queue_head];
+        if (next_after_branch < 80) {
+          level_queue[queue_tail] += 1;
+        }
         queue_tail += 1;          
-      }
+      // }
       next_after_branch = track[next->index].edge[DIR_CURVED].dest->index;
-      if (next_after_branch < 80) {
+      // if (next_after_branch < 80) {
         queue[queue_tail] = track[next->index].edge[DIR_CURVED].dest->index;
-        level_queue[queue_tail] = level_queue[queue_head] + 1;
+        level_queue[queue_tail] = level_queue[queue_head];
+        if (next_after_branch < 80) {
+          level_queue[queue_tail] += 1;
+        }
         queue_tail += 1;          
-      }
+      // }
     }
     queue_head += 1;
     continue;
@@ -465,7 +471,7 @@ void predict_sensors(int client, int sensor) {
   // }
   printf(2, "\033[u");
 
-  if (sensor == C7) client_ptr->predict_sensors[E11] = 1;
+  // if (sensor == C7) client_ptr->predict_sensors[E11] = 1;
 
 }
 
