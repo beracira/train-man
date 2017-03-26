@@ -116,7 +116,7 @@ void the_evil_worker() {
           }
           int train_index = train_number_to_index(this->train_number);
           int speed = this->speed;
-          if (speed == 0) speed = 10;
+          if (speed == 0) speed = 6;
 
           double v_0 = get_velocity(train_index, speed, path->node[now], path->node[end], dist_sensor_to_sensor);
 
@@ -190,7 +190,9 @@ void the_evil_worker() {
       set_train_speed(this->train_number, 15);
       Delay(100);
     }
-    set_train_speed(this->train_number, 10);
+    set_train_speed(this->train_number, 6);
+    Delay(50);
+    set_train_speed(this->train_number, 6);
     target_sensor = -1;
     int target_sensor_closer = -1;
 
@@ -251,9 +253,10 @@ void the_evil_worker() {
             if (path->node[j + 1] != track[path->node[j]].edge[track[path->node[j]].dir].dest->index) {
               int temp = 1 - track[path->node[j]].dir;
               flip_switch(track[path->node[j]].num, 33 + temp);
-              Delay(10);
+              Delay(8);
               flip_switch(track[path->node[j]].num, 33 + temp);
-              Delay(10);
+              Delay(8);
+              printf(2, "flip %d %d\n\r", track[path->node[j]].num, i);
             }
           }
         }
@@ -271,7 +274,8 @@ void the_evil_worker() {
         Delay(500);
         this->stopping = 0;
         clean_reservation(this);
-        printf(2, "you are off the path somehow\n\r");
+        printf(2, "you are off the path somehow cur %s %s\n\r",
+          track[this->cur_sensor].name, track[path->node[i]].name);
         break;
       }
     }
@@ -414,6 +418,8 @@ void the_officer_worker() {
       set_train_speed(this->train_number, 15);
       Delay(100);
     }
+    set_train_speed(this->train_number, 10);
+    Delay(50);
     set_train_speed(this->train_number, 10);
     target_sensor = -1;
     int target_sensor_closer = -1;
