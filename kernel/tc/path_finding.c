@@ -24,6 +24,7 @@ int train_velocity[5][15][80][80] = {};
 double default_speed[5][15] = {};
 
 struct Path train_64_path = {};
+struct Path path_of_the_just = {};
 
 int path[MAX_PATH_LENGTH] = {};
 int path_len = 0;
@@ -460,14 +461,6 @@ void train_velocity_init() {
   train_acc[train_63][10][GREEN] = 753;
   train_acc[train_63][10][CYAN] = 686;
   train_acc[train_63][10][PINK] = 787;
-
-  // train_acc[train_64][6][ORANGE] = 0.00832;
-  // train_acc[train_64][6][RED] = 0.0094769;
-
-  // train_acc[train_64][6][BLUE] = 0.00832;
-  // train_acc[train_64][6][GREEN] = 0.00832;
-  // train_acc[train_64][6][CYAN] = 0.0083;
-  // train_acc[train_64][6][PINK] = 0.007755;
 
   train_acc[train_64][6][ORANGE] = 460;
   train_acc[train_64][6][RED] = 460;
