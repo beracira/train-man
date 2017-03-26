@@ -24,6 +24,7 @@ int train_velocity[5][15][80][80] = {};
 double default_speed[5][15] = {};
 
 struct Path train_64_path = {};
+struct Path path_of_the_just = {};
 
 int path[MAX_PATH_LENGTH] = {};
 int path_len = 0;
@@ -79,6 +80,8 @@ int sensor_type[80] = {};
 // }
 
 double get_velocity(int train_index, int speed, int now, int end, int dist) {
+  printf(2, "\033[s\033[15;40H\033[Kti: %d sp: %d now: %d end: %d dist: %d tv: %d\033[u",
+   train_index, speed, now, end, dist, train_velocity[train_index][speed][now][end]);
   if (train_velocity[train_index][speed][now][end] == 1) {
     return default_speed[train_index][speed];
   } else {
@@ -381,6 +384,7 @@ void velocity_print(int train_number, int speed) {
 }
 
 void short_move(int train_number, int dist) {
+  printf(2, "move %d %d\n\r", train_number, dist);
   if (train_number == 64) {
     float temp_dist = (float) (1.0 * dist / 10.0);
     float a = 8.1929;
@@ -457,14 +461,6 @@ void train_velocity_init() {
   train_acc[train_63][10][GREEN] = 753;
   train_acc[train_63][10][CYAN] = 686;
   train_acc[train_63][10][PINK] = 787;
-
-  // train_acc[train_64][6][ORANGE] = 0.00832;
-  // train_acc[train_64][6][RED] = 0.0094769;
-
-  // train_acc[train_64][6][BLUE] = 0.00832;
-  // train_acc[train_64][6][GREEN] = 0.00832;
-  // train_acc[train_64][6][CYAN] = 0.0083;
-  // train_acc[train_64][6][PINK] = 0.007755;
 
   train_acc[train_64][6][ORANGE] = 460;
   train_acc[train_64][6][RED] = 460;

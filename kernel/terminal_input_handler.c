@@ -5,7 +5,9 @@
 #include "path_finding.h"
 #include "stop.h"
 #include "sensors.h"
+#include "td.h"
 #include "common.h"
+#include "train_client.h"
 
 int INPUT_TID = 0;
 
@@ -20,6 +22,9 @@ int stoi(char * str, int len) {
 }
 
 int command_parser(char * cmd, int cmd_len) {
+  volatile struct task_descriptor * td = (struct task_descriptor *) TASK_DESCRIPTOR_START;
+  volatile struct kernel_stack * ks = (struct kernel_stack *) KERNEL_STACK_START;
+
   char * item[1024];
   char item_len[1024];
   int num_item = 0;
@@ -164,6 +169,23 @@ int command_parser(char * cmd, int cmd_len) {
         set_train_speed(train_number, 0);
         printf(2, "\033[A\033[2K\rLast command: %s %d %d\033[B", item[0], train_number, delay_time);
         return 0;
+      } else if (strcmp(item[0], "goto")) {
+        if (num_item != 3) {
+          printf(2, "\033[A\033[2K\rLast command: not a good goto!\033[B");
+          return 1;
+        }
+        item[1][(int)item_len[1]] = '\0';
+        int sensor = (item[2][0] - 'A') * 16 + stoi(item[2] + 1, item_len[2] - 1) - 1;
+        if (strcmp(item[1], "evil")) {
+          if (td[EVIL_WORKER_TID].state == WORKER_BLOCKED) {
+            td[EVIL_WORKER_TID].state = READY;
+            train_64_struct.dest = sensor;
+          }
+        }
+
+        printf(2, "\033[A\033[2K\rLast command: %s %s %s cur: %d tar: %d\033[B",
+         item[0], item[1], item[2], train_64_struct.cur_sensor, sensor);
+
       }
     } else {
       printf(2, "\033[A\033[2K\rLast command: ERROR\033[B");

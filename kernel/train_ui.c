@@ -190,7 +190,7 @@ void track_init(int row_start, int col_start) {
 
 void UI_Server() {
   
-  track_row = 32;
+  track_row = 60;
   track_col = 5;
 
   UI_init();

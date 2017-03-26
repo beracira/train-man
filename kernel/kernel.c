@@ -63,6 +63,7 @@ void initialize(void) {
   sensor_requested = 0;
   time_to_next_sensor = 0;
   train_64_struct.train_number = 64;
+  train_64_struct.cur_sensor = 26;
   RUNNING_TRAIN = 64;
   // int i = 0;
   // while (i++ < 100000);

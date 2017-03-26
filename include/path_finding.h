@@ -38,6 +38,9 @@ extern int path_len;
 extern int path_err;
 extern int train_velocity[5][15][80][80];
 extern double default_speed[5][15];
+
+extern int train_acc[5][15][10];
+
 int find_path(int train_number, int origin, int dest, int dist_init);
 void train_velocity_init();
 void velocity_print(int train_number, int speed);
@@ -46,5 +49,6 @@ void short_move(int train_number, int dist);
 void update_train_velocity(int train_number, int speed, int start, int end, int new_time);
 int train_number_to_index(int x);
 int find_path_bfs(int origin, int dest, int * path, int * acc_dist, int len);
+double get_velocity(int train_index, int speed, int now, int end, int dist);
 
 #endif // PATH_FINDING_H

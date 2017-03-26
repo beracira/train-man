@@ -21,4 +21,6 @@ void train_init();
 
 void the_evil_guy();
 
+void predict_sensors(int client, int sensor);
+
 #endif // SENSORS_H

@@ -11,7 +11,9 @@
 #include "stop.h"
 #include "train_ui.h"
 #include "user_syscall.h"
+#include "train_client.h"
 #include "trackserver.h"
+#include "sensor_table.h"
 
 #define THE_EVIL_GUY 100
 #define THE_OFFICER  200
@@ -146,7 +148,7 @@ void the_evil_guy() {
   int RUNNING_EVIL = train_64_struct.train_number;
   EVIL_TID = ks->tid;
 
-  int prev_sensor = -1;
+  int prev_sensor = train_64_struct.cur_sensor;
   int prev_time = 0;
   int time = 0;
 
@@ -209,6 +211,7 @@ void the_evil_guy() {
     // printf(2, "\033[s\033[22;40H\033[Kprev : %d evil : %d\033[u", prev_sensor, evil_sensor);
     print_sections();
     prev_sensor = evil_sensor;
+    if (td[EVIL_WORKER_TID].state == PATH_SENSOR_BLOCKED) td[EVIL_WORKER_TID].state = READY;
   }
 }
 
@@ -322,108 +325,48 @@ int update_train_state(int client, int sensor) {
   if (client_ptr->predict_sensors[sensor] || client_ptr->cur_sensor == -1) {
     client_ptr->cur_sensor = sensor;
     predict_path(sensor);
-    int queue[100];
-    int level_queue[100];
-    int queue_head = 0;
-    int queue_tail = 1;
-    int i;
-    for (i = 0; i < 100; ++i) {
-      client_ptr->predict_sensors[i] = 0;
-      queue[i] = 0;
-      level_queue[i] = 0;
-    }
-
-    queue[0] = sensor;
-    level_queue[0] = 0;
-    while (queue_head != queue_tail) {
-      // printf(2, "%s\n\r", track[queue[queue_head]].name);
-      if (level_queue[queue_head] == 2) {
-        queue_head += 1;
-        continue;
-      }
-      track_node * next = get_next_sensor_or_branch(queue[queue_head]);
-      // printf(2, "%s\n\r", next->name);
-      if (next->type == NODE_SENSOR) {
-        queue[queue_tail] = next->index;
-        level_queue[queue_tail] = level_queue[queue_head] + 1;
-        queue_tail += 1;
-      } else if (next->type == NODE_BRANCH) {
-        int next_after_branch = track[next->index].edge[DIR_STRAIGHT].dest->index;
-        if (next_after_branch < 80) {
-          queue[queue_tail] = track[next->index].edge[DIR_STRAIGHT].dest->index;
-          level_queue[queue_tail] = level_queue[queue_head] + 1;
-          queue_tail += 1;          
-        }
-        next_after_branch = track[next->index].edge[DIR_CURVED].dest->index;
-        if (next_after_branch < 80) {
-          queue[queue_tail] = track[next->index].edge[DIR_CURVED].dest->index;
-          level_queue[queue_tail] = level_queue[queue_head] + 1;
-          queue_tail += 1;          
-        }
-      }
-      queue_head += 1;
-      continue;
-    }
-    for (i = 0; i < queue_head; ++i) {
-      client_ptr->predict_sensors[queue[i]] = 1;
-    }
-    printf(2, "\033[s\033[13;40H\033[KPredicted Sensors: %d ", queue_head);
-    for (i = 0; i < 100; ++i) {
-      if (client_ptr->predict_sensors[i] != 0) {
-        printf(2, "%s ", track[i].name);
-      }
-    }
-    int next_sensor = get_next_sensor(client_ptr->cur_sensor)->index;
-    // int dist_to_next_sensor = get_next_sensor_dist(client_ptr->cur_sensor);
-    time_to_next_sensor = 
-    train_velocity[train_number_to_index(client_ptr->train_number)][client_ptr->speed][client_ptr->cur_sensor][next_sensor];
-    time_to_next_sensor /= 10;
-    // printf(2, "\033[14;40H\033[KTime to next sensor: %d ", queue_head);
-    // for (i = 0; i < queue_head; ++i) {
-    //   printf(2, "%d ", queue[i]);
-    // }
-    printf(2, "\033[u");
+    predict_sensors(client, sensor);
     client_ptr->missed_count = 0;
-    if (train_64_path.in_progress) {
-      train_64_path.err = 1;
-      for (i = 0; i < train_64_path.len; ++i) {
-        if (client_ptr->cur_sensor == train_64_path.node[i]) {
-          train_64_path.err = 0;
-          // printf(2, "asdf");
-          break;
-        }
-      }
-    }
-    if (train_64_path.err) {
-      volatile struct task_descriptor * td = (struct task_descriptor *) TASK_DESCRIPTOR_START;
-      cancel_stop(RUNNING_TRAIN);
-      if (td[INPUT_TID].state == PATH_SWITCH_BLOCKED) td[INPUT_TID].state = READY;
-      train_64_path.in_progress = 0;
-      printf(2, "\033[s\033[9;40H\033[K\033[0;31mFind path ended\033[0m\033[u");
+    // if (train_64_path.in_progress) {
+    //   train_64_path.err = 1;
+    //   for (i = 0; i < train_64_path.len; ++i) {
+    //     if (client_ptr->cur_sensor == train_64_path.node[i]) {
+    //       train_64_path.err = 0;
+    //       // printf(2, "asdf");
+    //       break;
+    //     }
+    //   }
+    // }
+    // if (train_64_path.err) {
+    //   volatile struct task_descriptor * td = (struct task_descriptor *) TASK_DESCRIPTOR_START;
+    //   cancel_stop(RUNNING_TRAIN);
+    //   if (td[INPUT_TID].state == PATH_SWITCH_BLOCKED) td[INPUT_TID].state = READY;
+    //   train_64_path.in_progress = 0;
+    //   printf(2, "\033[s\033[9;40H\033[K\033[0;31mFind path ended\033[0m\033[u");
 
-    } else {
-      if (train_64_path.in_progress) {
-        if (train_64_path.len == -1) {
-          printf(2, "\033[s\033[9;40H\033[K\033[0;31mNO PATH\033[0m\033[u");
-        } else if (train_64_path.len >= 2) {
-          int flag = 0;
-          printf(2, "\033[s\033[9;40H\033[K\033[0;31m");
-          for (i = 0; i < train_64_path.len; ++i) {
-            if (track[train_64_path.node[i]].type == NODE_SENSOR) {
-              if (flag) {
-                printf(2, "\033[32m");
-              }
-              if (train_64_path.node[i] == last_sensor) {
-                flag = 1;
-              }
-              printf(2, "%s ", track[train_64_path.node[i]].name);
-            }
-          }
-          // if (flag) path_len = 0;
-          printf(2, "\033[0m\033[u");
-        }
-      }
-    }
+    // } else {
+    //   if (train_64_path.in_progress) {
+    //     if (train_64_path.len == -1) {
+    //       printf(2, "\033[s\033[9;40H\033[K\033[0;31mNO PATH\033[0m\033[u");
+    //     } else if (train_64_path.len >= 2) {
+    //       int flag = 0;
+    //       printf(2, "\033[s\033[9;40H\033[K\033[0;31m");
+    //       for (i = 0; i < train_64_path.len; ++i) {
+    //         if (track[train_64_path.node[i]].type == NODE_SENSOR) {
+    //           if (flag) {
+    //             printf(2, "\033[32m");
+    //           }
+    //           if (train_64_path.node[i] == last_sensor) {
+    //             flag = 1;
+    //           }
+    //           printf(2, "%s ", track[train_64_path.node[i]].name);
+    //         }
+    //       }
+    //       // if (flag) path_len = 0;
+    //       printf(2, "\033[0m\033[u");
+    //     }
+    //   }
+    // }
     return 0;
   } else {
     client_ptr->missed_count += 1;
@@ -449,5 +392,86 @@ void predict_path(int sensor) {
     cur_sensor = next_sensor;
   }
   printf(2, "\033[u");
+}
+
+void predict_sensors(int client, int sensor) {
+  volatile track_node * track = (track_node *) 0x01700000;
+  struct Train * client_ptr = 0;
+  if (client == THE_EVIL_GUY) {
+    client_ptr = &train_64_struct;
+  } else {
+    client_ptr = -1;
+  }
+
+  int queue[100];
+  int level_queue[100];
+  int queue_head = 0;
+  int queue_tail = 1;
+  int i;
+  for (i = 0; i < 100; ++i) {
+    client_ptr->predict_sensors[i] = 0;
+    queue[i] = 0;
+    level_queue[i] = 0;
+  }
+
+  queue[0] = sensor;
+  level_queue[0] = 0;
+  while (queue_head != queue_tail) {
+    // printf(2, "%s\n\r", track[queue[queue_head]].name);
+    if (level_queue[queue_head] == 1) {
+      queue_head += 1;
+      continue;
+    }
+    track_node * next = get_next_sensor_or_branch(queue[queue_head]);
+    // printf(2, "%s\n\r", next->name);
+    if (next->type == NODE_SENSOR) {
+      queue[queue_tail] = next->index;
+      level_queue[queue_tail] = level_queue[queue_head] + 1;
+      queue_tail += 1;
+    } else if (next->type == NODE_BRANCH) {
+      int next_after_branch = track[next->index].edge[DIR_STRAIGHT].dest->index;
+      // if (next_after_branch < 80) {
+        queue[queue_tail] = track[next->index].edge[DIR_STRAIGHT].dest->index;
+        level_queue[queue_tail] = level_queue[queue_head];
+        if (next_after_branch < 80) {
+          level_queue[queue_tail] += 1;
+        }
+        queue_tail += 1;          
+      // }
+      next_after_branch = track[next->index].edge[DIR_CURVED].dest->index;
+      // if (next_after_branch < 80) {
+        queue[queue_tail] = track[next->index].edge[DIR_CURVED].dest->index;
+        level_queue[queue_tail] = level_queue[queue_head];
+        if (next_after_branch < 80) {
+          level_queue[queue_tail] += 1;
+        }
+        queue_tail += 1;          
+      // }
+    }
+    queue_head += 1;
+    continue;
+  }
+  for (i = 0; i < queue_head; ++i) {
+    client_ptr->predict_sensors[queue[i]] = 1;
+  }
+  printf(2, "\033[s\033[13;40H\033[KPredicted Sensors: %d ", queue_head);
+  for (i = 0; i < 100; ++i) {
+    if (client_ptr->predict_sensors[i] != 0) {
+      printf(2, "%s ", track[i].name);
+    }
+  }
+  int next_sensor = get_next_sensor(client_ptr->cur_sensor)->index;
+  // int dist_to_next_sensor = get_next_sensor_dist(client_ptr->cur_sensor);
+  time_to_next_sensor = 
+  train_velocity[train_number_to_index(client_ptr->train_number)][client_ptr->speed][client_ptr->cur_sensor][next_sensor];
+  time_to_next_sensor /= 10;
+  // printf(2, "\033[14;40H\033[KTime to next sensor: %d ", queue_head);
+  // for (i = 0; i < queue_head; ++i) {
+  //   printf(2, "%d ", queue[i]);
+  // }
+  printf(2, "\033[u");
+
+  // if (sensor == C7) client_ptr->predict_sensors[E11] = 1;
+
 }
 
