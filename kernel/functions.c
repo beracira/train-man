@@ -46,7 +46,7 @@ void idle_task(void) {
   volatile int * temp = &(ks->num_tasks);
   idle_ticks = 0;
   unsigned int pre = cyclesPerTick;
-  while (*temp != 7) {
+  while (td_counter - *temp <= 2) {
     unsigned int cur = *((int *)(timerValue));
     if (cur > pre) ++idle_ticks;
     pre = cur;
@@ -120,13 +120,13 @@ void firsttask(void) {
   Create(P_MEDIUM, get_sensor_data);
   Create(P_IDLE, &idle_task);
 
-  /*
+
   // // don't want to run the track code until everything is initialized
   // // note that this affect idle usage
-  while (!(io_ready && ui_ready)) {
-    Pass();
-  }
-
+  // while (!(io_ready && ui_ready)) {
+  //   Pass();
+  // }
+  /*
   printf(2, "inti");
 
   track_node * track = (track_node *) 0x01700000;
