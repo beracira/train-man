@@ -383,6 +383,7 @@ void velocity_print(int train_number, int speed) {
 }
 
 void short_move(int train_number, int dist) {
+  printf(2, "move %d %d\n\r", train_number, dist);
   if (train_number == 64) {
     float temp_dist = (float) (1.0 * dist / 10.0);
     float a = 8.1929;

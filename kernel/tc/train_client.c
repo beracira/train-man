@@ -41,6 +41,7 @@ void the_evil_worker() {
       this->dest = -1;
       path->len = -1;
       path->in_progress = 0;
+      continue;
     } else {
       int dist = 0;
       int now = len - 2;
@@ -88,7 +89,40 @@ void the_evil_worker() {
           int stopping_dist = train_acc[train_index][speed][get_sensor_color(path->node[now])];
           // double temp = v_0 * v_0 / 2 / acc;
           // printf(2, "temp %d, dist %d\n\r", (int)temp, (int)dist);
-          if (stopping_dist <= dist) {
+
+          if (now == 0) {
+            int i;
+            for (i = 0; i < len; ++i) {
+              if (track[path->node[i]].type == NODE_BRANCH) {
+                if (path->node[i + 1] != track[path->node[i]].edge[track[path->node[i]].dir].dest->index) {
+                  int temp = 1 - track[path->node[i]].dir;
+                  flip_switch(track[path->node[i]].num, 33 + temp);
+                  Delay(10);
+                  flip_switch(track[path->node[i]].num, 33 + temp);
+                  Delay(10);
+                }        
+              }
+            }
+
+            if (reversed) {
+              // train_64_struct.cur_sensor = track[train_64_struct.cur_sensor].reverse->index;
+              set_train_speed(this->train_number, 15);
+              Delay(100);
+            }
+            while (dist > 0) { // keep doing short move
+              // printf(2, "\033[s\033[19;40H\033[Kbefore cur_sensor: %d", this->cur_sensor);
+              short_move(train_64_struct.train_number, dist >= 240 ? 240 : dist);
+              // printf(2, "\033[s\033[20;40H\033[Kafter cur_sensor: %d", this->cur_sensor);
+              dist -= 240;
+              Delay(200);
+            }
+            path->len = -1;
+            // this->dest = -1;
+            this->cur_sensor = this->dest;
+            path->in_progress = 0;
+            now = -2;
+            break;
+          } else if (stopping_dist <= dist) {
             double d_stop = dist - stopping_dist;
             int t_stop = d_stop / v_0;
             if (t_stop < 0) t_stop = 0;
@@ -96,22 +130,18 @@ void the_evil_worker() {
             printf(2, "\033[s\033[14;40H\033[Kcall stop at %s %d %d %d ss: %d dist: %d\033[u", track[path->node[now]].name, (int)(d_stop), (int)(t_stop), (int) (v_0 * 100), dist_sensor_to_sensor, dist);
             // printf(2, "\033[s\033[15;40H\033[ti: %d speed: %d %d ss: %d dist: %d\033[u", track[path->node[now]].name, (int)(d_stop), (int)(t_stop), (int) (v_0 * 100), dist_sensor_to_sensor, dist);
             break;
-          } else if (stopping_dist > dist && now != 0) {
+          } else if (stopping_dist > dist) {
             now -= 1;
-          } else { // now is 0
-            // make short move
-            if (reversed) {
-              train_64_struct.cur_sensor = track[train_64_struct.cur_sensor].reverse->index;
-            }
-            
-            path->len = -1;
-            this->dest = -1;
-            path->in_progress = 0;
-            continue;
           }
         }
       }
+      // reached only when a short move is done.
+      if (now == -2) {
+        printf(2, "short move done\n\r");
+        continue;
+      }
     }
+
 
     if (reversed) {
       set_train_speed(this->train_number, 15);
