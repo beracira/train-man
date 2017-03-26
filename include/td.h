@@ -15,6 +15,7 @@
 #define SENSOR_BLOCKED 22
 #define PATH_SWITCH_BLOCKED 23
 #define GET_NEW_SENSOR_BLOCKED 31
+#define PATH_SENSOR_BLOCKED 32
 
 struct Sender {
   int sender_tid;

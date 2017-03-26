@@ -79,6 +79,8 @@ int sensor_type[80] = {};
 // }
 
 double get_velocity(int train_index, int speed, int now, int end, int dist) {
+  printf(2, "\033[s\033[15;40H\033[Kti: %d sp: %d now: %d end: %d dist: %d tv: %d\033[u",
+   train_index, speed, now, end, dist, train_velocity[train_index][speed][now][end]);
   if (train_velocity[train_index][speed][now][end] == 1) {
     return default_speed[train_index][speed];
   } else {
