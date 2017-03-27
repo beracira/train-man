@@ -2,6 +2,7 @@
 #include "track.h"
 #include "io.h"
 #include "clockserver.h"
+#include "path_finding.h"
 
 #define NODE_NONE   0
 #define NODE_SENSOR 1
@@ -18,7 +19,6 @@ int min_dist(int a, int b) {
 // path is a ptr to an int array
 // assumption: path is length TRACK_MAX
 int dijkstra(int * path, int origin, int dest) {
-	printf(2, "in dji \n\r");
 	// Delay(10);
 	volatile track_node * track = (track_node *) TRACK_ADDR;
 
@@ -158,12 +158,18 @@ int dijkstra(int * path, int origin, int dest) {
 	return temp_len + 1;
 }
 
-void parse_track_z(int * path, int len) {
-	// C13 MR11 MR14 C11 MR13 E16 E1 MR156 MR155 D2 E3
+// path is an array of track nodes
+// parse_track_z breaks down the path into smaller paths, stored in the array smaller_paths,
+// where the train needs to reverse between each of the paths.
+// returns number of smaller paths
+int parse_track_z(int * path, int len, int train, int current_sensor, struct Path * smaller_paths) {
 
 	volatile track_node * track = (track_node *) TRACK_ADDR;
 
 	int i;
+	int j = 0;
+	int k = 0;
+	int l = 0;
 	// int cur_sensor = current_sensor;
 	int dist = 0;
 	track_node * prev_node;
@@ -178,14 +184,26 @@ void parse_track_z(int * path, int len) {
 			|| ((track[path[i]].index == 116 || track[path[i]].index == 117) && (track[path[i+1]].index == 118 || track[path[i+1]].index == 119))
 			|| ((track[path[i]].index == 119 || track[path[i]].index == 119) && (track[path[i+1]].index == 116 || track[path[i+1]].index == 117))) {
 
-			// move(dist)
-			// reverse;
-			printf(2, "special move train to %s for dist %d and reverse\n\r", cur_node->name, dist);
-			dist = cur_node->edge[DIR_AHEAD].dist;
+			smaller_paths[j].node[k] = cur_node->index;
+			smaller_paths[j].len = k+1;
+			printf(2, "special move train to %s for and reverse, j: %d k: %d \n\r", cur_node->name, j, k);
+			j++;
+			k = 0;
 
 		} else if (cur_node->type == NODE_SENSOR){
-			printf(2, "1 move train to %s for dist %d\n\r", cur_node->name, dist);
-			dist += cur_node->edge[DIR_AHEAD].dist;
+			printf(2, "1 move train to %s, j: %d k: %d \n\r", cur_node->name, j, k);
+			if (cur_node->reverse->index == current_sensor) {
+				smaller_paths[j].node[k] = cur_node->index;
+				k++;
+			} else if (i == len - 1) { // last node
+				smaller_paths[j].node[k] = cur_node->index;
+				smaller_paths[j].len = k + 1;
+				j++;
+				k++;
+			} else {
+				smaller_paths[j].node[k] = cur_node->index;
+				k++;
+			}
 		} else if (cur_node->type == NODE_MERGE) {
 			if (cur_node->edge[DIR_AHEAD].dest->index == path[i-1] ||
 				cur_node->edge[DIR_AHEAD].dest->index == track[path[i-1]].reverse->index) {
@@ -194,11 +212,13 @@ void parse_track_z(int * path, int len) {
 				path[i] = reverse->index;
 
 				if (reverse->edge[DIR_STRAIGHT].dest->index == path[i+1]) {
-					printf(2, "2 move train to %s for dist %d\n\r", cur_node->name, dist);
-					dist += reverse->edge[DIR_STRAIGHT].dist;
+					printf(2, "2 move train to %s, j: %d k: %d \n\r", cur_node->name, j, k);
+					smaller_paths[j].node[k] = reverse->index;
+					k++;
 				} else if (reverse->edge[DIR_CURVED].dest->index == path[i+1]) {
-					printf(2, "3 move train to %s for dist %d\n\r", cur_node->name, dist);
-					dist += reverse->edge[DIR_CURVED].dist;
+					printf(2, "3 move train to %s, j: %d k: %d \n\r", cur_node->name, j, k);
+					smaller_paths[j].node[k] = reverse->index;
+					k++;
 				} else {
 					// what the motherfucking hell happened
 				}
@@ -206,26 +226,40 @@ void parse_track_z(int * path, int len) {
 			} else {
 				track_node * reverse = cur_node->reverse;
 				if (reverse->edge[DIR_STRAIGHT].dest->index == path[i+1] ) {
-					// move(dist)
-					// reverse;
-					printf(2, "4 move train to %s for dist %d and reverse\n\r", cur_node->name, dist);
-					dist = reverse->edge[DIR_STRAIGHT].dist;
+					smaller_paths[j].node[k] = cur_node->index;
+					smaller_paths[j].len = k+1;
+					printf(2, "4 move train to %s and reverse, j: %d k: %d \n\r", cur_node->name, j, k);
+					j++;
+					k = 0;
+				} else if (reverse->edge[DIR_STRAIGHT].dest->index == track[path[i+1]].reverse->index ) {
+					path[i+1] = track[path[i+1]].reverse->index;
+					smaller_paths[j].node[k] = cur_node->index;
+					smaller_paths[j].len = k+1;
+					printf(2, "4 move train to %s and reverse, j: %d k: %d \n\r", cur_node->name, j, k);
+					j++;
+					k = 0;
 				} else if (reverse->edge[DIR_CURVED].dest->index == path[i+1]) {
-					// move(dist)
-					// reverse;
-					printf(2, "5 move train to %s for dist %d and reverse\n\r", cur_node->name, dist);
-					dist = reverse->edge[DIR_CURVED].dist;
-				} else {
-					// printf(2, "6 straight %d curve %d \n\r", reverse->edge[DIR_STRAIGHT].dest->index, reverse->edge[DIR_CURVED].dest->index);
-					printf(2, "6 move train to %s for dist %d\n\r", cur_node->name, dist);
-					dist += cur_node->edge[DIR_STRAIGHT].dist;
+					smaller_paths[j].node[k] = cur_node->index;
+					smaller_paths[j].len = k+1;
+					printf(2, "5 move train to %s and reverse, j: %d k: %d \n\r", cur_node->name, j, k);
+					j++;
+					k = 0;
+				}  else if (reverse->edge[DIR_CURVED].dest->index == track[path[i+1]].reverse->index) {
+					path[i+1] = track[path[i+1]].reverse->index;
+					smaller_paths[j].node[k] = cur_node->index;
+					smaller_paths[j].len = k+1;
+					printf(2, "5 move train to %s and reverse, j: %d k: %d \n\r", cur_node->name, j, k);
+					j++;
+					k = 0;
+				}else {
+					printf(2, "6 move train to %s, j: %d k: %d \n\r", cur_node->name, j, k);
+					smaller_paths[j].node[k] = cur_node->index;
+					k++;
 				}
 			} 
 		}
 	}
+	return j;
 }
-
-
-
 
 
