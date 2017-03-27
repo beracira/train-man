@@ -9,6 +9,7 @@
 #include "common.h"
 #include "train_client.h"
 #include "clockserver.h"
+#include "tc3_demo.h"
 
 int INPUT_TID = 0;
 
@@ -194,7 +195,10 @@ int command_parser(char * cmd, int cmd_len) {
           }
         }
 
-      }
+      } else if (strcmp(item[0], "demo")) {
+        td[DEMO_TID].state = READY;
+        return 0;
+      } 
     } else {
       printf(2, "\033[A\033[2K\rLast command: ERROR\033[B");
       return 1;

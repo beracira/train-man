@@ -15,6 +15,7 @@
 #include "user_syscall.h"
 #include "train_client.h"
 #include "trackserver.h"
+#include "tc3_demo.h"
 
 int EVIL_WORKER_TID = 0;
 int OFFICER_WORKER_TID = 0;
@@ -64,10 +65,16 @@ void the_evil_worker() {
   struct Path * path = &train_64_path;
 
   while (1) {
+    if (demo_mode && td[DEMO_TID].state == WORKER_BLOCKED) {
+      td[DEMO_TID].state = READY;
+    }
+
     td[ks->tid].state = WORKER_BLOCKED;
     Pass();
 
-    if (this->cur_sensor == this->dest) continue;
+    if (this->cur_sensor == this->dest) {
+      continue;
+    }
 
     int len = find_path_bfs(this->cur_sensor, this->dest, path->node, this->train_number);
     path->len = len;
@@ -292,6 +299,10 @@ void the_officer_worker() {
   struct Path * path = &path_of_the_just;
 
   while (1) {
+    if (demo_mode && td[DEMO_TID].state == WORKER_BLOCKED) {
+      td[DEMO_TID].state = READY;
+    }
+    
     td[ks->tid].state = WORKER_BLOCKED;
     Pass();
 

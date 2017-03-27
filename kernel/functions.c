@@ -18,6 +18,7 @@
 #include "trackserver.h"
 #include "dijkstra.h"
 #include "train_client.h"
+#include "tc3_demo.h"
 
 #include "../io/include/bwio.h"
 #include "../io/include/ts7200.h"
@@ -122,6 +123,8 @@ void firsttask(void) {
   Create(P_MEDIUM - 1, the_officer_worker);
   Create(P_MEDIUM - 1, input_handle);
   Create(P_MEDIUM -1, get_sensor_data);
+
+  // Create(P_MEDIUM + 2, demo_tc3);
   Create(P_IDLE, &idle_task);
 
 
@@ -132,7 +135,7 @@ void firsttask(void) {
   reserve_section(track[train_64_struct.cur_sensor].section, 0, train_64_struct.train_number);
   reserve_section(track[officer_struct.cur_sensor].section, 0, officer_struct.train_number);
   sections[15] = 100;
-  /*
+  
   // // don't want to run the track code until everything is initialized
   // // note that this affect idle usage
   // while (!(io_ready && ui_ready)) {

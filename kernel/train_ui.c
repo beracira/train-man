@@ -8,6 +8,7 @@
 #include "sensors.h"
 #include "clockserver.h"
 #include "track.h"
+#include "trackserver.h"
 
 int UI_TID = 0;
 int ui_ready = 0;
