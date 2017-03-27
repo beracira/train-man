@@ -47,7 +47,7 @@ void idle_task(void) {
   volatile int * temp = &(ks->num_tasks);
   idle_ticks = 0;
   unsigned int pre = cyclesPerTick;
-  while (*temp != 7) {
+  while (td_counter - *temp <= 2) {
     unsigned int cur = *((int *)(timerValue));
     if (cur > pre) ++idle_ticks;
     pre = cur;
@@ -132,12 +132,22 @@ void firsttask(void) {
   reserve_section(track[train_64_struct.cur_sensor].section, 0, train_64_struct.train_number);
   reserve_section(track[officer_struct.cur_sensor].section, 0, officer_struct.train_number);
   sections[9] = 100;
+
+  // Delay(500);
+  // int i;
+  // for (i = 1; i < 10; ++i) {
+  //   flip_switch(i, 0);
+  //   Delay(100);
+  // }
+
   /*
   // // don't want to run the track code until everything is initialized
   // // note that this affect idle usage
   while (!(io_ready && ui_ready)) {
     Pass();
   }
+
+  de
 
   printf(2, "inti");
 
