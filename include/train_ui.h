@@ -21,4 +21,8 @@ void UI_Server();
 
 int update_switch(int switch_number, int direction);
 
+void track_print_section(int section, int c);
+
+void track_print_sensors(int sensor, int c);
+
 #endif // TRAIN_UI_H

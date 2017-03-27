@@ -32,7 +32,6 @@ unsigned int control_tail = 0;
 int track_row = 0;
 int track_col = 0;
 void track_init(int row_start, int col_start);
-void track_print_sensors(int sensor, int status);
 void track_print_switch(int switch_number, int direction);
 
 
@@ -183,14 +182,14 @@ void track_init(int row_start, int col_start) {
 
   int i;
   for (i = 0; i < 80; i = i+2){
-    track_print_sensors(i, 1);
+    track_print_sensors(i, 0);
   }
 }
 
 
 void UI_Server() {
   
-  track_row = 60;
+  track_row = 35;
   track_col = 5;
 
   UI_init();
@@ -221,10 +220,168 @@ void UI_Server() {
   }
 }
 
-// define status == 1 as ON, 0 as OFF
-void track_print_sensors(int sensor, int status) {
-  int colour = 36; // cyan
-  if (status == 0) colour = 34; // blue
+void track_print_section(int section, int c) {
+  int colour = 35; // magenta by default
+  if (c) colour = c;
+  printf(2, "\033[s\033[0;37m");
+
+  switch(section) {
+    case 1:
+      printf(2, "\033[%d;%dH\033[%dm_", track_row+17, track_col+0, colour); 
+      printf(2, "\033[%d;%dH\033[%dm________", track_row+17, track_col+3, colour); 
+      break;
+    case 2:
+      printf(2, "\033[%d;%dH\033[%dm_", track_row+16, track_col+0, colour); 
+      printf(2, "\033[%d;%dH\033[%dm_______", track_row+16, track_col+3, colour); 
+      break;
+    case 3:
+      printf(2, "\033[%d;%dH\033[%dm_", track_row+15, track_col+0, colour); 
+      printf(2, "\033[%d;%dH\033[%dm______", track_row+15, track_col+3, colour); 
+      break;
+    case 4:
+      printf(2, "\033[%d;%dH\033[%dm__", track_row+14, track_col+0, colour); 
+      printf(2, "\033[%d;%dH\033[%dm_________", track_row+14, track_col+3, colour); 
+      printf(2, "\033[%d;%dH\033[%dm______", track_row+17, track_col+15, colour); 
+      break;
+    case 5:
+      printf(2, "\033[%d;%dH\033[%dm__________", track_row+0, track_col+0, colour); 
+      break;
+    case 6:
+      printf(2, "\033[%d;%dH\033[%dm_________", track_row+1, track_col+0, colour); 
+      break;
+    case 7:
+      printf(2, "\033[%d;%dH\033[%dm________", track_row+2, track_col+0, colour); 
+      break;
+    case 8:
+      printf(2, "\033[%d;%dH\033[%dm_", track_row+0, track_col+11, colour);
+      printf(2, "\033[%d;%dH\033[%dm___", track_row+0, track_col+13, colour);
+      printf(2, "\033[%d;%dH\033[%dm___", track_row+0, track_col+17, colour);
+      printf(2, "\033[%d;%dH\033[%dm_", track_row+1, track_col+10, colour);
+      printf(2, "\033[%d;%dH\033[%dm__", track_row+2, track_col+9, colour);
+      break;
+    case 9:
+      printf(2, "\033[%d;%dH\033[%dm___", track_row+0, track_col+13, colour);
+      printf(2, "\033[%d;%dH\033[%dm___", track_row+0, track_col+17, colour);
+      printf(2, "\033[%d;%dH\033[%dm_____", track_row+2, track_col+17, colour);
+      printf(2, "\033[%d;%dH\033[%dm/", track_row+3, track_col+14, colour);
+      printf(2, "\033[%d;%dH\033[%dm/", track_row+4, track_col+13, colour);
+      break;
+    case 10:
+      printf(2, "\033[%d;%dH\033[%dm|", track_row+6, track_col+11, colour);
+      printf(2, "\033[%d;%dH\033[%dm|", track_row+7, track_col+11, colour);
+      printf(2, "\033[%d;%dH\033[%dm|", track_row+8, track_col+11, colour);
+      printf(2, "\033[%d;%dH\033[%dm|", track_row+9, track_col+11, colour);
+      printf(2, "\033[%d;%dH\033[%dm|", track_row+10, track_col+11, colour);
+      break;
+    case 11:
+      printf(2, "\033[%d;%dH\033[%dm\\", track_row+12, track_col+13, colour);
+      printf(2, "\033[%d;%dH\033[%dm\\", track_row+13, track_col+14, colour);
+      printf(2, "\033[%d;%dH\033[%dm______", track_row+13, track_col+16, colour);
+      printf(2, "\033[%d;%dH\033[%dm\\___", track_row+15, track_col+16, colour);
+      break;
+    case 12:
+      printf(2, "\033[%d;%dH\033[%dm______", track_row+13, track_col+23, colour);
+      printf(2, "\033[%d;%dH\033[%dm_", track_row+13, track_col+31, colour);
+      printf(2, "\033[%d;%dH\033[%dm_", track_row+12, track_col+30, colour);
+      break;
+    case 13:
+      printf(2, "\033[%d;%dH\033[%dm_____", track_row+13, track_col+33, colour);
+      break;
+    case 14:
+      printf(2, "\033[%d;%dH\033[%dm_", track_row+11, track_col+32, colour);
+      break;
+    case 15:
+      printf(2, "\033[%d;%dH\033[%dm|", track_row+7, track_col+35, colour);
+      printf(2, "\033[%d;%dH\033[%dm|", track_row+8, track_col+35, colour);
+      printf(2, "\033[%d;%dH\033[%dm|", track_row+9, track_col+35, colour);
+      break;
+    case 16:
+      printf(2, "\033[%d;%dH\033[%dm______", track_row+2, track_col+23, colour);
+      printf(2, "\033[%d;%dH\033[%dm__", track_row+2, track_col+30, colour);
+      printf(2, "\033[%d;%dH\033[%dm_", track_row+3, track_col+30, colour);
+      break;
+    case 17:
+      printf(2, "\033[%d;%dH\033[%dm_____", track_row+2, track_col+33, colour);
+      break;
+    case 18:
+      printf(2, "\033[%d;%dH\033[%dm_", track_row+4, track_col+32, colour);
+      break;
+    case 19:
+      printf(2, "\033[%d;%dH\033[%dm_", track_row+4, track_col+38, colour);
+      break;
+    case 20:
+      printf(2, "\033[%d;%dH\033[%dm_", track_row+11, track_col+38, colour);
+      break;
+    case 21:
+      printf(2, "\033[%d;%dH\033[%dm__", track_row+2, track_col+39, colour);
+      printf(2, "\033[%d;%dH\033[%dm__", track_row+2, track_col+42, colour);
+      printf(2, "\033[%d;%dH\033[%dm_", track_row+3, track_col+40, colour);  
+      break;
+    case 22:
+      printf(2, "\033[%d;%dH\033[%dm_______", track_row+2, track_col+45, colour);
+      break;
+    case 23:
+      printf(2, "\033[%d;%dH\033[%dm\\", track_row+1, track_col+54, colour);
+      printf(2, "\033[%d;%dH\033[%dm_", track_row+2, track_col+53, colour);
+      printf(2, "\033[%d;%dH\033[%dm\\", track_row+3, track_col+56, colour);  
+      printf(2, "\033[%d;%dH\033[%dm\\", track_row+4, track_col+57, colour);
+      printf(2, "\033[%d;%dH\033[%dm\\", track_row+5, track_col+58, colour);
+      printf(2, "\033[%d;%dH\033[%dm|", track_row+6, track_col+59, colour);
+      printf(2, "\033[%d;%dH\033[%dm|", track_row+7, track_col+59, colour);
+      printf(2, "\033[%d;%dH\033[%dm|", track_row+8, track_col+59, colour);
+      printf(2, "\033[%d;%dH\033[%dm|", track_row+9, track_col+59, colour);
+      printf(2, "\033[%d;%dH\033[%dm|", track_row+10, track_col+59, colour);
+      printf(2, "\033[%d;%dH\033[%dm/", track_row+11, track_col+58, colour);  
+      printf(2, "\033[%d;%dH\033[%dm/", track_row+12, track_col+57, colour); 
+      printf(2, "\033[%d;%dH\033[%dm/", track_row+13, track_col+56, colour); 
+      printf(2, "\033[%d;%dH\033[%dm__", track_row+13, track_col+53, colour); 
+      printf(2, "\033[%d;%dH\033[%dm/", track_row+15, track_col+54, colour);
+      break;
+    case 24:
+      printf(2, "\033[%d;%dH\033[%dm____", track_row+15, track_col+49, colour); 
+      break;
+    case 25:
+      printf(2, "\033[%d;%dH\033[%dm_______", track_row+13, track_col+45, colour); 
+      break;
+    case 26:
+      printf(2, "\033[%d;%dH\033[%dm_", track_row+12, track_col+40, colour); 
+      printf(2, "\033[%d;%dH\033[%dm_", track_row+13, track_col+39, colour); 
+      printf(2, "\033[%d;%dH\033[%dm__", track_row+13, track_col+42, colour); 
+      break;
+    case 27:
+      printf(2, "\033[%d;%dH\033[%dm________", track_row+0, track_col+45, colour); 
+      break;
+    case 28:
+      printf(2, "\033[%d;%dH\033[%dm_______________________", track_row+0, track_col+21, colour); 
+      break;
+    case 29:
+      printf(2, "\033[%d;%dH\033[%dm____", track_row+17, track_col+49, colour); 
+      break;
+    case 30:
+      printf(2, "\033[%d;%dH\033[%dm____________", track_row+15, track_col+29, colour); 
+      break;
+    case 31:
+      printf(2, "\033[%d;%dH\033[%dm__", track_row+15, track_col+21, colour); 
+      printf(2, "\033[%d;%dH\033[%dm____", track_row+15, track_col+24, colour); 
+      printf(2, "\033[%d;%dH\033[%dm____", track_row+15, track_col+42, colour); 
+      printf(2, "\033[%d;%dH\033[%dm_", track_row+15, track_col+47, colour); 
+      printf(2, "\033[%d;%dH\033[%dm__", track_row+16, track_col+24, colour); 
+      printf(2, "\033[%d;%dH\033[%dm__", track_row+16, track_col+44, colour); 
+      printf(2, "\033[%d;%dH\033[%dm___", track_row+17, track_col+22, colour); 
+      printf(2, "\033[%d;%dH\033[%dm________________", track_row+17, track_col+27, colour); 
+      printf(2, "\033[%d;%dH\033[%dm___", track_row+17, track_col+45, colour); 
+      break;
+    default:
+      break;
+  }
+  printf(2, "\033[0;37m\033[u");
+
+}
+
+// c is the text colour, put 0 to default to cyan
+void track_print_sensors(int sensor, int c) {
+  int colour = 36; // cyan by default
+  if (c) colour = c;
 
   printf(2, "\033[s\033[0;37m");
   switch(sensor) {
