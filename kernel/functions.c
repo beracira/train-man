@@ -47,7 +47,7 @@ void idle_task(void) {
   volatile int * temp = &(ks->num_tasks);
   idle_ticks = 0;
   unsigned int pre = cyclesPerTick;
-  while (td_counter - *temp <= 2) {
+  while (*temp != 7) {
     unsigned int cur = *((int *)(timerValue));
     if (cur > pre) ++idle_ticks;
     pre = cur;
@@ -131,14 +131,14 @@ void firsttask(void) {
   predict_sensors(200, officer_struct.cur_sensor);
   reserve_section(track[train_64_struct.cur_sensor].section, 0, train_64_struct.train_number);
   reserve_section(track[officer_struct.cur_sensor].section, 0, officer_struct.train_number);
-  sections[15] = 100;
+  sections[9] = 100;
   /*
   // // don't want to run the track code until everything is initialized
   // // note that this affect idle usage
-  // while (!(io_ready && ui_ready)) {
-  //   Pass();
-  // }
-  /*
+  while (!(io_ready && ui_ready)) {
+    Pass();
+  }
+
   printf(2, "inti");
 
   track_node * track = (track_node *) 0x01700000;

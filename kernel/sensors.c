@@ -568,6 +568,15 @@ void predict_sensors(int client, int sensor) {
       client_ptr->predict_sensors[queue[i]] = 1;
     }
   }
+
+  //special cases
+  if (sensor == C14) client_ptr->predict_sensors[A15] = 1;
+  if (sensor == D1) client_ptr->predict_sensors[C1] = 1;
+  if (sensor == E1) client_ptr->predict_sensors[C1] = 1;
+  if (sensor == C2) client_ptr->predict_sensors[D2] = 1;
+  if (sensor == B13) client_ptr->predict_sensors[D2] = 1;
+
+
   printf(2, "\033[s\033[13;40H\033[KPredicted Sensors: %d ", queue_head);
   for (i = 0; i < 100; ++i) {
     if (client_ptr->predict_sensors[i] != 0) {
@@ -584,8 +593,6 @@ void predict_sensors(int client, int sensor) {
   //   printf(2, "%d ", queue[i]);
   // }
   printf(2, "\033[u");
-
-  // if (sensor == C7) client_ptr->predict_sensors[E11] = 1;
 
 }
 

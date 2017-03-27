@@ -193,7 +193,10 @@ int command_parser(char * cmd, int cmd_len) {
              item[0], item[1], item[2], track[officer_struct.cur_sensor].name, track[sensor].name);
           }
         }
-
+      } else if (strcmp(item[0], "predict")) {
+        int sensor = (item[1][0] - 'A') * 16 + stoi(item[1] + 1, item_len[1] - 1) - 1;
+        // int temp = train_64_struct.cur_sensor;
+        predict_sensors(100, sensor);
       }
     } else {
       printf(2, "\033[A\033[2K\rLast command: ERROR\033[B");

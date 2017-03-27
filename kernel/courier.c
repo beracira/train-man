@@ -181,8 +181,8 @@ void courier_server(void) {
         train_list[req.arg1] = 0;
       }
       else if (req.type == CR_SWITCH) {
-        printf(1, "%c%c", req.arg2, req.arg1);
-        Putc(1, 32); 
+        printf(1, "%c%c%c", req.arg2, req.arg1, 32);
+        // Putc(1, 32); 
       }
     }
     Receive( &sender_tid, &req, sizeof(struct cr_request));
