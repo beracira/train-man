@@ -13,10 +13,12 @@
 #define EVENT_BLOCKED 6
 #define BLOCKED 7
 #define WORKER_BLOCKED 21
-#define SENSOR_BLOCKED 22
 #define PATH_SWITCH_BLOCKED 23
 #define GET_NEW_SENSOR_BLOCKED 31
 #define PATH_SENSOR_BLOCKED 32
+
+#define SENSOR_BLOCKED_1 42
+#define SENSOR_BLOCKED_2 42
 
 extern int td_counter;
 

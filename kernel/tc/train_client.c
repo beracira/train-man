@@ -262,15 +262,13 @@ void the_evil_worker() {
             if (path->node[j + 1] != track[path->node[j]].edge[track[path->node[j]].dir].dest->index) {
               int temp = 1 - track[path->node[j]].dir;
               flip_switch(track[path->node[j]].num, 33 + temp);
-              Delay(8);
+              Delay(10);
               flip_switch(track[path->node[j]].num, 33 + temp);
-              Delay(8);
-              printf(2, "flip %d %d\n\r", track[path->node[j]].num, i);
+              Delay(10);
             }
           }
         }
         if (j == len - 1) {
-          printf(2, "goto on: %s\n\r", track[path->node[i]].name);
           i = j;
           this->cur_sensor = path->node[i];
           clean_reservation(this);

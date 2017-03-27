@@ -19,6 +19,9 @@
 #define THE_OFFICER  200
 
 #define SENSOR_ARRAY_SIZE 10
+
+int SENSOR_TID = 0;
+
 int RUNNING_TRAIN = 0;
 
 int last_sensor = 0;
@@ -42,9 +45,15 @@ int sensor_attr();
 int EVIL_TID = 0;
 int OFFICER_TID = 0;
 
+int sensors[10] = {};
+int sensor_len = 0;
+
 void get_sensor_data() {
-  int sensors[10];
-  int sensor_len = 0;
+  volatile struct task_descriptor * td = (struct task_descriptor *) TASK_DESCRIPTOR_START;
+  volatile struct kernel_stack * ks = (struct kernel_stack *) KERNEL_STACK_START;
+
+  SENSOR_TID = ks->tid;
+
   int sensor_letter[SENSOR_ARRAY_SIZE];
   int sensor_digit[SENSOR_ARRAY_SIZE];
   int i;
@@ -59,6 +68,8 @@ void get_sensor_data() {
   evil_sensor = -1;
   officer_sensor = -1;
 
+  sensor_len = 0;
+
   //////////////////////////// 
   // velocity calibration
 
@@ -70,9 +81,33 @@ void get_sensor_data() {
   //////////////////////////// 
 
   while (1 + 2 == 3) {
-    int c = Getc(1);
-    sensors[sensor_len++] = c;
+    td[ks->tid].state = SENSOR_BLOCKED_1;
+    // printf(2, "blocked\n\r");
+    // printf(2, "\033[s\033[3;1H\033[K blocked\033[u");
+    Pass();
 
+    // printf(2, "\033[s\033[3;1H\033[K unblocked\033[u");
+    // Putc(1, 128 + 5);
+
+    struct cr_request input;
+    struct cr_request output;
+
+    input.type = CR_SENSOR_REQUEST;
+    input.arg1 = 0;
+    input.arg2 = 0;
+
+    Send(CR_TID, &input, sizeof(struct cr_request), &output, sizeof(struct cr_request));
+
+    // printf(2, "\033[s\033[3;1H\033[K after send\033[u");
+    td[ks->tid].state = SENSOR_BLOCKED_2;
+    Pass();
+
+    // printf(2, "\033[s\033[3;1H\033[K after 2nd block\033[u");
+    if (sensor_len != 10) {
+      // printf(2, "sensor_len is %d\n\r", sensor_len);
+      // sensor_len = 0;
+      continue;
+    }
     if (sensor_len == 10) {
       int k;
       for (k = 0; k < SENSOR_ARRAY_SIZE; ++k) {
@@ -142,13 +177,13 @@ void get_sensor_data() {
       /* ---------     missed switches     ----------- */
       // check_missed_switch(last_sensor2, time);
       /* --------------------------------------------- */
+      sensor_requested = 0;
+      volatile struct task_descriptor * td = (struct task_descriptor *) TASK_DESCRIPTOR_START;
+      // if (td[CR_TID].state == SENSOR_BLOCKED) td[CR_TID].state = READY;
+      if (td[EVIL_TID].state == GET_NEW_SENSOR_BLOCKED) td[EVIL_TID].state = READY;
+      if (td[OFFICER_TID].state == GET_NEW_SENSOR_BLOCKED) td[OFFICER_TID].state = READY;
+      if (target_sensor == last_sensor && td[INPUT_TID].state == PATH_SWITCH_BLOCKED) td[INPUT_TID].state = READY;
     }
-    sensor_requested = 0;
-    volatile struct task_descriptor * td = (struct task_descriptor *) TASK_DESCRIPTOR_START;
-    if (td[CR_TID].state == SENSOR_BLOCKED) td[CR_TID].state = READY;
-    if (td[EVIL_TID].state == GET_NEW_SENSOR_BLOCKED) td[EVIL_TID].state = READY;
-    if (td[OFFICER_TID].state == GET_NEW_SENSOR_BLOCKED) td[OFFICER_TID].state = READY;
-    if (target_sensor == last_sensor && td[INPUT_TID].state == PATH_SWITCH_BLOCKED) td[INPUT_TID].state = READY;
   }
 }
 

@@ -125,7 +125,7 @@ void firsttask(void) {
   Create(P_MEDIUM + 1, the_officer);
   Create(P_MEDIUM - 1, the_officer_worker);
   Create(P_MEDIUM - 1, input_handle);
-  Create(P_MEDIUM -1, get_sensor_data);
+  Create(P_MEDIUM - 3, get_sensor_data);
 
   Create(P_IDLE, &idle_task);
 
@@ -137,7 +137,7 @@ void firsttask(void) {
   reserve_section(track[train_64_struct.cur_sensor].section, 0, train_64_struct.train_number);
   reserve_section(track[officer_struct.cur_sensor].section, 0, officer_struct.train_number);
 
-  sections[15] = 100;
+  // sections[15] = 100;
   
 
   // Delay(500);

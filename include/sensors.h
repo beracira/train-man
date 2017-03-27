@@ -2,6 +2,10 @@
 #define SENSORS_H
 #include "track.h"
 
+extern int sensors[10];
+extern int sensor_len;
+
+extern int SENSOR_TID;
 extern int last_sensor;
 extern int sensor_requested;
 extern int time_to_next_sensor;

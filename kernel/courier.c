@@ -168,12 +168,8 @@ void courier_server(void) {
 
   courier_ready = 1;
   while (1) {
-    if (sensor_requested) {
-      volatile struct task_descriptor * td = (struct task_descriptor *) TASK_DESCRIPTOR_START;
-      volatile struct kernel_stack * ks = (struct kernel_stack *) KERNEL_STACK_START;
-      td[ks->tid].state = SENSOR_BLOCKED;
-      Pass();
-    }
+    // if (sensor_requested) {
+    // }
     if (req.type != -1) {
       if (req.type == CR_SET_SPEED) printf(1, "%c%c", req.arg2, req.arg1);
       else if (req.type == CR_REVERSE_WAIT && train_list[req.arg1] != 0) {
@@ -182,9 +178,23 @@ void courier_server(void) {
       }
       else if (req.type == CR_SWITCH) {
         printf(1, "%c%c", req.arg2, req.arg1);
-        Putc(1, 32); 
+        Delay(3);
+        Putc(1, 32);
+        Delay(3);
+      } else if (req.type == CR_SENSOR_REQUEST) {
+        Putc(1, 128 + 5);
+        // Delay(3);
+        while (sensor_len < 10) {
+          char c = Getc(1);
+          sensors[sensor_len++] = c;
+        }
+        volatile struct task_descriptor * td = (struct task_descriptor *) TASK_DESCRIPTOR_START;
+        volatile struct kernel_stack * ks = (struct kernel_stack *) KERNEL_STACK_START;
+        if (SENSOR_TID != -1 && td[SENSOR_TID].state == SENSOR_BLOCKED_2) td[SENSOR_TID].state = READY;
       }
+      // printf(2, "%d \n\r", req.type);
     }
+    // Delay(3);
     Receive( &sender_tid, &req, sizeof(struct cr_request));
 
     switch(req.type) {

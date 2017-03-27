@@ -67,6 +67,7 @@ void initialize(void) {
   officer_struct.train_number = 63;
   officer_struct.cur_sensor = 22;
   RUNNING_TRAIN = 64;
+  SENSOR_TID = -1;
   // int i = 0;
   // while (i++ < 100000);
   // bwsetfifo(COM1, OFF);
@@ -184,7 +185,8 @@ int handle(int num) {
           wake_train_second_part();
         }
         if (io_ready && ui_ready && time_ticks % 20 == 0) {
-          Putc(1, 128 + 5);
+          // Putc(1, 128 + 5);
+          if (SENSOR_TID != -1 && td[SENSOR_TID].state == SENSOR_BLOCKED_1) td[SENSOR_TID].state = READY;
           sensor_requested = 1;
         }
         if (io_ready && ui_ready && time_ticks % 10 == 5) {
