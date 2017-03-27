@@ -116,13 +116,22 @@ void firsttask(void) {
   Create(P_OTHER_SERVERS, stop_worker);
   Create(P_OTHER_SERVERS, UI_Server);
   Create(P_OTHER_SERVERS, track_server);
-  Create(P_MEDIUM, the_evil_worker);
-  Create(P_MEDIUM, the_evil_guy);
-  Create(P_MEDIUM, input_handle);
-  Create(P_MEDIUM, get_sensor_data);
+  Create(P_MEDIUM + 1, the_evil_guy);
+  Create(P_MEDIUM - 1, the_evil_worker);
+  Create(P_MEDIUM + 1, the_officer);
+  Create(P_MEDIUM - 1, the_officer_worker);
+  Create(P_MEDIUM - 1, input_handle);
+  Create(P_MEDIUM -1, get_sensor_data);
   Create(P_IDLE, &idle_task);
 
-  predict_sensors(100, 26);
+
+  volatile track_node * track = (track_node *) 0x01700000;
+
+  predict_sensors(100, train_64_struct.cur_sensor);
+  predict_sensors(200, officer_struct.cur_sensor);
+  reserve_section(track[train_64_struct.cur_sensor].section, 0, train_64_struct.train_number);
+  reserve_section(track[officer_struct.cur_sensor].section, 0, officer_struct.train_number);
+  sections[15] = 100;
   /*
   // // don't want to run the track code until everything is initialized
   // // note that this affect idle usage

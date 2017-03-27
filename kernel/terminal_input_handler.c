@@ -8,6 +8,7 @@
 #include "td.h"
 #include "common.h"
 #include "train_client.h"
+#include "clockserver.h"
 
 int INPUT_TID = 0;
 
@@ -176,15 +177,22 @@ int command_parser(char * cmd, int cmd_len) {
         }
         item[1][(int)item_len[1]] = '\0';
         int sensor = (item[2][0] - 'A') * 16 + stoi(item[2] + 1, item_len[2] - 1) - 1;
+        volatile track_node * track = (track_node *) TRACK_ADDR;
         if (strcmp(item[1], "evil")) {
           if (td[EVIL_WORKER_TID].state == WORKER_BLOCKED) {
             td[EVIL_WORKER_TID].state = READY;
             train_64_struct.dest = sensor;
+            printf(2, "\033[A\033[2K\rLast command: %s %s %s cur: %s tar: %s\033[B",
+             item[0], item[1], item[2], track[train_64_struct.cur_sensor].name, track[sensor].name);
+          }
+        } else if (strcmp(item[1], "just")) {
+          if (td[OFFICER_WORKER_TID].state == WORKER_BLOCKED) {
+            td[OFFICER_WORKER_TID].state = READY;
+            officer_struct.dest = sensor;
+            printf(2, "\033[A\033[2K\rLast command: %s %s %s cur: %s tar: %s\033[B",
+             item[0], item[1], item[2], track[officer_struct.cur_sensor].name, track[sensor].name);
           }
         }
-
-        printf(2, "\033[A\033[2K\rLast command: %s %s %s cur: %d tar: %d\033[B",
-         item[0], item[1], item[2], train_64_struct.cur_sensor, sensor);
 
       }
     } else {

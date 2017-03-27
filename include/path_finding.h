@@ -19,6 +19,7 @@ struct Train {
   int predict_sensors[100];
   int train_number;
   int dest;
+  int stopping;
 };
 
 struct Path {
@@ -30,9 +31,13 @@ struct Path {
 };
 
 extern struct Path train_64_path;
+extern struct Path path_of_the_just;
+
 extern int target_sensor;
 
 extern struct Train train_64_struct;
+extern struct Train officer_struct;
+
 extern int path[MAX_PATH_LENGTH];
 extern int path_len;
 extern int path_err;
@@ -48,7 +53,7 @@ int get_sensor_color(int sensor);
 void short_move(int train_number, int dist);
 void update_train_velocity(int train_number, int speed, int start, int end, int new_time);
 int train_number_to_index(int x);
-int find_path_bfs(int origin, int dest, int * path, int * acc_dist, int len);
+int find_path_bfs(int origin, int dest, int * path, int train_number);
 double get_velocity(int train_index, int speed, int now, int end, int dist);
 
 #endif // PATH_FINDING_H

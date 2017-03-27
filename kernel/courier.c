@@ -24,9 +24,11 @@ void set_train_speed(int train, int speed) {
   input.arg1 = train;
   input.arg2 = speed;
   
-  // if (train == 64) {
+  if (train == train_64_struct.train_number) {
     train_64_struct.speed = speed;
-  // }
+  } else if (train == officer_struct.train_number) {
+    officer_struct.speed = speed;
+  }
 
   Send(CR_TID, &input, sizeof(struct cr_request), &output, sizeof(struct cr_request));
 }
@@ -39,9 +41,11 @@ void reverse_train(int train) {
   input.arg1 = train;
   input.arg2 = 0;
 
-  // if (train == 64) {
+  if (train == train_64_struct.train_number) {
     train_64_struct.direction ^= 1;
-  // }
+  } else if (train == officer_struct.train_number) {
+    officer_struct.direction ^= 1;
+  }
 
   Send(CR_TID, &input, sizeof(struct cr_request), &output, sizeof(struct cr_request));
 }

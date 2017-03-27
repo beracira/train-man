@@ -72,6 +72,7 @@ void update_time() {
   printf(2, "%d.%d  Idle usage: %u%%\033[K", s, time % 10, idle_percent);
   printf(2, "\033[5;60H\033[KTime to next sensor: %d.%ds", time_to_next_sensor / 10, time_to_next_sensor % 10);
   printf(2, "\033[u");
+  print_sections();
 }
 
 int update_switch(int switch_number, int direction) {

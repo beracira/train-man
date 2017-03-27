@@ -67,7 +67,7 @@ int reserve_section(int next_section, int prev_section, int train) {
   // double check tid
   Send(TRACK_TID, &input, sizeof(struct track_request), &output, sizeof(struct track_request));
 
-  return output.path_len;
+  return output.type == TRACK_RESERVED;
 }
 
 void track_server() {
@@ -84,14 +84,14 @@ void track_server() {
 
     if (req.type == TRACK_NEW_PATH) {
       // path finding
-      int len = find_path_bfs(req.origin, req.dest, result.path, 0, 0);
-      if (len) {
-        result.type = TRACK_PATH_FOUND;
-      } else {
-        result.type = TRACK_PATH_NOT_FOUND;
-      }
+      // int len = find_path_bfs(req.origin, req.dest, result.path, 0, 0);
+      // if (len) {
+      //   result.type = TRACK_PATH_FOUND;
+      // } else {
+      //   result.type = TRACK_PATH_NOT_FOUND;
+      // }
 
-      result.path_len = len;
+      // result.path_len = len;
     }
 
     if (req.type == TRACK_RESERVE_SECTION) {
@@ -99,6 +99,7 @@ void track_server() {
         result.type = TRACK_NOT_RESERVED;
         result.train = sections[req.next_section];
       } else {
+        result.type = TRACK_RESERVED;
         sections[req.next_section] = req.train;
         sections[req.prev_section] = 0;
       }
@@ -110,10 +111,16 @@ void track_server() {
 
 
 void print_sections() {
-  printf(2, "\033[s\033[18;40H\033[KUsed Section: ");
+  printf(2, "\033[s\033[18;40H\033[KEvil Used Section: ");
   int i;
   for (i = 1; i <= 31; ++i) {
-    if (sections[i] != 0) {
+    if (sections[i] == train_64_struct.train_number) {
+      printf(2, "%d ", i);
+    }
+  }
+  printf(2, "\033[19;40H\033[KJust Used Section: ");
+  for (i = 1; i <= 31; ++i) {
+    if (sections[i] == officer_struct.train_number) {
       printf(2, "%d ", i);
     }
   }
