@@ -136,14 +136,26 @@ void firsttask(void) {
   predict_sensors(200, officer_struct.cur_sensor);
   reserve_section(track[train_64_struct.cur_sensor].section, 0, train_64_struct.train_number);
   reserve_section(track[officer_struct.cur_sensor].section, 0, officer_struct.train_number);
+
   sections[15] = 100;
   
+
+  // Delay(500);
+  // int i;
+  // for (i = 1; i < 10; ++i) {
+  //   flip_switch(i, 0);
+  //   Delay(100);
+  // }
+
+  /*
   // // don't want to run the track code until everything is initialized
   // // note that this affect idle usage
-  // while (!(io_ready && ui_ready)) {
-  //   Pass();
-  // }
-  /*
+  while (!(io_ready && ui_ready)) {
+    Pass();
+  }
+
+  de
+
   printf(2, "inti");
 
   track_node * track = (track_node *) 0x01700000;
