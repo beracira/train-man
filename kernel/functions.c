@@ -117,6 +117,9 @@ void firsttask(void) {
   Create(P_OTHER_SERVERS, stop_worker);
   Create(P_OTHER_SERVERS, UI_Server);
   Create(P_OTHER_SERVERS, track_server);
+
+  Create(P_MEDIUM + 2, demo_tc3);
+
   Create(P_MEDIUM + 1, the_evil_guy);
   Create(P_MEDIUM - 1, the_evil_worker);
   Create(P_MEDIUM + 1, the_officer);
@@ -124,7 +127,6 @@ void firsttask(void) {
   Create(P_MEDIUM - 1, input_handle);
   Create(P_MEDIUM -1, get_sensor_data);
 
-  // Create(P_MEDIUM + 2, demo_tc3);
   Create(P_IDLE, &idle_task);
 
 

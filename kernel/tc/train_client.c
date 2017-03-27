@@ -65,9 +65,11 @@ void the_evil_worker() {
   struct Path * path = &train_64_path;
 
   while (1) {
-    if (demo_mode && td[DEMO_TID].state == WORKER_BLOCKED) {
-      td[DEMO_TID].state = READY;
-    }
+    // if (demo_mode) {
+    // //   if (td[DEMO_TID].state == WORKER_BLOCKED) {
+    //     td[DEMO_TID].state = READY;
+    // //   }
+    // }
 
     td[ks->tid].state = WORKER_BLOCKED;
     Pass();
@@ -299,9 +301,11 @@ void the_officer_worker() {
   struct Path * path = &path_of_the_just;
 
   while (1) {
-    if (demo_mode && td[DEMO_TID].state == WORKER_BLOCKED) {
-      td[DEMO_TID].state = READY;
-    }
+    // if (demo_mode) {
+    //   // if (td[DEMO_TID].state == WORKER_BLOCKED) {
+    //     td[DEMO_TID].state = READY;
+    //   // }
+    // }
     
     td[ks->tid].state = WORKER_BLOCKED;
     Pass();

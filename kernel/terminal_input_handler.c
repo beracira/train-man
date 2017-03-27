@@ -197,6 +197,7 @@ int command_parser(char * cmd, int cmd_len) {
 
       } else if (strcmp(item[0], "demo")) {
         td[DEMO_TID].state = READY;
+          printf(2, "\033[A\033[2K\rLast command: demo\033[B");
         return 0;
       } 
     } else {
