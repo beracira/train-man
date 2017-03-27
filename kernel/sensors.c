@@ -369,13 +369,13 @@ int path_found = 0;
 int sensor_attr() {
   if (new_sensors_len == 0) {
     return 1;
-  } else if (new_sensors_len == 1) {
-    if (train_64_struct.speed != 0 || train_64_struct.stopping) {
-      evil_sensor = new_sensors[0];
-    }
-    if (officer_struct.speed != 0 || officer_struct.stopping) {
-      officer_sensor = new_sensors[0];
-    }
+  // } else if (new_sensors_len == 1) {
+  //   if (train_64_struct.speed != 0 || train_64_struct.stopping) {
+  //     evil_sensor = new_sensors[0];
+  //   }
+  //   if (officer_struct.speed != 0 || officer_struct.stopping) {
+  //     officer_sensor = new_sensors[0];
+  //   }
   } else {
     if (train_64_struct.speed != 0 || train_64_struct.stopping) {
       int i;
