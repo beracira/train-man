@@ -7,6 +7,7 @@
 #include "kernel.h"
 #include "sensors.h"
 #include "clockserver.h"
+#include "track.h"
 
 int UI_TID = 0;
 int ui_ready = 0;
@@ -30,6 +31,7 @@ unsigned int control_tail = 0;
 
 int track_row = 0;
 int track_col = 0;
+void track_init(int row_start, int col_start);
 void track_print_sensors(int sensor, int status);
 void track_print_switch(int switch_number, int direction);
 
@@ -143,6 +145,7 @@ void UI_init() {
   for (i = 0x99; i <= 0x9c; ++i) {
     flip_switch(i, switches[i] == 'S' ? 33 : 34);
     printf(2, "%d\t%c\n\r", i, switches[i]);
+    track_print_switch(i, switches[i] == 'S' ? 33 : 34);
     Delay(20); 
   }
 
@@ -151,7 +154,7 @@ void UI_init() {
 
 
 
-void track_init(int row_start, int col_start){
+void track_init(int row_start, int col_start) {
   int row = row_start;
   int col = col_start;
 
@@ -222,7 +225,7 @@ void UI_Server() {
 // define status == 1 as ON, 0 as OFF
 void track_print_sensors(int sensor, int status) {
   int colour = 36; // cyan
-  if (status == 0) colour == 34; // blue
+  if (status == 0) colour = 34; // blue
 
   printf(2, "\033[s\033[0;37m");
   switch(sensor) {
@@ -392,9 +395,12 @@ void track_print_sensors(int sensor, int status) {
   }
 
   printf(2, "\033[0;37m\033[u");
-
 }
+
 void track_print_switch(int switch_number, int direction) {
+
+  volatile track_node * track = (track_node *) TRACK_ADDR;
+
   printf(2, "\033[s\033[0;37m");
   int colour = 32;  
   switch(switch_number) {
@@ -543,14 +549,75 @@ void track_print_switch(int switch_number, int direction) {
       }
       break;
 
-    case 0x99: // crying
+    case 0x99:
+      if (direction == 33) {
+        if (track[118].dir == DIR_STRAIGHT) { // straight
+          printf(2, "\033[%d;%dH\033[0;37m/\033[1;%dm|\033[0;37m\\", track_row+10, track_col+34, colour); 
+        } else { // curve right (to sw 154)
+          printf(2, "\033[%d;%dH\033[0;37m/|\033[1;%dm\\", track_row+10, track_col+34, colour); 
+        }
+      } else { 
+        if (track[118].dir == DIR_STRAIGHT) { // curve left (to sw 153)
+          printf(2, "\033[%d;%dH\033[1;%dm/\033[0;37m|\\", track_row+10, track_col+34, colour); 
+        } else { 
+          // get fucked
+          printf(2, "\033[%d;%dH\033[1;5;31m/\033[0;37m|\033[1;5;31m\\", track_row+10, track_col+34, colour); 
+        }
+      }
+      break;
     case 0x9a:
+      if (direction == 33) {
+        if (track[116].dir == DIR_STRAIGHT) { // straight
+          printf(2, "\033[%d;%dH\033[0;37m/\033[1;%dm|\033[0;37m\\", track_row+10, track_col+34, colour); 
+        } else {// curve left (to sw 153)
+          printf(2, "\033[%d;%dH\033[1;%dm/\033[0;37m|\\", track_row+10, track_col+34, colour);
+        }
+      } else { 
+        if (track[116].dir == DIR_STRAIGHT) {   // curve right (to sw 154)
+          printf(2, "\033[%d;%dH\033[0;37m/|\033[1;%dm\\", track_row+10, track_col+34, colour); 
+        } else { 
+          // get fucked
+          printf(2, "\033[%d;%dH\033[1;5;31m/\033[0;37m|\033[1;5;31m\\", track_row+10, track_col+34, colour); 
+        }
+      }
+      break;
     case 0x9b:
+      if (direction == 33) {
+        if (track[122].dir == DIR_STRAIGHT) { // straight
+          printf(2, "\033[%d;%dH\033[0;37m\\\033[1;%dm|\033[0;37m/", track_row+6, track_col+34, colour); 
+        } else { // curve left (to sw 156)
+          printf(2, "\033[%d;%dH\033[1;%dm\\\033[0;37m|/", track_row+6, track_col+34, colour);
+        }
+      } else { 
+        if (track[122].dir == DIR_STRAIGHT) {   // curve right (to sw 155)
+          printf(2, "\033[%d;%dH\033[0;37m\\|\033[1;%dm/", track_row+6, track_col+34, colour); 
+        } else { 
+          // get fucked
+          printf(2, "\033[%d;%dH\033[1;5;31m\\\033[0;37m|\033[1;5;31m/", track_row+6, track_col+34, colour); 
+        }
+      }
+      break;
     case 0x9c:
+      if (direction == 33) {
+        if (track[120].dir == DIR_STRAIGHT) { // straight
+          printf(2, "\033[%d;%dH\033[0;37m\\\033[1;%dm|\033[0;37m/", track_row+6, track_col+34, colour); 
+        } else { // curve right (to sw 154)
+          printf(2, "\033[%d;%dH\033[0;37m\\|\033[1;%dm/", track_row+6, track_col+34, colour); 
+        }
+      } else { 
+        if (track[120].dir == DIR_STRAIGHT) { // curve left (to sw 153)
+          printf(2, "\033[%d;%dH\033[1;%dm\\\033[0;37m|/", track_row+6, track_col+34, colour); 
+        } else { 
+          // get fucked
+          printf(2, "\033[%d;%dH\033[1;5;31m\\\033[0;37m|\033[1;5;31m/", track_row+6, track_col+34, colour); 
+        }
+      }
+      break;
     default:
       break;
   }
   printf(2, "\033[0;37m\033[u");
+
 }
 
 

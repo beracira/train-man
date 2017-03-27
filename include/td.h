@@ -17,6 +17,8 @@
 #define GET_NEW_SENSOR_BLOCKED 31
 #define PATH_SENSOR_BLOCKED 32
 
+extern int td_counter;
+
 struct Sender {
   int sender_tid;
   void *msg; 
