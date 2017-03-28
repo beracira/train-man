@@ -46,6 +46,7 @@ void Putc(int uart, char ch) {
 }
 
 char Getc(int uart) {
+  volatile struct task_descriptor * td = (struct task_descriptor *) TASK_DESCRIPTOR_START;
   volatile struct kernel_stack * ks = (struct kernel_stack *) KERNEL_STACK_START;
   
   struct IO_Request input;
@@ -60,14 +61,17 @@ char Getc(int uart) {
     input.type = TERMINAL_RECEIVE;
   }
 
-  Send(IO_TID, &input, sizeof(input), &output, sizeof(output));
+  // Send(IO_TID, &input, sizeof(input), &output, sizeof(output));
+  insert_wait_list(uart, ks->tid);
   int sender_tid = 0;
   char ch = 98, dummy;
 
-  Receive( &sender_tid, &ch, sizeof(char));
-  Reply(sender_tid, &dummy, sizeof(char));
+  td[ks->tid].state = GET_CHAR_BLOCKED;
+  Pass();
+  // Receive(&sender_tid, &ch, sizeof(char));
+  // Reply(sender_tid, &dummy, sizeof(char));
 
-  return ch;
+  return td[ks->tid].extra_char;
 }
 
 inline void buffer_add(int uart, char c) {
@@ -105,6 +109,7 @@ inline void buffer_add(int uart, char c) {
   if (uart == TRAIN_SEND || uart == TERMINAL_SEND) {
     mask = TIEN_MASK;
     *uart_int_enable |= mask;
+    // if (uart == TRAIN_SEND) printf(2, "send %d\n\r", c);
   }
 
   if (uart == TRAIN_RECEIVE) {
@@ -205,13 +210,18 @@ char * get_char_buffer_ptr = 0;
 int get_char_cur = 0;
 
 void remove_wait_list(int uart) {
+  volatile struct task_descriptor * td = (struct task_descriptor *) TASK_DESCRIPTOR_START;
+  volatile struct kernel_stack * ks = (struct kernel_stack *) KERNEL_STACK_START;
+
   if (uart == 1) {
     int tid = train_wait_list_ptr->tid[train_wait_list_ptr->head++];
     train_wait_list_ptr->head %= IO_BUFFER_SIZE;
     char ch, dummy;
     ch = buffer_remove(TRAIN_RECEIVE);
     get_char_buffer_ptr[get_char_cur] = ch;
-    kernel_kernel_Send(tid, &(get_char_buffer_ptr[get_char_cur]), sizeof(char), &dummy, sizeof(char));
+    td[tid].extra_char = ch;
+    td[tid].state = READY;
+    // kernel_kernel_Send(tid, &(get_char_buffer_ptr[get_char_cur]), sizeof(char), &dummy, sizeof(char));
     get_char_cur += 1;
     get_char_cur %= 10240;
   } else {
@@ -220,7 +230,10 @@ void remove_wait_list(int uart) {
     char ch, dummy;
     ch = buffer_remove(TERMINAL_RECEIVE);
     get_char_buffer_ptr[get_char_cur] = ch;
-    kernel_kernel_Send(tid, &(get_char_buffer_ptr[get_char_cur]), sizeof(char), &dummy, sizeof(char));
+    td[tid].extra_char = ch;
+    // if (td[tid].state == GET_CHAR_BLOCKED) 
+    td[tid].state = READY;
+    // kernel_kernel_Send(tid, &(get_char_buffer_ptr[get_char_cur]), sizeof(char), &dummy, sizeof(char));
     get_char_cur += 1;
     get_char_cur %= 10240;
   }

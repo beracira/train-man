@@ -14,6 +14,7 @@
 #include "train_client.h"
 #include "trackserver.h"
 #include "sensor_table.h"
+#include "bwio.h"
 
 #define THE_EVIL_GUY 100
 #define THE_OFFICER  200
@@ -83,10 +84,10 @@ void get_sensor_data() {
   while (1 + 2 == 3) {
     td[ks->tid].state = SENSOR_BLOCKED_1;
     // printf(2, "blocked\n\r");
-    // printf(2, "\033[s\033[3;1H\033[K blocked\033[u");
+    printf(2, "\033[s\033[3;1H\033[K blocked\033[u");
     Pass();
 
-    // printf(2, "\033[s\033[3;1H\033[K unblocked\033[u");
+    printf(2, "\033[s\033[3;1H\033[K unblocked\033[u");
     // Putc(1, 128 + 5);
 
     struct cr_request input;
@@ -99,20 +100,22 @@ void get_sensor_data() {
     Send(CR_TID, &input, sizeof(struct cr_request), &output, sizeof(struct cr_request));
 
     // printf(2, "\033[s\033[3;1H\033[K after send\033[u");
-    td[ks->tid].state = SENSOR_BLOCKED_2;
-    Pass();
+    // td[ks->tid].state = SENSOR_BLOCKED_2;
+    // Pass();
 
-    // printf(2, "\033[s\033[3;1H\033[K after 2nd block\033[u");
+    printf(2, "\033[s\033[3;1H\033[K after 2nd block\033[u");
     if (sensor_len != 10) {
       // printf(2, "sensor_len is %d\n\r", sensor_len);
-      // sensor_len = 0;
+      sensor_len = 0;
       continue;
     }
     if (sensor_len == 10) {
       int k;
       for (k = 0; k < SENSOR_ARRAY_SIZE; ++k) {
         new_sensors[k] = -1;
+        // printf(2, "%d ", sensors[k]);
       }
+      // printf(2, "\n\r");
       new_sensors_len = 0;
       for (k = 0; k < 5; ++k) {
         int high = sensors[k * 2];

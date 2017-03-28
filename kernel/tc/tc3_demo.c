@@ -88,6 +88,8 @@ void demo_tc3() {
       track_print_sensors(sensor1_array[i], 31);
     }
 
+    Delay(100);
+
     if (td[OFFICER_WORKER_TID].state == WORKER_BLOCKED) {
       sensor2 = sensor2_array[i];
       td[OFFICER_WORKER_TID].state = READY;

@@ -20,6 +20,8 @@
 #define SENSOR_BLOCKED_1 42
 #define SENSOR_BLOCKED_2 42
 
+#define GET_CHAR_BLOCKED 51
+
 extern int td_counter;
 
 struct Sender {
@@ -45,6 +47,7 @@ struct task_descriptor {
   struct Sender sendq[MAX_TASKS];
   int sendq_first;
   int sendq_last; // update ks?
+  int extra_char;
 };
 
 

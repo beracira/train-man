@@ -43,6 +43,10 @@ void irq_enable_uart1_receive(void) {
   *uart1_int_enable &= ~TIEN_MASK;
   *uart1_int_enable |= RIEN_MASK;
   *uart1_int_enable |= MSIEN_MASK;
+
+  int * mdmctl = (int *)( UART1_BASE + UART_MDMCTL_OFFSET); 
+  *mdmctl = (*mdmctl | 1);
+
   *uart2_int_enable &= ~TIEN_MASK;
   *uart2_int_enable |= RIEN_MASK;
   *uart2_int_enable |= MSIEN_MASK;

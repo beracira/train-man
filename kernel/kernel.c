@@ -189,6 +189,13 @@ int handle(int num) {
           if (SENSOR_TID != -1 && td[SENSOR_TID].state == SENSOR_BLOCKED_1) td[SENSOR_TID].state = READY;
           sensor_requested = 1;
         }
+        if (io_ready && ui_ready && time_ticks % 20 == 10) {
+          if (SENSOR_TID != -1 && td[CR_TID].state == GET_CHAR_BLOCKED) {
+            td[CR_TID].state = READY;
+            train_wait_list_ptr->tail -= 1;
+            train_wait_list_ptr->tail %= IO_BUFFER_SIZE;
+          }
+        }
         if (io_ready && ui_ready && time_ticks % 10 == 5) {
           remove_from_stop_queue();
         }
@@ -197,12 +204,33 @@ int handle(int num) {
       }
       else {
         flags = *((int *) 0x808c001c); // COM1 
-        if (flags == 2 || flags == 3) {
+        if ((flags & 0x2) && (flags & 0x4)) {
+          printf(2, "error 02 04\n\r");
+        }
+        if (flags & 0x2) {
           c = *data1;
           buffer_add(TRAIN_RECEIVE, c);
-        } else if (flags == 5 || flags == 4) {
+        } else if (flags & 0x4 || flags & 0x1) {
           buffer_remove(TRAIN_SEND);
-          // *uart1_int_enable &= ~TIEN_MASK;
+
+          // if(flags & 0x4) {
+          //   //Deactivate the receive interrupt
+          //   int * ctlr, buf;
+          //   ctlr = (int *)( UART1_BASE + UART_CTLR_OFFSET );
+          //   buf = *ctlr;
+          //   *ctlr = buf & ~TIEN_MASK;           
+          // }
+          
+          if(flags & 0x1) {
+            //clear modem status interrupt
+            *((int *) 0x808c001c) = 0;      
+            
+            //Deactivate the modem status interrupt
+            int * ctlr, buf;
+            ctlr = (int *)( UART1_BASE + UART_CTLR_OFFSET );
+            buf = *ctlr;
+            *ctlr = buf & ~MSIEN_MASK;
+          }
         } else {
 
         }

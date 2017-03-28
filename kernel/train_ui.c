@@ -73,6 +73,15 @@ void update_time() {
   printf(2, "%d.%d  Idle usage: %u%%\033[K", s, time % 10, idle_percent);
   printf(2, "\033[5;60H\033[KTime to next sensor: %d.%ds", time_to_next_sensor / 10, time_to_next_sensor % 10);
   printf(2, "\033[u");
+  // if (train_send_ptr->head != train_send_ptr->tail) {
+  //   int i = train_send_ptr->head;
+  //   while (i != train_send_ptr->tail) {
+  //     printf(2, "%d ", train_send_ptr->buffer[i]);
+  //     i += 1;
+  //     i %= IO_BUFFER_SIZE;
+  //   }
+  //   printf(2, "\n\r");    
+  // }
   print_sections();
 }
 
