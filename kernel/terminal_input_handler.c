@@ -10,6 +10,7 @@
 #include "train_client.h"
 #include "clockserver.h"
 #include "tc3_demo.h"
+#include "dijkstra.h"
 
 int INPUT_TID = 0;
 
@@ -202,6 +203,69 @@ int command_parser(char * cmd, int cmd_len) {
         int sensor = (item[1][0] - 'A') * 16 + stoi(item[1] + 1, item_len[1] - 1) - 1;
         // int temp = train_64_struct.cur_sensor;
         predict_sensors(100, sensor);
+
+      } else if (strcmp(item[0], "zmove")) {
+
+
+        volatile track_node * track = (track_node *) TRACK_ADDR;
+
+        if (num_item != 4) {
+          printf(2, "\033[A\033[2K\rLast command: not a good move!\033[B");
+          return 1;
+        }
+        int train_number = stoi(item[1], item_len[1]);
+        int sensor1 = (item[2][0] - 'A') * 16 + stoi(item[2] + 1, item_len[2] - 1) - 1;
+        int sensor2 = (item[3][0] - 'A') * 16 + stoi(item[3] + 1, item_len[3] - 1) - 1;
+        printf(2, "\033[A\033[2K\rLast command: %s %d %s %s\033[B", item[0], train_number, track[sensor1].name, track[sensor2].name);
+
+        int path[TRACK_MAX];
+        int i,j;
+        for (i = 0; i < TRACK_MAX; i++) {
+          path[i] = -1;
+        }
+        int len = dijkstra(path, sensor1, sensor2, train_number);
+
+        if (len == -1) {
+          printf(2, "\033[A\033[2K\rLast command: No path found\033[B");
+        } else {
+          struct zPath smaller_paths[20];
+
+          int num_paths = parse_track_z(path, len, train_number, sensor1, smaller_paths);
+
+          // for (i = 0; i < num_paths; i++) {
+          //   if (smaller_paths[i].dist > 2000) {
+          //     printf(2, "\033[A\033[2K\rLast command: Path too long\033[B");
+          //     return 0;
+          //   }
+          // }
+
+          for (i = 0; i < num_paths; i++) {
+            int dist = smaller_paths[i].dist;
+            while (dist > 400) {
+              short_move(train_number, 400);
+            }
+            short_move(train_number, dist);
+            set_train_speed(train_number, 15);
+            if (i < num_paths - 1) {
+              int start = smaller_paths[i].node[smaller_paths[i].len - 1];
+              int end = smaller_paths[i+1].node[smaller_paths[i+1].len - 1];
+
+              if (track[start].type == NODE_MERGE) start = track[start].reverse->index;
+
+              if (track[start].edge[DIR_STRAIGHT].dest->index == end ||
+                  track[start].edge[DIR_STRAIGHT].dest->index == track[end].reverse->index) {
+                flip_switch(track[start].num, 33);
+              }
+
+              if (track[start].edge[DIR_CURVED].dest->index == end ||
+                  track[start].edge[DIR_CURVED].dest->index == track[end].reverse->index) {
+                flip_switch(track[start].num, 34);
+              }
+            }
+          }
+
+        }
+        return 0;
       }
     } else {
       printf(2, "\033[A\033[2K\rLast command: ERROR\033[B");
