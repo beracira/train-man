@@ -40,20 +40,20 @@ void irq_disable_timer(void) {
 void irq_enable_uart1_receive(void) {
   volatile int * uart1_int_enable = (int *) (UART1_BASE + UART_CTLR_OFFSET);
   volatile int * uart2_int_enable = (int *) (UART2_BASE + UART_CTLR_OFFSET);
-  *uart1_int_enable &= ~TIEN_MASK;
-  *uart1_int_enable |= RIEN_MASK;
-  *uart1_int_enable |= MSIEN_MASK;
+  // *uart1_int_enable &= ~TIEN_MASK;
+  // *uart1_int_enable |= RIEN_MASK;
+  // *uart1_int_enable |= MSIEN_MASK;
 
-  int * mdmctl = (int *)( UART1_BASE + UART_MDMCTL_OFFSET); 
-  *mdmctl = (*mdmctl | 1);
+  // int * mdmctl = (int *)( UART1_BASE + UART_MDMCTL_OFFSET); 
+  // *mdmctl = (*mdmctl | 1);
 
   *uart2_int_enable &= ~TIEN_MASK;
   *uart2_int_enable |= RIEN_MASK;
   *uart2_int_enable |= MSIEN_MASK;
 
   volatile int * int_enable = (int *) (VIC1_BASE + VICxIntEnable);
-  *int_enable = *int_enable | (1 << 23);
-  *int_enable = *int_enable | (1 << 24);
+  // *int_enable = *int_enable | (1 << 23);
+  // *int_enable = *int_enable | (1 << 24);
   *int_enable = *int_enable | (1 << 25);
   *int_enable = *int_enable | (1 << 26);
   // int_enable = (int *) (VIC2_BASE + VICxIntEnable);

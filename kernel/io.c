@@ -109,7 +109,7 @@ inline void buffer_add(int uart, char c) {
   if (uart == TRAIN_SEND || uart == TERMINAL_SEND) {
     mask = TIEN_MASK;
     *uart_int_enable |= mask;
-    // if (uart == TRAIN_SEND) printf(2, "send %d\n\r", c);
+    // if ( )printf(2, "send %d\n\r", c);
   }
 
   if (uart == TRAIN_RECEIVE) {

@@ -14,7 +14,6 @@
 #include "train_client.h"
 #include "trackserver.h"
 #include "sensor_table.h"
-#include "bwio.h"
 
 #define THE_EVIL_GUY 100
 #define THE_OFFICER  200

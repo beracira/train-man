@@ -7,7 +7,8 @@
 #include "sensors.h"
 #include "td.h"
 #include "path_finding.h"
-// #include "../io/include/bwio.h"
+#include "../io/include/bwio.h"
+#include "../io/include/ts7200.h"
 
 int CR_TID = 0;
 int courier_ready = 0;
@@ -172,32 +173,42 @@ void courier_server(void) {
     // if (sensor_requested) {
     // }
     if (req.type != -1) {
-      if (req.type == CR_SET_SPEED) printf(1, "%c%c", req.arg2, req.arg1);
-      else if (req.type == CR_REVERSE_WAIT && train_list[req.arg1] != 0) {
-        printf(1, "%c%c", 0, req.arg1);
+      if (req.type == CR_SET_SPEED) {
+        bwprintf(0, "%c%c", req.arg2, req.arg1);
+        while (i++ < 50000) asm("");
+      } else if (req.type == CR_REVERSE_WAIT && train_list[req.arg1] != 0) {
+        bwprintf(0, "%c%c", 0, req.arg1);
         train_list[req.arg1] = 0;
         // Delay(3);
-      }
-      else if (req.type == CR_SWITCH) {
-        printf(1, "%c%c", req.arg2, req.arg1);
+      } else if (req.type == CR_SWITCH) {
+        bwprintf(0, "%c%c", req.arg2, req.arg1);
         // Delay(3);
         volatile int i;
         while (i++ < 50000) asm("");
-        Putc(1, 32);
+        bwprintf(0, "%c", 32);
+        // Putc(1, 32);
         // Delay(3);
       } else if (req.type == CR_SENSOR_REQUEST) {
         volatile struct task_descriptor * td = (struct task_descriptor *) TASK_DESCRIPTOR_START;
         volatile struct kernel_stack * ks = (struct kernel_stack *) KERNEL_STACK_START;
-        int cur_time = time_ticks;
+        int start_time = time_ticks;
         td[SENSOR_TID].state = SENSOR_BLOCKED_2;
-        Putc(1, 128 + 5);
+        bwprintf(0, "%c", 128 + 5);
+        // Putc(1, 128 + 5);
         volatile int i;
-        while (i++ < 50000) asm("");
+        while (i++ < 80000) asm("");
         // Delay(3);
         while (sensor_len < 10) {
-          char c = Getc(1);
-          sensors[sensor_len++] = c;
-          if (time_ticks - cur_time >= 10) break;
+          volatile int *flags, *data;
+          unsigned char c;
+          flags = (int *)( UART1_BASE + UART_FLAG_OFFSET );
+          data = (int *)( UART1_BASE + UART_DATA_OFFSET );
+          if ( ( *flags & RXFF_MASK ) ) {
+            c = *data;
+            sensors[sensor_len++] = c;
+          }
+          // char c = bwgetc(0);
+          if (time_ticks - start_time >= 10) break;
         }
         if (SENSOR_TID != -1 && td[SENSOR_TID].state == SENSOR_BLOCKED_2) td[SENSOR_TID].state = READY;
       }
